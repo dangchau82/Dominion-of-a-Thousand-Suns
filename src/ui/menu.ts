@@ -49,7 +49,7 @@ function showSetup(root: HTMLElement, start: (g: GameState) => void): void {
   inner.className = "inner";
   page.append(inner);
 
-  const maxRivals: Record<GalaxySize, number> = { small: 3, medium: 5, large: 8, huge: 12 };
+  const maxRivals: Record<GalaxySize, number> = { small: 4, medium: 7, large: 11, huge: 17 };
 
   const draw = () => {
     const r = RACES.find((x) => x.id === opts.raceId)!;
