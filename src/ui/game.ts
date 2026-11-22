@@ -50,7 +50,7 @@ export class GameScreen {
     this.map.onTapEmpty = () => { if (!this.moving) this.select(null); };
     setImageLoadedHandler(() => this.map.draw());
     const home = state.stars[state.empires[PLAYER]!.capitalStarId]!;
-    this.map.centerOn(home.x, home.y, Math.min(60, Math.max(28, Math.min(window.innerWidth, window.innerHeight) / 16)));
+    this.map.centerOn(home.x, home.y, Math.min(46, Math.max(26, Math.min(window.innerWidth, window.innerHeight) / 22)));
     this.refresh();
     if (state.turn === 1) this.showWelcome();
   }
@@ -203,7 +203,7 @@ export class GameScreen {
       head.innerHTML = `<img src="${art.planet(pl.climate)}" alt="">
         <div><h2>${esc(s.name)}</h2>
         <div class="chips"><span class="chip">${CLIMATES[pl.climate].name}</span><span class="chip">Size ${pl.size + pl.terraform}</span>
-        <span class="chip">${MINERAL_NAMES[pl.minerals]} minerals</span><span class="chip ${env === "hostile" ? "bad" : env === "normal" ? "" : "good"}">${env}</span></div>
+        <span class="chip">${MINERAL_NAMES[pl.minerals]} minerals</span><span class="chip ${env === "hostile" ? "bad" : env === "normal" ? "" : "good"}">Habitability: ${env}</span></div>
         <div class="dim">${owner ? `Owner: ${esc(owner)}${k.population !== null && k.ownerId !== PLAYER ? ` · pop ${k.population}` : ""}` :
           canSettle ? '<span class="good">You can settle here</span>' : '<span class="bad">Need more Planetology to settle</span>'}
           ${k.lastSeen < v.turn && k.ownerId !== PLAYER ? ` · seen turn ${k.lastSeen}` : ""}</div></div>`;
@@ -280,10 +280,12 @@ export class GameScreen {
   private fleetsBlock(starId: Id): HTMLElement {
     const v = this.view;
     const wrap = el("div", {});
-    const here = v.fleets.filter((f) => f.starId === starId);
+    const here = v.fleets.filter((f) => f.starId === starId && f.destStarId === null);
+    const leaving = v.fleets.filter((f) => f.starId === starId && f.destStarId !== null);
     const incoming = v.fleets.filter((f) => f.destStarId === starId);
-    if (!here.length && !incoming.length) return wrap;
+    if (!here.length && !leaving.length && !incoming.length) return wrap;
     wrap.className = "section";
+    if (here.length) wrap.append(el("div", { class: "dim" }, "Here:"));
     for (const f of here) {
       const box = el("div", { class: "fleet" });
       const desc = Object.entries(f.ships).filter(([, n]) => n > 0).map(([t, n]) => `${n} ${template(t).name}${n > 1 ? "s" : ""}`).join(", ");
@@ -306,9 +308,24 @@ export class GameScreen {
       }
       wrap.append(box);
     }
+    const shipList = (f: Fleet) => Object.entries(f.ships).filter(([, n]) => n > 0)
+      .map(([t, n]) => `${n} ${template(t).name}${n > 1 ? "s" : ""}`).join(", ");
+    const when = (t: number) => (t <= 1 ? "arrives next turn" : `arrives in ${t} turns`);
+    if (leaving.length) wrap.append(el("div", { class: "dim", style: "margin-top:8px" }, "Leaving (they depart when you end the turn):"));
+    for (const f of leaving) {
+      const dest = v.stars[f.destStarId!]!;
+      const box = el("div", { class: "fleet" });
+      box.innerHTML = `<img src="${art.ship(v.me.raceId, 1)}" alt=""><div class="fl-text">${esc(shipList(f))} → <b>${esc(dest.name)}</b><br><span class="dim">${when(v.turnsTo(f, dest.id))}</span></div>`;
+      const cancel = el("button", { class: "small" }, "Cancel order");
+      cancel.onclick = () => { this.cmd({ type: "moveFleet", fleetId: f.id, destStarId: starId }); this.refreshKeepScroll(); };
+      box.append(cancel);
+      wrap.append(box);
+    }
+    if (incoming.length) wrap.append(el("div", { class: "dim", style: "margin-top:8px" }, "On the way here:"));
     for (const f of incoming) {
-      const n = Object.values(f.ships).reduce((a, b) => a + b, 0);
-      wrap.append(el("div", { class: "dim" }, `${n} ship(s) arriving in ${v.turnsTo(f, starId)} turn(s)`));
+      const box = el("div", { class: "fleet" });
+      box.innerHTML = `<img src="${art.ship(v.me.raceId, 1)}" alt=""><div class="fl-text">${esc(shipList(f))}<br><span class="dim">${when(v.turnsTo(f, starId))}</span></div>`;
+      wrap.append(box);
     }
     return wrap;
   }

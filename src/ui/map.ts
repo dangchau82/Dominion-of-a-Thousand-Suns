@@ -259,7 +259,7 @@ export class StarMap {
     }
 
     // Fleets.
-    const shipSize = Math.max(14, Math.min(34, this.scale * 0.55));
+    const shipSize = Math.max(20, Math.min(44, this.scale * 0.75));
     const drawShip = (raceId: string | null, color: string, x: number, y: number, count: number) => {
       ctx.save();
       ctx.shadowColor = color;
@@ -279,8 +279,18 @@ export class StarMap {
       }
     };
     for (const f of v.fleets) {
-      const [x, y] = this.toScreen(f.x, f.y);
       const n = Object.values(f.ships).reduce((a, b) => a + b, 0);
+      if (f.starId !== null && f.destStarId !== null) {
+        // Ordered to leave: draw it a little way along its route so the order is visible.
+        const d = v.stars[f.destStarId]!;
+        const [x1, y1] = this.toScreen(f.x, f.y);
+        const [x2, y2] = this.toScreen(d.x, d.y);
+        const len = Math.hypot(x2 - x1, y2 - y1) || 1;
+        const step = Math.min(len * 0.4, shipSize * 1.4);
+        drawShip(me.raceId, me.color, x1 + ((x2 - x1) / len) * step, y1 + ((y2 - y1) / len) * step, n);
+        continue;
+      }
+      const [x, y] = this.toScreen(f.x, f.y);
       const off = f.starId !== null ? shipSize * 0.75 : 0;
       drawShip(me.raceId, me.color, x - off, y - off * 0.6, n);
     }
