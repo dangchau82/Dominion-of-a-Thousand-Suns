@@ -8,6 +8,7 @@ import {
   type Command, type EmpireView, type GameState,
 } from "../engine";
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
+import { applyCheat, type Cheat } from "../engine/cheats";
 import { fleetExtraRange } from "../engine/movement";
 import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
 import { art, setImageLoadedHandler } from "./assets";
@@ -495,10 +496,37 @@ export class GameScreen {
       help.onclick = () => { close(); this.showWelcome(); };
       const quit = el("button", {}, "Main menu");
       quit.onclick = () => { close(); this.map.destroy(); this.onQuit(); };
+      const cheats = el("button", {}, "🛠️ Cheat menu");
+      cheats.onclick = () => { close(); this.showCheats(); };
       const back = el("button", { class: "primary" }, "Back to game");
       back.onclick = close;
-      row.append(back, help, exp, imp, quit);
+      row.append(back, help, exp, imp, cheats, quit);
       box.append(row);
+    });
+  }
+
+  private showCheats(): void {
+    this.modal((box, close) => {
+      box.innerHTML = `<h2>🛠️ Cheat menu</h2><p class="dim">Only you can use these. The AI never cheats. Using one marks this game as cheated.</p>`;
+      const list: [string, Cheat][] = [
+        ["+1,000 BC", { kind: "money", amount: 1000 }],
+        ["+1 level in every research field", { kind: "research", levels: 1 }],
+        ["+5 levels in every research field", { kind: "research", levels: 5 }],
+        ["Reveal the whole galaxy", { kind: "revealMap" }],
+        ["+3 colony ships at capital", { kind: "ships", templateId: "colony", count: 3 }],
+        ["+3 scouts at capital", { kind: "ships", templateId: "scout", count: 3 }],
+        ["Fill every colony to max population", { kind: "growColonies" }],
+      ];
+      const col = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
+      for (const [label, cheat] of list) {
+        const b = el("button", {}, label);
+        b.onclick = () => { this.toast(applyCheat(this.state, PLAYER, cheat)); autosave(this.state); this.refresh(); };
+        col.append(b);
+      }
+      const done = el("button", { class: "primary" }, "Done");
+      done.onclick = close;
+      col.append(done);
+      box.append(col);
     });
   }
 

@@ -144,6 +144,8 @@ export interface GameState {
   nextFleetId: Id;
   /** Events from the most recent turn. */
   events: GameEvent[];
+  /** Set once the player uses the cheat menu; shown in the save list. */
+  cheated?: boolean;
 }
 
 export const SAVE_VERSION = 1;
