@@ -1,0 +1,20 @@
+{
+  "name": "dominion-of-a-thousand-suns",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turn-based space 4X strategy game for phone and PC",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "selfplay": "vitest run tests/selfplay.test.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
+}
