@@ -147,3 +147,17 @@ describe("saves", () => {
     expect(() => deserialize("{}")).toThrow();
   });
 });
+
+describe("cheats", () => {
+  it("sleeping rivals give no orders, and only the player can cheat", async () => {
+    const { applyCheat } = await import("../src/engine/cheats");
+    const { runAITurns } = await import("../src/ai");
+    const g = newGame(settings());
+    expect(applyCheat(g, 1, { kind: "money", amount: 5 })).toMatch(/player only/);
+    applyCheat(g, 0, { kind: "sleepRivals", turns: 5 });
+    const before = JSON.stringify(g.fleets.filter((f) => f.empireId !== 0));
+    runAITurns(g);
+    expect(JSON.stringify(g.fleets.filter((f) => f.empireId !== 0))).toBe(before);
+    expect(g.cheated).toBe(true);
+  });
+});

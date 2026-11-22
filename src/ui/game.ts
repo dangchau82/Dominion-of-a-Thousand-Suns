@@ -507,7 +507,9 @@ export class GameScreen {
 
   private showCheats(): void {
     this.modal((box, close) => {
-      box.innerHTML = `<h2>🛠️ Cheat menu</h2><p class="dim">Only you can use these. The AI never cheats. Using one marks this game as cheated.</p>`;
+      const sleepUntil = this.state.cheats?.rivalsAsleepUntil ?? 0;
+      box.innerHTML = `<h2>🛠️ Cheat menu</h2><p class="dim">Only you can use these. The AI never cheats. Using one marks this game as cheated.</p>
+        ${sleepUntil > this.state.turn ? `<p class="gold-text">Rivals asleep until turn ${sleepUntil}.</p>` : ""}`;
       const list: [string, Cheat][] = [
         ["+1,000 BC", { kind: "money", amount: 1000 }],
         ["+1 level in every research field", { kind: "research", levels: 1 }],
@@ -516,11 +518,19 @@ export class GameScreen {
         ["+3 colony ships at capital", { kind: "ships", templateId: "colony", count: 3 }],
         ["+3 scouts at capital", { kind: "ships", templateId: "scout", count: 3 }],
         ["Fill every colony to max population", { kind: "growColonies" }],
+        ["😴 Put rivals to sleep for 20 turns", { kind: "sleepRivals", turns: 20 }],
+        ["⏰ Wake rivals up", { kind: "wakeRivals" }],
+        [this.state.cheats?.godMode ? "🛡️ God mode: ON (tap to turn off)" : "🛡️ God mode: off (tap to turn on)", { kind: "godMode", on: !this.state.cheats?.godMode }],
       ];
       const col = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       for (const [label, cheat] of list) {
         const b = el("button", {}, label);
-        b.onclick = () => { this.toast(applyCheat(this.state, PLAYER, cheat)); autosave(this.state); this.refresh(); };
+        b.onclick = () => {
+          this.toast(applyCheat(this.state, PLAYER, cheat));
+          autosave(this.state);
+          this.refresh();
+          if (cheat.kind === "godMode") { close(); this.showCheats(); }
+        };
         col.append(b);
       }
       const done = el("button", { class: "primary" }, "Done");

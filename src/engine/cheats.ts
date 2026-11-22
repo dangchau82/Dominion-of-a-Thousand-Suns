@@ -9,7 +9,10 @@ export type Cheat =
   | { kind: "research"; levels: number }
   | { kind: "revealMap" }
   | { kind: "ships"; templateId: string; count: number }
-  | { kind: "growColonies" };
+  | { kind: "growColonies" }
+  | { kind: "sleepRivals"; turns: number }
+  | { kind: "wakeRivals" }
+  | { kind: "godMode"; on: boolean };
 
 export function applyCheat(state: GameState, empireId: Id, cheat: Cheat): string {
   const e = state.empires[empireId];
@@ -33,6 +36,15 @@ export function applyCheat(state: GameState, empireId: Id, cheat: Cheat): string
       });
       return `${cheat.count} ship(s) appeared at your capital`;
     }
+    case "sleepRivals":
+      state.cheats = { ...state.cheats, rivalsAsleepUntil: state.turn + cheat.turns };
+      return `Rivals are asleep for ${cheat.turns} turns`;
+    case "wakeRivals":
+      state.cheats = { ...state.cheats, rivalsAsleepUntil: undefined };
+      return "Rivals are awake again";
+    case "godMode":
+      state.cheats = { ...state.cheats, godMode: cheat.on };
+      return cheat.on ? "God mode on (protects you once combat arrives)" : "God mode off";
     case "growColonies":
       for (const c of Object.values(state.colonies)) {
         if (c.empireId !== empireId) continue;

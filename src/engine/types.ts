@@ -146,6 +146,13 @@ export interface GameState {
   events: GameEvent[];
   /** Set once the player uses the cheat menu; shown in the save list. */
   cheated?: boolean;
+  /** Player cheat switches. */
+  cheats?: {
+    /** AI empires give no orders until this turn (their worlds still grow). */
+    rivalsAsleepUntil?: number;
+    /** Player's ships and planets can't be destroyed (takes effect when combat arrives). */
+    godMode?: boolean;
+  };
 }
 
 export const SAVE_VERSION = 1;
