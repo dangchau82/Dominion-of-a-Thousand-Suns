@@ -127,10 +127,12 @@ export function bridgeStars(rng: RngState, stars: Star[]): void {
   const pts: Point[] = stars.map((s) => ({ x: s.x, y: s.y }));
   const before = pts.length;
   connectStars(pts);
+  const used = new Set(stars.map((s) => s.name));
+  const spare = R.shuffle(rng, STAR_NAMES.filter((n) => !used.has(n)));
   for (let i = before; i < pts.length; i++) {
     const pt = pts[i]!;
     const star: Star = {
-      id: stars.length, name: `${R.pick(rng, STAR_NAMES)} ${stars.length}`, x: pt.x, y: pt.y,
+      id: stars.length, name: spare.pop() ?? `${R.pick(rng, STAR_NAMES)} Minor`, x: pt.x, y: pt.y,
       color: STAR_ORDER[R.pickCumulative(rng, STAR_ODDS)] ?? "red", planet: null, nebula: false,
     };
     star.planet = rollPlanet(rng, star);

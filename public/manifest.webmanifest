@@ -1,0 +1,12 @@
+{
+  "name": "Dominion of a Thousand Suns",
+  "short_name": "Thousand Suns",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070d",
+  "theme_color": "#05070d",
+  "icons": [
+    { "src": "art/races/race-vossari.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}
