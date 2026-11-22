@@ -9,11 +9,25 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-def split(path, race, rotate=0, expected=5, thresh=22):
+def count_shapes(im, thresh, grow=8):
+    lum = np.asarray(im.convert("L")) > thresh
+    n = ndimage.label(ndimage.binary_dilation(lum, iterations=grow))[1]
+    return n
+
+def best_thresh(im, expected, grow=8):
+    """Background darkness varies per sheet; pick the cutoff that finds the ships."""
+    for t in (22, 30, 15, 40, 10, 50):
+        if count_shapes(im, t, grow) == expected:
+            return t
+    return min((22, 30, 15, 40, 10, 50), key=lambda t: abs(count_shapes(im, t, grow) - expected))
+
+def split(path, race, rotate=0, expected=5, thresh=None, grow=8):
     im = Image.open(path).convert("RGB")
+    if thresh is None:
+        thresh = best_thresh(im, expected, grow)
     lum = np.asarray(im.convert("L")) > thresh
     # Join each ship's loose parts (engine glow, fins) before labelling.
-    joined = ndimage.binary_dilation(lum, iterations=8)
+    joined = ndimage.binary_dilation(lum, iterations=grow)
     labels, n = ndimage.label(joined)
     boxes = ndimage.find_objects(labels)
     sizes = ndimage.sum(lum, labels, range(1, n + 1))
