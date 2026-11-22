@@ -50,7 +50,12 @@ def split(path, race, rotate=0, expected=5, thresh=None, grow=8):
         side = int(max(p.size) * 1.1)
         sq = Image.new("RGB", (side, side), (0, 0, 0))
         sq.paste(p, ((side - p.size[0]) // 2, (side - p.size[1]) // 2))
-        sq.save(f"public/art/ships/{race}-{k}.png")
+        a = np.asarray(sq).astype(float)
+        lum = a.max(axis=2)
+        alpha = np.clip((lum - 8) / 32, 0, 1)  # see-through background, soft edges
+        inside = ndimage.binary_fill_holes(ndimage.binary_closing(lum > 40, iterations=3))
+        alpha = np.maximum(alpha, inside.astype(float))
+        Image.fromarray(np.dstack([a, alpha * 255]).astype("uint8"), "RGBA").save(f"public/art/ships/{race}-{k}.png")
     print(race, len(keep), "ships found out of", n, "shapes")
 
 if __name__ == "__main__":
