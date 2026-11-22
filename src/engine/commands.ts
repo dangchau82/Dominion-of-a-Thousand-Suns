@@ -1,6 +1,7 @@
 // Every action a player OR an AI can take goes through applyCommand.
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
+import { researchChoices } from "./tech";
 import { template } from "./data/ships";
 import { canColonize } from "./formulas";
 import { empire, empireRace, newColony, shipCount, star } from "./game";
@@ -17,6 +18,7 @@ export type Command =
   | { type: "lockSlider"; starId: Id; slider: Slider; locked: boolean }
   | { type: "setBuild"; starId: Id; templateId: string | null }
   | { type: "setResearch"; alloc: Record<ResearchField, number> }
+  | { type: "setResearchProject"; field: ResearchField; techId: string }
   | { type: "moveFleet"; fleetId: Id; destStarId: Id; ships?: Record<string, number> }
   | { type: "colonize"; fleetId: Id };
 
@@ -106,6 +108,11 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     }
     case "setResearch": {
       e.research.alloc = normalizeTo100(cmd.alloc, FIELDS);
+      return { ok: true };
+    }
+    case "setResearchProject": {
+      if (!researchChoices(e.research, cmd.field).some((t) => t.id === cmd.techId)) return fail("Can't research that yet");
+      e.research.current[cmd.field] = cmd.techId;
       return { ok: true };
     }
     case "moveFleet": {

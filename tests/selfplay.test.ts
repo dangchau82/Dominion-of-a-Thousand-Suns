@@ -22,7 +22,7 @@ function checkInvariants(g: GameState): void {
     const s = g.stars[c.starId]!;
     expect(s.planet).not.toBeNull();
     expect(Number.isFinite(c.population)).toBe(true);
-    expect(c.population).toBeLessThanOrEqual(planetCapacity(s.planet!) + 1e-6);
+    expect(c.population).toBeLessThanOrEqual(planetCapacity(s.planet!, g.empires[c.empireId]) + 1e-6);
     expect(c.factories).toBeGreaterThanOrEqual(0);
     expect(SLIDERS.reduce((a, k) => a + c.sliders[k], 0)).toBe(100);
   }
@@ -42,7 +42,7 @@ describe("self-play", () => {
     for (const n of explored) expect(n).toBeGreaterThanOrEqual(8);
     // Report for the build log.
     console.log("colonies per empire after 200 turns:", counts.join(", "));
-    console.log("research levels (empire 0):", JSON.stringify(g.empires[0]!.research.level));
+    console.log("research (empire 0):", g.empires[0]!.research.known.length + " techs known");
   });
 
   it("same seed, same game", () => {

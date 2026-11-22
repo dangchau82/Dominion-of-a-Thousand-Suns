@@ -10,6 +10,8 @@ import {
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
 import { applyCheat, type Cheat } from "../engine/cheats";
 import { fleetExtraRange } from "../engine/movement";
+import { researchChoices, tech, techCost } from "../engine/tech";
+import { TECHS } from "../engine/data/techs";
 import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
 import { art, setImageLoadedHandler } from "./assets";
 import { StarMap } from "./map";
@@ -222,7 +224,7 @@ export class GameScreen {
     const s = this.state.stars[starId]!;
     const b = c.budget;
     const wrap = el("div", { class: "section" });
-    const growth = s.planet ? popGrowth(c.population, s.planet, v.race) : 0;
+    const growth = s.planet ? popGrowth(c.population, s.planet, v.race, v.me) : 0;
     wrap.innerHTML = `<div class="chips"><span class="chip">👥 ${fmt(c.population)} / ${c.capacity}</span>
       <span class="chip">🏭 ${fmt(c.factories, 0)} / ${fmt(c.maxFactories, 0)} factories</span>
       <span class="chip">⚙️ ${fmt(b.production)} BC/turn</span>${c.missileBases ? `<span class="chip">🛡️ ${c.missileBases} bases</span>` : ""}</div>`;
@@ -385,28 +387,67 @@ export class GameScreen {
     });
   }
 
+  private researchOpen = new Set<ResearchField>();
+
   private showResearch(): void {
     this.modal((box, close) => {
       const draw = () => {
         const v = makeView(this.state, PLAYER);
-        const rp = v.colonies.reduce((a, c) => a + c.budget.research, 0);
-        box.innerHTML = `<h2>Research</h2><p class="dim">${fmt(rp)} research points per turn, split between six fields. Raise Research sliders on your colonies to get more.</p>`;
+        const rs = v.me.research;
+        const rp = v.colonies.reduce((a, c) => a + c.budget.research, 0) * (1 + v.stats.researchBonus);
+        box.innerHTML = `<h2>Research</h2><p class="dim">${fmt(rp)} research points per turn${v.stats.researchBonus > 0 ? ` (incl. +${Math.round(v.stats.researchBonus * 100)}% from techs)` : ""}, split between six fields. Raise Research sliders on your colonies to get more.</p>
+          <p class="dim">Ships: speed ${fmt(v.stats.speed)} ly/turn, range ${fmt(v.stats.fuelRange)} ly · Settle hostility up to ${v.stats.maxHostility} · ${fmt(v.stats.robotControls)} factories per person · Terraforming +${v.stats.terraform}</p>`;
         for (const f of FIELDS) {
-          const lvl = v.me.research.level[f];
-          const cost = v.stats.nextResearchCost[f];
-          const prog = v.me.research.progress[f];
-          const per = (rp * v.me.research.alloc[f]) / 100;
-          const turns = per > 0 ? Math.ceil((cost - prog) / per) : null;
-          const row = el("div", {});
-          row.innerHTML = `<div class="field-row"><div><b>${FIELD_NAMES[f]}</b> level ${lvl} <span class="dim">· ${v.me.research.alloc[f]}% · ${turns === null ? "paused" : `next in ${turns} turn(s)`}</span>
-            <div class="bar"><i style="width:${Math.min(100, (prog / cost) * 100)}%"></i></div></div></div>`;
-          const input = el("input", { type: "range", min: "0", max: "100", value: String(v.me.research.alloc[f]), style: "width:100%;accent-color:#6fb6ff" });
+          const proj = v.stats.projects[f];
+          const prog = rs.progress[f];
+          const per = (rp * rs.alloc[f]) / 100;
+          const card = el("div", { class: "tech-card" });
+          let status = `<span class="dim">Nothing left to research here.</span>`;
+          if (proj) {
+            const t = tech(proj.techId);
+            const turns = per > 0 ? Math.max(1, Math.ceil((proj.cost - prog) / per - 1e-9)) : null;
+            status = `Researching <b>${t.name}</b> <span class="dim">(tier ${t.tier}) · ${fmt(prog)}/${fmt(proj.cost)} · ${turns === null ? "paused" : `${turns} turn${turns > 1 ? "s" : ""}`}</span>
+              <div class="bar"><i style="width:${Math.min(100, (prog / proj.cost) * 100)}%"></i></div>`;
+          }
+          card.innerHTML = `<div><b>${FIELD_NAMES[f]}</b> <span class="dim">· ${rs.alloc[f]}% of research</span></div><div>${status}</div>`;
+          const input = el("input", { type: "range", min: "0", max: "100", value: String(rs.alloc[f]), style: "width:100%;accent-color:#6fb6ff" });
           input.oninput = () => this.setResearch(f, Number(input.value));
           input.onchange = () => draw();
-          row.append(input);
-          box.append(row);
+          card.append(input);
+
+          const choices = researchChoices(rs, f);
+          if (choices.length > 1) {
+            const sel = el("select", { class: "tech-select" });
+            for (const c of choices) {
+              const o = el("option", { value: c.id }, `${c.name} (tier ${c.tier}, ${fmt(techCost(c, v.race))} RP)`);
+              if (c.id === proj?.techId) o.selected = true;
+              sel.append(o);
+            }
+            sel.onchange = () => { this.cmd({ type: "setResearchProject", field: f, techId: sel.value }); draw(); };
+            const lab = el("label", { class: "dim" }, "Choose next: ");
+            lab.append(sel);
+            card.append(lab);
+          }
+
+          const toggle = el("button", { class: "small" }, this.researchOpen.has(f) ? "Hide tree ▴" : "Show tree ▾");
+          toggle.onclick = () => { if (this.researchOpen.has(f)) this.researchOpen.delete(f); else this.researchOpen.add(f); draw(); };
+          card.append(toggle);
+          if (this.researchOpen.has(f)) {
+            const list = el("div", { class: "tech-list" });
+            for (const t of TECHS.filter((x) => x.field === f)) {
+              const known = rs.known.includes(t.id);
+              const inTree = known || rs.available.includes(t.id);
+              const mark = known ? "✓" : t.id === proj?.techId ? "▶" : inTree ? "·" : "✗";
+              const d = el("details", { class: known ? "known" : inTree ? "" : "missing" });
+              d.innerHTML = `<summary>${mark} <b>${t.name}</b> <span class="dim">tier ${t.tier}${known ? "" : inTree ? ` · ${fmt(techCost(t, v.race))} RP` : " · not in your tree (trade or steal it later)"}</span></summary>
+                <div>${t.description}</div><div class="quote">${t.quote}</div>`;
+              list.append(d);
+            }
+            card.append(list);
+          }
+          box.append(card);
         }
-        box.append(el("p", { class: "dim" }, "Planetology: settle harsher worlds, more output per person. Propulsion: fuel range and speed. Construction: cheaper factories, more per person. Computers: scanner range. Weapons and Force Fields matter once combat arrives."));
+        box.append(el("p", { class: "dim" }, "Each empire's tree is missing some techs at random (✗). The Vossari see the whole tree. Weapons and Force Fields matter once combat arrives."));
         const rowB = el("div", { class: "row" });
         const ok = el("button", { class: "primary" }, "Done");
         ok.onclick = () => { close(); this.refresh(); };
@@ -512,8 +553,8 @@ export class GameScreen {
         ${sleepUntil > this.state.turn ? `<p class="gold-text">Rivals asleep until turn ${sleepUntil}.</p>` : ""}`;
       const list: [string, Cheat][] = [
         ["+1,000 BC", { kind: "money", amount: 1000 }],
-        ["+1 level in every research field", { kind: "research", levels: 1 }],
-        ["+5 levels in every research field", { kind: "research", levels: 5 }],
+        ["Learn the next tech in every field", { kind: "research", techs: 1 }],
+        ["Learn the next 5 techs in every field", { kind: "research", techs: 5 }],
         ["Reveal the whole galaxy", { kind: "revealMap" }],
         ["+3 colony ships at capital", { kind: "ships", templateId: "colony", count: 3 }],
         ["+3 scouts at capital", { kind: "ships", templateId: "scout", count: 3 }],

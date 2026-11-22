@@ -2,11 +2,12 @@
 // calls them. Using any cheat marks the game as cheated.
 
 import { exploreStar } from "./knowledge";
+import { ensureProject, learn } from "./tech";
 import { FIELDS, type GameState, type Id } from "./types";
 
 export type Cheat =
   | { kind: "money"; amount: number }
-  | { kind: "research"; levels: number }
+  | { kind: "research"; techs: number }
   | { kind: "revealMap" }
   | { kind: "ships"; templateId: string; count: number }
   | { kind: "growColonies" }
@@ -22,9 +23,20 @@ export function applyCheat(state: GameState, empireId: Id, cheat: Cheat): string
     case "money":
       e.treasury += cheat.amount;
       return `+${cheat.amount} BC added`;
-    case "research":
-      for (const f of FIELDS) e.research.level[f] += cheat.levels;
-      return `Every research field +${cheat.levels} level`;
+    case "research": {
+      let n = 0;
+      for (const f of FIELDS) {
+        for (let i = 0; i < cheat.techs; i++) {
+          const id = ensureProject(e.research, f);
+          if (!id) break;
+          learn(e.research, id);
+          e.research.current[f] = null;
+          ensureProject(e.research, f);
+          n++;
+        }
+      }
+      return `Learned ${n} techs`;
+    }
     case "revealMap":
       for (const s of state.stars) exploreStar(state, e, s, false);
       return "Whole galaxy revealed";

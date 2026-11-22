@@ -1,9 +1,10 @@
 // End-of-turn processing. Same order for every empire, player or AI.
 
+import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST, template } from "./data/ships";
 import {
   colonyProduction, factoryCost, FIELD_NAMES, maxUsableFactories, planetCapacity,
-  popGrowth, POP_COST, researchCost,
+  popCost, popGrowth,
 } from "./formulas";
 import { empireRace } from "./game";
 import { updateVision } from "./knowledge";
@@ -78,7 +79,7 @@ function processColony(state: GameState, c: Colony): number {
     const built = Math.min(room, b.industry / cost);
     c.factories += built;
     leftover += b.industry - built * cost;
-    const fullPlanetMax = planetCapacity(s.planet) * (maxUsableFactories(c, e) / Math.max(c.population, 1e-9));
+    const fullPlanetMax = planetCapacity(s.planet, e) * (maxUsableFactories(c, e) / Math.max(c.population, 1e-9));
     if (built >= room - 1e-9 && c.factories >= fullPlanetMax - 1e-6) {
       event(state, { empireId: e.id, kind: "factoriesDone", text: `${s.name} has all the factories its people can run.`, starId: s.id });
     }
@@ -87,13 +88,14 @@ function processColony(state: GameState, c: Colony): number {
   }
 
   // Ecology: natural growth, then buy extra population with ecology spending.
-  const cap = planetCapacity(s.planet);
+  const cap = planetCapacity(s.planet, e);
   const wasFull = c.population >= cap - 1e-9;
-  c.population += popGrowth(c.population, s.planet, r);
+  c.population += popGrowth(c.population, s.planet, r, e);
   const space = Math.max(0, cap - c.population);
-  const bought = Math.min(space, b.ecology / POP_COST);
+  const pc = popCost(e);
+  const bought = Math.min(space, b.ecology / pc);
   c.population = Math.min(cap, c.population + bought);
-  leftover += b.ecology - bought * POP_COST;
+  leftover += b.ecology - bought * pc;
   if (!wasFull && c.population >= cap - 1e-9) {
     event(state, { empireId: e.id, kind: "popMaxed", text: `${s.name} has reached full population.`, starId: s.id });
   }
@@ -104,14 +106,21 @@ function processColony(state: GameState, c: Colony): number {
 
 function processResearch(state: GameState, e: Empire, points: number): void {
   const r = empireRace(e);
+  const rs = e.research;
+  points *= 1 + techStats(e).research;
   for (const f of FIELDS) {
-    e.research.progress[f] += (points * e.research.alloc[f]) / 100;
-    let cost = researchCost(e.research.level[f] + 1, r);
-    while (e.research.progress[f] >= cost) {
-      e.research.progress[f] -= cost;
-      e.research.level[f]++;
-      event(state, { empireId: e.id, kind: "research", text: `${FIELD_NAMES[f]} advanced to level ${e.research.level[f]}.` });
-      cost = researchCost(e.research.level[f] + 1, r);
+    rs.progress[f] += (points * rs.alloc[f]) / 100;
+    for (;;) {
+      const id = ensureProject(rs, f);
+      if (!id) break;
+      const t = tech(id);
+      const cost = techCost(t, r);
+      if (rs.progress[f] < cost) break;
+      rs.progress[f] -= cost;
+      learn(rs, id);
+      const nextId = ensureProject(rs, f);
+      const next = nextId ? ` Now researching ${tech(nextId).name}.` : ` ${FIELD_NAMES[f]} has nothing left to research.`;
+      event(state, { empireId: e.id, kind: "research", text: `Discovered ${t.name}: ${t.description}${next}` });
     }
   }
 }

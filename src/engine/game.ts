@@ -5,6 +5,7 @@ import { STARTING_FLEET } from "./data/ships";
 import { bridgeStars, generateStars, pickHomeStars, prepareHome } from "./galaxy";
 import { exploreStar } from "./knowledge";
 import * as R from "./rng";
+import { newResearchState } from "./tech";
 import {
   FIELDS, SAVE_VERSION,
   type Colony, type Empire, type Fleet, type GameSettings, type GameState, type Id,
@@ -23,10 +24,6 @@ export function newColony(starId: Id, empireId: Id, population: number, turn: nu
     shipProgress: 0, defenseProgress: 0, missileBases: 0,
     foundedTurn: turn, isCapital,
   };
-}
-
-function fieldRecord(v: number): Record<ResearchField, number> {
-  return Object.fromEntries(FIELDS.map((f) => [f, v])) as Record<ResearchField, number>;
 }
 
 export function newGame(settings: GameSettings): GameState {
@@ -55,11 +52,7 @@ export function newGame(settings: GameSettings): GameState {
       alive: true,
       capitalStarId: home.id,
       treasury: 0,
-      research: {
-        alloc: { computers: 15, construction: 20, forceFields: 10, planetology: 25, propulsion: 20, weapons: 10 },
-        progress: fieldRecord(0),
-        level: fieldRecord(1),
-      },
+      research: newResearchState(rng, r),
       knowledge: {},
       contacts: [],
     };

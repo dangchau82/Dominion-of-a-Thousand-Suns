@@ -4,12 +4,14 @@
 
 import { CLIMATES, HOSTILE_FROM, MINERAL_MOD } from "./data/planets";
 import type { Race } from "./data/races";
+import { techStats } from "./tech";
 import type { Climate, Colony, Empire, Environment, Planet, ResearchField } from "./types";
 
 // ---------- Planets ----------
 
-export function planetCapacity(p: Planet): number {
-  return p.size + p.terraform;
+/** Population a planet holds; an owner's terraforming techs add to every planet they own. */
+export function planetCapacity(p: Planet, owner?: Empire): number {
+  return p.size + p.terraform + (owner ? techStats(owner).terraform : 0);
 }
 
 /** A race's own home climate is never hostile to it. */
@@ -40,32 +42,34 @@ export function environmentGrowthMod(env: Environment): number {
  * rate = (1 - pop/size) / 10, scaled by race and environment; at least 0.1.
  * Adapted from Remnants of the Precursors (GPL-3.0).
  */
-export function popGrowth(pop: number, planet: Planet, race: Race): number {
-  const size = planetCapacity(planet);
+export function popGrowth(pop: number, planet: Planet, race: Race, owner?: Empire): number {
+  const size = planetCapacity(planet, owner);
   const room = size - pop;
   if (room <= 0) return 0;
-  let rate = Math.max(0, (1 - pop / size) / 10) * race.growth;
+  let rate = Math.max(0, (1 - pop / size) / 10) * race.growth * (1 + (owner ? techStats(owner).growth : 0));
   if (!race.ignoresEnvironment) rate *= environmentGrowthMod(environmentFor(planet, race));
   return Math.min(room, Math.max(0.1, pop * rate));
 }
 
-/** BC to buy one unit of population through the ecology slider. */
+/** BC to buy one unit of population through the ecology slider (cloning techs lower it). */
 export const POP_COST = 20;
+export function popCost(e: Empire): number {
+  return Math.max(5, POP_COST + techStats(e).popCost);
+}
 
 // ---------- Production ----------
 
 /**
- * BC per population unit. Base 0.5, +0.03 per Planetology level.
+ * BC per population unit. Base 0.5, plus productivity techs.
  * Adapted from Remnants of the Precursors (GPL-3.0) ("book formula").
  */
 export function workerProductivity(e: Empire, r: Race): number {
-  const level = e.research.level.planetology - 1;
-  return ((level * 3 + 50) / 100) * r.production;
+  return (0.5 + techStats(e).productivity) * r.production;
 }
 
 /** Factories one population unit can operate. Starts at 2. */
 export function robotControls(e: Empire): number {
-  return 2 + Math.floor((e.research.level.construction - 1) / 3);
+  return 2 + techStats(e).robotControls;
 }
 
 export function maxUsableFactories(c: Colony, e: Empire): number {
@@ -77,7 +81,7 @@ export function maxUsableFactories(c: Colony, e: Empire): number {
  * Adapted from Remnants of the Precursors (GPL-3.0).
  */
 export function factoryCost(e: Empire): number {
-  const base = Math.max(5, 10 - Math.floor((e.research.level.construction - 1) / 2));
+  const base = Math.max(4, 10 + techStats(e).factoryCost);
   return (base * robotControls(e)) / 2;
 }
 
@@ -90,20 +94,11 @@ export function colonyProduction(c: Colony, planet: Planet, e: Empire, r: Race):
 
 // ---------- Research ----------
 
-/**
- * Cost of reaching the next level in a field: 25 × level².
- * Stage 1 placeholder shaped like the classic curve (base × level²);
- * stage 2 replaces field levels with the real tech tree.
- */
-export function researchCost(nextLevel: number, r: Race): number {
-  return Math.round((25 * nextLevel * nextLevel) / r.research);
-}
-
-// ---------- Tech effects (stage 1 placeholders) ----------
+// ---------- Tech effects ----------
 
 /** Highest planet hostility this empire can colonize. */
 export function maxHostility(e: Empire, r: Race): number {
-  return 6 + Math.floor((e.research.level.planetology - 1) / 2) + r.colonizeBonus;
+  return 6 + techStats(e).hostility + r.colonizeBonus;
 }
 
 export function canColonize(planet: Planet, e: Empire, r: Race): boolean {
@@ -112,17 +107,17 @@ export function canColonize(planet: Planet, e: Empire, r: Race): boolean {
 
 /** Base fuel range in light-years from the nearest owned colony. */
 export function fuelRange(e: Empire): number {
-  return 3 + (e.research.level.propulsion - 1) * 0.5;
+  return 3 + techStats(e).range;
 }
 
 /** Ship speed in light-years per turn. */
 export function shipSpeed(e: Empire): number {
-  return 1.5 + (e.research.level.propulsion - 1) * 0.25;
+  return Math.max(1.5, techStats(e).speed);
 }
 
 /** How far colonies can see ships and stars. */
 export function colonyScanRange(e: Empire): number {
-  return 2 + Math.floor((e.research.level.computers - 1) / 2) * 0.5;
+  return 2 + techStats(e).scan;
 }
 
 // ---------- Combat (used from stage 3) ----------

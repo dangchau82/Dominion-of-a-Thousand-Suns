@@ -4,12 +4,13 @@
 import { RACES, type Race } from "./data/races";
 import { template } from "./data/ships";
 import {
-  canColonize, colonyScanRange, factoryCost, fuelRange, maxHostility, researchCost, robotControls,
+  canColonize, colonyScanRange, factoryCost, fuelRange, maxHostility, planetCapacity, popCost, robotControls,
   shipSpeed, workerProductivity,
 } from "./formulas";
 import { empireRace, shipCount } from "./game";
 import { canSee } from "./knowledge";
 import { fleetExtraRange, inFuelRange, supplyDistance, turnsToArrive } from "./movement";
+import { tech, techCost, techStats } from "./tech";
 import { colonyBudget, type ColonyBudget } from "./turn";
 import {
   FIELDS,
@@ -35,6 +36,11 @@ export interface ColonyInfo extends Colony {
   maxFactories: number;
 }
 
+export interface ResearchProject {
+  techId: string;
+  cost: number;
+}
+
 export interface EmpireView {
   turn: number;
   me: Empire;
@@ -49,7 +55,9 @@ export interface EmpireView {
   stats: {
     fuelRange: number; speed: number; maxHostility: number; scanRange: number;
     factoryCost: number; robotControls: number; workerProductivity: number;
-    nextResearchCost: Record<ResearchField, number>;
+    popCost: number; terraform: number; growthBonus: number; researchBonus: number;
+    /** Current research project and its cost in each field. */
+    projects: Record<ResearchField, ResearchProject | null>;
   };
   /** Helpers bound to this empire's legal knowledge only. */
   reachable(starId: Id, fleet: Fleet): boolean;
@@ -67,7 +75,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     .filter((c) => c.empireId === empireId)
     .map((c) => {
       const s = state.stars[c.starId]!;
-      const cap = s.planet ? s.planet.size + s.planet.terraform : 0;
+      const cap = s.planet ? planetCapacity(s.planet, e) : 0;
       return { ...structuredClone(c), budget: colonyBudget(state, c), capacity: cap, maxFactories: c.population * robotControls(e) };
     });
   const fleets = structuredClone(state.fleets.filter((f) => f.empireId === empireId));
@@ -79,9 +87,13 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     return { id: o.id, name: o.name, raceId: o.raceId, color: o.color, alive: o.alive };
   });
 
-  const nextResearchCost = Object.fromEntries(
-    FIELDS.map((f) => [f, researchCost(e.research.level[f] + 1, r)]),
-  ) as Record<ResearchField, number>;
+  const projects = Object.fromEntries(
+    FIELDS.map((f) => {
+      const id = e.research.current[f];
+      return [f, id ? { techId: id, cost: techCost(tech(id), r) } : null];
+    }),
+  ) as Record<ResearchField, ResearchProject | null>;
+  const ts = techStats(e);
 
   return {
     turn: state.turn,
@@ -91,7 +103,8 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     stats: {
       fuelRange: fuelRange(e), speed: shipSpeed(e), maxHostility: maxHostility(e, r),
       scanRange: colonyScanRange(e), factoryCost: factoryCost(e), robotControls: robotControls(e),
-      workerProductivity: workerProductivity(e, r), nextResearchCost,
+      workerProductivity: workerProductivity(e, r), popCost: popCost(e), terraform: ts.terraform,
+      growthBonus: ts.growth, researchBonus: ts.research, projects,
     },
     reachable: (starId, fleet) => inFuelRange(state, e, state.stars[starId]!, fleetExtraRange(fleet)),
     canSettle: (starId) => {
@@ -129,11 +142,13 @@ export function forecast(state: GameState, empireId: Id, horizon = 2): Forecast[
   let researchPerTurn = 0;
   for (const c of Object.values(state.colonies)) if (c.empireId === empireId) researchPerTurn += colonyBudget(state, c).research;
   for (const f of FIELDS) {
-    const perTurn = (researchPerTurn * e.research.alloc[f]) / 100;
-    if (perTurn <= 0) continue;
-    const need = researchCost(e.research.level[f] + 1, r) - e.research.progress[f];
+    const perTurn = (researchPerTurn * (1 + techStats(e).research) * e.research.alloc[f]) / 100;
+    const id = e.research.current[f];
+    if (perTurn <= 0 || !id) continue;
+    const t = tech(id);
+    const need = techCost(t, r) - e.research.progress[f];
     const turns = Math.ceil(need / perTurn - 1e-9);
-    if (turns <= horizon) out.push({ inTurns: Math.max(1, turns), text: `${f[0]!.toUpperCase()}${f.slice(1)} level ${e.research.level[f] + 1}` });
+    if (turns <= horizon) out.push({ inTurns: Math.max(1, turns), text: t.name });
   }
   for (const f of state.fleets) {
     if (f.empireId !== empireId || f.destStarId === null) continue;

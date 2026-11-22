@@ -65,10 +65,14 @@ export const FIELDS: readonly ResearchField[] = [
 export interface ResearchState {
   /** Share of research spending per field, percentages summing to 100. */
   alloc: Record<ResearchField, number>;
-  /** Points accumulated toward the next level in each field. */
+  /** Points accumulated toward the current project in each field. */
   progress: Record<ResearchField, number>;
-  /** Current level in each field (starts at 1). Stage 2 replaces this with a real tech tree. */
-  level: Record<ResearchField, number>;
+  /** Tech ids this empire knows. */
+  known: string[];
+  /** Tech ids in this empire's tree (rolled at game start); others must be traded or stolen. */
+  available: string[];
+  /** Tech being researched in each field (null when the field is finished). */
+  current: Record<ResearchField, string | null>;
 }
 
 /** What one empire knows about one star. The AI only ever sees this. */
@@ -155,4 +159,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
