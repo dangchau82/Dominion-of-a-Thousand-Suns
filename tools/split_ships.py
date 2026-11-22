@@ -24,7 +24,12 @@ def best_thresh(im, expected, grow=8):
 def split(path, race, rotate=0, expected=5, thresh=None, grow=8):
     im = Image.open(path).convert("RGB")
     if thresh is None:
-        thresh = best_thresh(im, expected, grow)
+        # Try looser then tighter joining until the ships come apart cleanly.
+        for g in (grow, 4, 2):
+            thresh = best_thresh(im, expected, g)
+            if count_shapes(im, thresh, g) == expected:
+                grow = g
+                break
     lum = np.asarray(im.convert("L")) > thresh
     # Join each ship's loose parts (engine glow, fins) before labelling.
     joined = ndimage.binary_dilation(lum, iterations=grow)
