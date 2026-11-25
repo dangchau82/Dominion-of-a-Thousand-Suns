@@ -15,6 +15,7 @@ import {
   type DesignSpec, type HullSize,
   type Command, type EmpireView, type GameState,
 } from "../engine";
+import { fighterBayChoices, fighterVariantChoices, MAX_BAYS } from "../engine/designs";
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
 import { applyCheat, type Cheat } from "../engine/cheats";
 import { fleetExtraRange } from "../engine/movement";
@@ -1466,7 +1467,8 @@ export class GameScreen {
             card.innerHTML = `<b>${esc(d.name)}</b> <span class="dim">· ${d.cost} BC · ${d.role === "scout" ? "+3 ly range, explores" : "settles new worlds"}</span>`;
           } else {
             const st = designStats(e, d);
-            const guns = st.weapons.map((w) => `${w.count}× ${w.name} (${w.min === w.max ? w.min : `${w.min}–${w.max}`})`).join(", ") || "unarmed";
+            const guns = [...st.weapons.map((w) => `${w.count}× ${w.name} (${w.min === w.max ? w.min : `${w.min}–${w.max}`})`),
+              ...(st.fighters ? [`${st.fighters.count} ${st.fighters.name.toLowerCase()}s`] : [])].join(", ") || "unarmed";
             const count = this.state.fleets.filter((f) => f.empireId === PLAYER).reduce((n, f) => n + (f.ships[d.id] ?? 0), 0);
             card.innerHTML = `<b>${esc(d.name)}</b> <span class="dim">· ${d.role === "colony" ? "Colony ship" : `${HULLS[d.hull].name} hull`} · ${d.cost} BC${count ? ` · ${count} built` : ""}</span>
               <div class="dim">${d.role === "colony" ? `Settles new worlds${d.extraRange ? ` · +${d.extraRange} ly fuel range` : ""}` : esc(guns)}</div>
@@ -1610,6 +1612,41 @@ export class GameScreen {
           box.append(addW);
         }
 
+        // Fighter bays (carriers): Large and Huge warships only.
+        const bays = fighterBayChoices(e).filter((b) => b.hulls.includes(spec.hull));
+        if (!colony && bays.length) {
+          box.append(el("div", { class: "dim", style: "margin-top:8px" }, `Fighter bays (up to ${MAX_BAYS}): fighters screen the carrier, shoot down missiles and are rebuilt free if the carrier survives`));
+          const row = el("div", { class: "design-row" });
+          const sel = el("select", { class: "tech-select" });
+          for (const b of bays) {
+            const o = el("option", { value: b.id }, `${b.name} (${b.fighters[spec.hull]} fighters each)`);
+            if ((spec.bays?.bayId ?? bays[bays.length - 1]!.id) === b.id) o.selected = true;
+            sel.append(o);
+          }
+          const count = spec.bays?.count ?? 0;
+          sel.onchange = () => { spec.bays = { ...(spec.bays ?? { count: 0 }), bayId: sel.value }; draw(); };
+          const minus = el("button", { class: "small" }, "−");
+          const plus = el("button", { class: "small" }, "+");
+          minus.onclick = () => { if (spec.bays) spec.bays.count = Math.max(0, spec.bays.count - 1); draw(); };
+          plus.onclick = () => { spec.bays = { bayId: spec.bays?.bayId ?? sel.value, count: Math.min(MAX_BAYS, count + 1), ...(spec.bays?.variant ? { variant: spec.bays.variant } : {}) }; draw(); };
+          row.append(sel, minus, el("b", { style: "min-width:2ch;text-align:center" }, String(count)), plus);
+          box.append(row);
+          const variants = fighterVariantChoices(e);
+          if (count > 0 && variants.length) {
+            const vsel = el("select", { class: "tech-select", style: "width:100%" });
+            vsel.append(el("option", { value: "" }, "Standard fighters"));
+            for (const v of variants) {
+              const o = el("option", { value: v.id, title: v.description }, `${v.name}: ${v.description}`);
+              if (spec.bays?.variant === v.id) o.selected = true;
+              vsel.append(o);
+            }
+            vsel.onchange = () => { if (spec.bays) { if (vsel.value) spec.bays.variant = vsel.value; else delete spec.bays.variant; } draw(); };
+            box.append(vsel);
+          }
+        } else if (!colony && spec.bays) {
+          delete spec.bays; // switched to a hull that can't carry fighters
+        }
+
         const tankList = canUseFuelTanks(e) ? [{ id: FUEL_TANKS.id, name: FUEL_TANKS.name }] : [];
         const specialList = [...tankList, ...(colony ? [] : parts.specials)];
         if (specialList.length) {
@@ -1630,7 +1667,8 @@ export class GameScreen {
         }
 
         const sum = el("div", { class: "tech-card" });
-        const guns = st.weapons.map((w) => `${w.count}× ${w.name} ${w.min === w.max ? w.min : `${w.min}–${w.max}`} dmg`).join(", ") || "unarmed";
+        const guns = [...st.weapons.map((w) => `${w.count}× ${w.name} ${w.min === w.max ? w.min : `${w.min}–${w.max}`} dmg`),
+          ...(st.fighters ? [`${st.fighters.count} ${st.fighters.name.toLowerCase()}s (${st.fighters.shots}× ${st.fighters.min}–${st.fighters.max} dmg, ${st.fighters.hits} hits each)`] : [])].join(", ") || "unarmed";
         sum.innerHTML = `<div>Room used <b>${fmt(st.spaceUsed)}</b> / ${st.space}</div>
           <div class="bar"><i style="width:${pct}%;${st.spaceUsed > st.space ? "background:#e05a5a" : ""}"></i></div>
           <div style="margin-top:6px"><b>${fmt(st.cost)} BC</b> each · Hits ${st.hits} · Speed ${fmt(st.speed)} ly/turn${st.extraRange ? ` · <span class="good">+${st.extraRange} ly range</span>` : ""}</div>

@@ -8,7 +8,7 @@
 // colony production -> scouts and colony ships -> war fleets and invasions.
 
 import type { Command } from "../engine/commands";
-import { canUseFuelTanks, designStats, partChoices, type DesignSpec } from "../engine/designs";
+import { bayPart, canUseFuelTanks, designStats, fighterBayChoices, partChoices, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
 import { fieldTier, researchChoices } from "../engine/tech";
 import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, maxMissileBases, type HullSize, type ShipDesign } from "../engine/data/ships";
@@ -536,6 +536,13 @@ function designs(ctx: Ctx): void {
     spec.specials = [...spec.specials, "planet-cracker"];
     if (designStats(me, spec).spaceUsed > designStats(me, spec).space * 0.6) spec.specials.pop();
   }
+  // Carriers: about half of the empires (by personality and luck) give a third of the free room to fighter bays.
+  const bay = fighterBayChoices(me).sort((a, b) => b.tier - a.tier)[0];
+  if (bay && bay.hulls.includes(hull) && coin(view, 71 + me.id * 13) < 0.35 + ctx.aggression * 0.3) {
+    const st = designStats(me, spec);
+    const n = Math.min(3, Math.floor(((st.space - st.spaceUsed) / 3) / bayPart(me, bay.id, hull).space));
+    if (n > 0) spec.bays = { bayId: bay.id, count: n };
+  }
   const banks: { id: string; share: number }[] = [];
   if (beam) banks.push({ id: beam.id, share: missile ? 0.55 : 1 });
   if (missile) banks.push({ id: missile.id, share: beam ? 0.3 : 0.85 });
@@ -551,7 +558,7 @@ function designs(ctx: Ctx): void {
     w.count = Math.max(0, Math.floor((free * share) / unit));
   }
   spec.weapons = spec.weapons.filter((w) => w.count > 0);
-  if (!spec.weapons.length) return;
+  if (!spec.weapons.length && !spec.bays) return;
   const st = designStats(me, spec);
   if (st.spaceUsed > st.space) return;
 
@@ -560,7 +567,8 @@ function designs(ctx: Ctx): void {
   const current = own.filter(isWarship).sort((a, b) => b.cost - a.cost)[0];
   const value = (d: DesignSpec) => {
     const s = designStats(me, d);
-    const dmg = s.weapons.reduce((a, w) => a + w.count * (w.min + w.max) / 2, 0);
+    const dmg = s.weapons.reduce((a, w) => a + w.count * (w.min + w.max) / 2, 0)
+      + (s.fighters ? s.fighters.count * s.fighters.shots * (s.fighters.min + s.fighters.max) / 2 : 0);
     return (dmg * (1 + s.attack * 0.1) * s.hits * (1 + s.shield * 0.2)) / Math.max(1, s.cost);
   };
   if (current && current.hull === spec.hull && value(spec) <= value(current) * 1.15) return;

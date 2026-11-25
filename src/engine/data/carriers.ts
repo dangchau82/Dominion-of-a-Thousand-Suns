@@ -33,6 +33,14 @@ export interface FighterBayDef {
 //   tier 9: 8 x 9 x 2 = 144       vs 5.8 disruptors x 25 = 144         (Gemini had 256)
 // Cost share 0.35 -> 0.75 so a bay costs about what the same guns cost (large: 150 BC vs 139-179).
 // Fighters can die (1-4 hits) but intercept missiles, so even damage is fair.
+//
+// Claude, 2026-11-25, after building the rules (tools/carrier-duel.test.ts, equal-cost fleets, tiers 4-8):
+// - Gemini's flat damage fell behind shields late (tier-10 shields reach 15), so fighters now fire the bay's
+//   own damage or 75% of the owner's best beam, whichever is bigger (split across their shots).
+// - Fighters fire after ships each round, draw at most half of the enemy's fire, and stop up to half the
+//   missiles aimed at their side (each fighter screens 3x its intercept chance).
+// - Bay I fighters 1 -> 2 hits; huge-hull fighters per bay 30/35/40/40 -> 34/39/44/44.
+// Result: carrier fleets trade 0.7-1.5x against equal-cost beam fleets and 0.9-2x against missile fleets.
 export const FIGHTER_BAYS: FighterBayDef[] = [
   {
     id: "fighter-bay-1",
@@ -42,9 +50,9 @@ export const FIGHTER_BAYS: FighterBayDef[] = [
     hulls: ["large", "huge"],
     spaceShare: 0.15,
     costShare: 0.75,
-    fighters: { large: 6, huge: 30 },
+    fighters: { large: 6, huge: 34 },
     fighter: {
-      hits: 1,
+      hits: 2,
       damage: [6, 14],
       shots: 1,
       intercept: 0.15,
@@ -59,7 +67,7 @@ export const FIGHTER_BAYS: FighterBayDef[] = [
     hulls: ["large", "huge"],
     spaceShare: 0.15,
     costShare: 0.75,
-    fighters: { large: 7, huge: 35 },
+    fighters: { large: 7, huge: 39 },
     fighter: {
       hits: 2,
       damage: [5, 12],
@@ -76,7 +84,7 @@ export const FIGHTER_BAYS: FighterBayDef[] = [
     hulls: ["large", "huge"],
     spaceShare: 0.15,
     costShare: 0.75,
-    fighters: { large: 8, huge: 40 },
+    fighters: { large: 8, huge: 44 },
     fighter: {
       hits: 3,
       damage: [5, 10],
@@ -93,7 +101,7 @@ export const FIGHTER_BAYS: FighterBayDef[] = [
     hulls: ["large", "huge"],
     spaceShare: 0.15,
     costShare: 0.75,
-    fighters: { large: 8, huge: 40 },
+    fighters: { large: 8, huge: 44 },
     fighter: {
       hits: 4,
       damage: [6, 12],

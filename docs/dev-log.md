@@ -158,3 +158,13 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - `data/hazardWorlds.ts` (6 death worlds, prison colony, 6 prison events; Gemini called it deathWorlds.ts): passed; upkeep rises with the production bonus.
 - `data/legends.ts` (12 crew traits, legend loss morale, 8 synthetic leader traits, 5 events): passed; unused import removed, one description capitalised.
 - `data/megaprojectEvents.ts` (5 superweapon + 5 starbase events, superweapon reactions for all 18 races): superweapon events named one specific weapon though any of the four can be built: now "our superweapon"; one title and two labels reworded.
+
+## 2026-11-25 16:40 Carriers and fighters (must-have), built on Gemini's `data/carriers.ts`
+- **Designer:** Large and Huge warships can fit up to 6 fighter bays (`ShipDesign.bays`: bay type, count, optional variant). Bays unlock at research tiers (Bay I construction 3, II weapons 5, III computers 7, IV construction 9); variants: interceptor and heavy fighter with Bay I, bomber with II, salvo wing with III. Bays shrink with newer tech like other parts. No save bump (optional field).
+- **Combat:** each carrier group launches a fighter wing. Fighters fire after ships each round, use the bay's guns or 75% of the owner's best beam (whichever is bigger), draw at most half of the enemy's fire, and shoot down missiles and torpedoes (up to half of those aimed at their side). Lost fighters are never lost ships: they are rebuilt free.
+- **Tuning** with `tools/carrier-duel.test.ts` (equal-cost fleets, tiers 4-8): Gemini's flat damage fell far behind late shields; fighters fired first and wiped fleets; tiny fighters soaked all fire. After the fixes above, plus Bay I 2 hits and huge-hull fighters 34/39/44/44 per bay, carriers trade **0.7-1.5x vs beam fleets and 0.9-2x vs missile fleets**. Tuning knobs: `FIGHTER_TUNING` in combat.ts, `FIGHTER_BEAM_SHARE` in designs.ts.
+- **AI:** about half the empires (more if aggressive) give a third of a new Large/Huge design's free room to bays; design value counts fighter damage.
+- **UI:** bay picker, count and fighter-type menu in the ship designer; fighters listed in design cards and the summary.
+- **Balance** (54 medium games, seeds 3000+): culture 26, council 18, tech 5, no winner 5, median end T330 (before: 25/18/6/5, T330). Unchanged.
+- Tests: `tests/carriers.test.ts`.
+- Also: `docs/gemini-art-jobs.md` (title screen, cutscenes, battle art, UI mock-ups, Ashkari video) for Gemini.

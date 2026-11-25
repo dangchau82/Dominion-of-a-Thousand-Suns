@@ -34,6 +34,13 @@ export interface WeaponMount {
   count: number;
 }
 
+/** Fighter bays on a carrier (see data/carriers.ts): bay type, how many, and an optional fighter variant. */
+export interface FighterMount {
+  bayId: string;
+  count: number;
+  variant?: string;
+}
+
 export interface ShipDesign {
   id: string;
   /** null for the built-in designs every empire can build. */
@@ -54,6 +61,8 @@ export interface ShipDesign {
   space: number;
   /** Extra fuel range beyond the empire's base range (light-years). */
   extraRange: number;
+  /** Fighter bays (carriers only; Large and Huge hulls). */
+  bays?: FighterMount;
 }
 
 const builtin = (d: Pick<ShipDesign, "id" | "name" | "role" | "hull" | "cost" | "extraRange">): ShipDesign => ({

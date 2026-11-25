@@ -68,7 +68,7 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 | Supernova crisis | Danny's request | Late game: a star flickers, then counts down (~20 turns, prophecies may warn earlier). Evacuate with transports or harvest it for research until the last moment. The blast wipes most people and factories on nearby colonies, destroys fleets there, and leaves a dead star (blocks travel) or a rare remnant (big research). Quorai live in stars: disaster or a unique "ride the fire" choice. Lure enemy fleets there. | idea | Today only two small "star flare" events exist (unstable-star, flare-season). |
 | Superweapon project | Star Wars' battle station | A planet-killing station that takes years to build but has a weak point a small fleet can strike. | idea | **Must-have.** A wonder-style project everyone can see coming. |
 | Bounty hunters | Star Wars' bounty hunters | Pay to remove an enemy leader or a key captain. | idea | Also a money sink. |
-| Carriers and fighters | Star Wars' fighter swarms | Large ships launch fighters that swarm, screen and intercept missiles. | idea | **Must-have.** Needs combat work: fighters as their own shot pool, carriers as a special system. |
+| Carriers and fighters | Star Wars' fighter swarms | Large ships launch fighters that swarm, screen and intercept missiles. | done (2026-11-25) | **Must-have.** Needs combat work: fighters as their own shot pool, carriers as a special system. |
 | Smugglers and blockades | Star Wars' smugglers | Blockade a rival's trade to cut their income; smugglers break blockades for a fee. | idea | Trade treaties already pay per turn. |
 
 ## Added 2026-11-25 (inspired by Firefly, the Riddick films and the Aliens films)

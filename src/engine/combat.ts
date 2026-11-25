@@ -11,7 +11,7 @@ import { empireBonus, transferWonders } from "./civ";
 import { afterBattle, afterCapture, capturedPopulation, damageBonus } from "./abilities";
 import { say } from "./dialogue";
 import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
-import { shipDesign } from "./designs";
+import { bestBeam, fighterStats, fightersPerShip, shipDesign } from "./designs";
 import { beamHitChance } from "./formulas";
 import { empireRace, newColony, shipCount } from "./game";
 import { onCapture } from "./unrest";
@@ -20,6 +20,8 @@ import { techStats } from "./tech";
 import type { Colony, Empire, Fleet, GameState, Id, Star } from "./types";
 
 export const BASE_HP = 25;
+/** Carrier tuning (see tools/carrier-duel.test.ts): fighters' share of incoming fire vs ships (1 = at most half), and their toughness. */
+export const FIGHTER_TUNING = { screen: 0.5, hitsMul: 1, interceptMul: 3 };
 export const MAX_ROUNDS = 8;
 /** Missiles and torpedoes run out after this many rounds. */
 export const MISSILE_ROUNDS = 3;
@@ -64,6 +66,10 @@ interface Unit {
   dampener: boolean;
   /** Frozen this round. */
   frozen: boolean;
+  /** Fighters launched by carriers: lost fighters are rebuilt free after the battle, so they never count as losses. */
+  fighter?: boolean;
+  /** Fighters only: chance each one shoots down an incoming missile per round. */
+  intercept?: number;
 }
 
 function guns(d: ShipDesign): Gun[] {
@@ -100,6 +106,24 @@ function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count
   };
 }
 
+/** The fighters a group of carriers launches, as one unit. */
+function fighterUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, carriers: Unit): Unit | null {
+  const per = fightersPerShip(d.bays, d.hull);
+  if (!d.bays || per <= 0) return null;
+  const f = fighterStats(d.bays.bayId, d.bays.variant, bestBeam(e));
+  const r = empireRace(e);
+  const count = per * carriers.count;
+  return {
+    side, empireId: e.id, key: `${d.id}#fighters`, name: `${d.name} ${f.name.toLowerCase()}`, count, start: count,
+    hp: f.hits * FIGHTER_TUNING.hitsMul, maxHp: f.hits * FIGHTER_TUNING.hitsMul, attack: carriers.attack,
+    // Fighters are small and nimble: one point harder to hit than a small hull.
+    beamDef: HULLS.small.defense + 1 + r.shipDefense, missileDef: HULLS.small.defense + 1 + r.shipDefense,
+    shield: 0, guns: [{ kind: "beam", min: f.min, max: f.max, count: f.shots }], small: false,
+    invulnerable: carriers.invulnerable, bonusDamage: carriers.bonusDamage, first: false, dodge: 0,
+    stasis: false, dampener: false, frozen: false, fighter: true, intercept: f.intercept,
+  };
+}
+
 /** A colony's missile bases fight as one target whose hit points are its bases. */
 function planetUnit(state: GameState, side: 0 | 1, e: Empire, c: Colony): Unit | null {
   if (c.missileBases <= 0) return null;
@@ -128,7 +152,12 @@ function hitChance(g: Gun, shooter: Unit, target: Unit): number {
 /** Pick a target, weighted by how many of each enemy are left. Unarmed one-hit ships (troop transports) draw only a quarter of the fire, so they can't act as a shield for a fleet. */
 function pickTarget(rng: R.RngState, enemies: Unit[]): Unit | null {
   const live = enemies.filter((u) => u.count > 0);
-  const weight = (u: Unit) => u.count * (u.guns.length === 0 && u.maxHp <= 1 ? 0.25 : 1);
+  const base = (u: Unit) => u.count * (u.guns.length === 0 && u.maxHp <= 1 ? 0.25 : 1);
+  // Fighters screen their carriers but draw at most half the fire, however many swarm out.
+  const ships = live.reduce((a, u) => a + (u.fighter ? 0 : base(u)), 0);
+  const swarm = live.reduce((a, u) => a + (u.fighter ? base(u) : 0), 0);
+  const fighterScale = ships > 0 && swarm > ships * FIGHTER_TUNING.screen ? (ships * FIGHTER_TUNING.screen) / swarm : 1;
+  const weight = (u: Unit) => base(u) * (u.fighter ? fighterScale : 1);
   const total = live.reduce((a, u) => a + weight(u), 0);
   if (total <= 0) return null;
   let roll = R.next(rng) * total;
@@ -160,9 +189,14 @@ function fight(state: GameState, units: Unit[]): number {
         if (target) target.frozen = true;
       }
     }
-    // First strikers, then best computers; small ships before big ones on ties.
+    // Each side's fighters can shoot down this many incoming missiles this round.
+    const screen = [0, 1].map((sd) => units.reduce((a, u) => a + (u.side === sd && u.fighter ? u.count * (u.intercept ?? 0) * FIGHTER_TUNING.interceptMul : 0), 0));
+    // ...but never more than half of the missiles fired at that side.
+    const aimed = [0, 0], stopped = [0, 0];
+    // First strikers, then ships before fighters, then best computers; small ships before big ones on ties.
     const order = units.filter((u) => u.count > 0)
-      .sort((a, b) => Number(b.first) - Number(a.first) || b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
+      // Fighters launch and close in, so they fire after the ships each round.
+      .sort((a, b) => Number(b.first) - Number(a.first) || Number(!!a.fighter) - Number(!!b.fighter) || b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
     for (const u of order) {
       if (u.count <= 0 || u.frozen) continue;
       for (const g of u.guns) {
@@ -172,6 +206,13 @@ function fight(state: GameState, units: Unit[]): number {
         for (let s = 0; s < shots; s++) {
           const target = pickTarget(rng, units.filter((x) => x.side !== u.side));
           if (!target) break;
+          if (g.kind === "missile" || g.kind === "torpedo") aimed[target.side]!++;
+          if ((g.kind === "missile" || g.kind === "torpedo") && screen[target.side]! > 0 && stopped[target.side]! < aimed[target.side]! / 2) {
+            // Fighters screen their side: whole interceptions first, then a last partial chance.
+            const s0 = screen[target.side]!;
+            screen[target.side] = Math.max(0, s0 - 1);
+            if (s0 >= 1 || R.chance(rng, s0)) { stopped[target.side]!++; continue; }
+          }
           if (!R.chance(rng, hitChance(g, u, target))) continue;
           if (target.dodge > 0 && R.chance(rng, target.dodge)) continue;
           const raw = R.int(rng, g.min, g.max) + u.bonusDamage;
@@ -203,7 +244,7 @@ function lossText(units: Unit[], side: 0 | 1): string {
 /** Take losses off the fleets at a star. */
 function applyLosses(state: GameState, fleets: Fleet[], units: Unit[]): void {
   for (const u of units) {
-    if (u.key === "planet") continue;
+    if (u.key === "planet" || u.fighter) continue;
     let lost = u.start - u.count;
     for (const f of fleets) {
       if (lost <= 0) break;
@@ -226,7 +267,11 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
       for (const [id, n] of Object.entries(f.ships)) if (n > 0) counts.set(id, (counts.get(id) ?? 0) + n);
     }
     for (const [id, n] of [...counts].sort((x, y) => x[0].localeCompare(y[0]))) {
-      units.push(shipUnit(state, side, e, shipDesign(state, id), n));
+      const d = shipDesign(state, id);
+      const ships = shipUnit(state, side, e, d, n);
+      units.push(ships);
+      const wing = fighterUnit(state, side, e, d, ships);
+      if (wing) units.push(wing);
     }
     if (colony && colony.empireId === e.id) {
       const p = planetUnit(state, side, e, colony);
@@ -239,7 +284,7 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
   const rounds = fight(state, units);
   applyLosses(state, here, units);
   // Race abilities after the battle (Ashkari spoils, Raxxan salvage).
-  const lossValue = (sd: 0 | 1) => units.filter((u) => u.side === sd && u.key !== "planet")
+  const lossValue = (sd: 0 | 1) => units.filter((u) => u.side === sd && u.key !== "planet" && !u.fighter)
     .reduce((acc, u) => acc + (u.start - u.count) * shipDesign(state, u.key).cost, 0);
   for (const [me, them, theirSide] of [[a, b, 1], [b, a, 0]] as const) {
     const note = afterBattle(state, me, them, lossValue(theirSide));

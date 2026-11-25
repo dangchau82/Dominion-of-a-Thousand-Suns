@@ -8,6 +8,8 @@ import {
   type HullSize, type ShipDesign, type ShipRole, type WeaponMount,
 } from "./data/ships";
 import type { Tech } from "./data/techs";
+import { FIGHTER_BAYS, FIGHTER_VARIANTS, type FighterBayDef } from "./data/carriers";
+import type { FighterMount } from "./data/ships";
 import { miniaturization, shipSpeed } from "./formulas";
 import { fieldTier, tech, TECH_BY_ID } from "./tech";
 import type { Empire, GameState, Id } from "./types";
@@ -81,6 +83,78 @@ export function specialPart(e: Empire, techId: string, hull: HullSize): PartSize
   return { space: h.space * 0.12 * m, cost: (h.cost * 0.3 + t.tier * 2) * m };
 }
 
+// ---------- carriers ----------
+
+export const BAY_BY_ID: ReadonlyMap<string, FighterBayDef> = new Map(FIGHTER_BAYS.map((b) => [b.id, b]));
+/** Most bays one ship can carry. */
+export const MAX_BAYS = 6;
+/** Which bay first unlocks each fighter variant. */
+export const VARIANT_UNLOCK: Record<string, string> = {
+  interceptor: "fighter-bay-1", "heavy-fighter": "fighter-bay-1", bomber: "fighter-bay-2", "salvo-wing": "fighter-bay-3",
+};
+
+/** Fighter bays this empire can fit: each unlocks at a research tier in its field. */
+export function fighterBayChoices(e: Empire): FighterBayDef[] {
+  return FIGHTER_BAYS.filter((b) => fieldTier(e.research, b.field) >= b.tier);
+}
+
+/** Fighter variants this empire can choose. */
+export function fighterVariantChoices(e: Empire) {
+  const known = new Set(fighterBayChoices(e).map((b) => b.id));
+  return FIGHTER_VARIANTS.filter((v) => known.has(VARIANT_UNLOCK[v.id] ?? ""));
+}
+
+export interface FighterStats {
+  name: string; hits: number; min: number; max: number; shots: number; intercept: number;
+}
+
+/** Fighters carry light versions of the best beam their empire knows, so they keep up with shields. */
+export const FIGHTER_BEAM_SHARE = 0.75;
+
+/** The best beam weapon an empire knows (by average damage), for arming its fighters. */
+export function bestBeam(e: Empire): { min: number; max: number } | null {
+  let best: { min: number; max: number } | null = null;
+  for (const id of e.research.known) {
+    const fx = weaponOf(tech(id));
+    if (fx && fx.kind === "beam" && (!best || fx.min + fx.max > best.min + best.max)) best = { min: fx.min, max: fx.max };
+  }
+  return best;
+}
+
+/** One fighter from this bay, with its variant applied. Its guns are the bay's own, or a share of the empire's best beam if that hits harder. */
+export function fighterStats(bayId: string, variant?: string, beam?: { min: number; max: number } | null): FighterStats {
+  const b = BAY_BY_ID.get(bayId)!;
+  const v = variant ? FIGHTER_VARIANTS.find((x) => x.id === variant) : undefined;
+  const ch = v?.change ?? {};
+  const dmg = ch.damageMul ?? 1;
+  let [lo, hi] = b.fighter.damage;
+  // Per shot: a fighter with two shots splits the same firepower between them.
+  const share = FIGHTER_BEAM_SHARE / b.fighter.shots;
+  if (beam && (beam.min + beam.max) * share > lo + hi) { lo = beam.min * share; hi = beam.max * share; }
+  return {
+    name: v ? v.name : "Fighter",
+    hits: Math.max(1, Math.round(b.fighter.hits * (ch.hitsMul ?? 1))),
+    min: Math.max(1, Math.round(lo * dmg)),
+    max: Math.max(1, Math.round(hi * dmg)),
+    shots: b.fighter.shots + (ch.shotsAdd ?? 0),
+    intercept: Math.min(0.6, b.fighter.intercept + (ch.interceptAdd ?? 0)),
+  };
+}
+
+/** Room and cost of one bay; older bays shrink like other parts. */
+export function bayPart(e: Empire, bayId: string, hull: HullSize): PartSize {
+  const b = BAY_BY_ID.get(bayId)!;
+  const h = HULLS[hull];
+  const m = miniaturization(fieldTier(e.research, b.field) - b.tier);
+  return { space: h.space * b.spaceShare * m, cost: h.cost * b.costShare * m };
+}
+
+/** Fighters one carrier launches. */
+export function fightersPerShip(m: FighterMount | undefined, hull: HullSize): number {
+  if (!m || m.count <= 0) return 0;
+  return (BAY_BY_ID.get(m.bayId)?.fighters[hull] ?? 0) * m.count;
+}
+
 /** What the player fills in; cost and space are worked out from it. */
 export interface DesignSpec {
   name: string;
@@ -93,6 +167,8 @@ export interface DesignSpec {
   specials: string[];
   /** "warship" (default) or "colony" (a Large hull with a colony pod; no weapons). */
   role?: ShipRole;
+  /** Fighter bays (Large and Huge warships). */
+  bays?: FighterMount;
 }
 
 export interface DesignStats {
@@ -108,6 +184,8 @@ export interface DesignStats {
   /** Extra fuel range this design carries (light-years). */
   extraRange: number;
   weapons: { name: string; kind: string; count: number; min: number; max: number }[];
+  /** Fighters this ship launches, or null. */
+  fighters: (FighterStats & { count: number }) | null;
 }
 
 /** True once the empire knows any tech that adds fuel range. */
@@ -144,6 +222,13 @@ export function designStats(e: Empire, spec: DesignSpec): DesignStats {
     const p = id === FUEL_TANKS.id ? fuelTankPart(spec.hull) : specialPart(e, id, spec.hull);
     used += p.space; cost += p.cost;
   }
+  let fighters: DesignStats["fighters"] = null;
+  if (spec.bays && spec.bays.count > 0 && BAY_BY_ID.has(spec.bays.bayId)) {
+    const p = bayPart(e, spec.bays.bayId, spec.hull);
+    used += p.space * spec.bays.count; cost += p.cost * spec.bays.count;
+    const count = fightersPerShip(spec.bays, spec.hull);
+    if (count > 0) fighters = { ...fighterStats(spec.bays.bayId, spec.bays.variant, bestBeam(e)), count };
+  }
   const lvl = (id: string | null, stat: string) => (id ? statValue(tech(id), stat) : 0);
   const armor = lvl(spec.armor, "armor");
   return {
@@ -158,6 +243,7 @@ export function designStats(e: Empire, spec: DesignSpec): DesignStats {
     speed: shipSpeed(e),
     extraRange: spec.specials.includes(FUEL_TANKS.id) ? FUEL_TANKS.range : 0,
     weapons,
+    fighters,
   };
 }
 
@@ -204,6 +290,15 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
     if (spec.role === "colony") return "Colony ships can only add fuel tanks";
     if (!parts.specials.some((t) => t.id === id)) return "You don't know that special";
   }
+  if (spec.bays && spec.bays.count !== 0) {
+    const b = BAY_BY_ID.get(spec.bays.bayId);
+    if (!b) return "Unknown fighter bay";
+    if (!Number.isInteger(spec.bays.count) || spec.bays.count < 0 || spec.bays.count > MAX_BAYS) return `Up to ${MAX_BAYS} fighter bays`;
+    if (spec.role === "colony") return "Colony ships carry no fighters";
+    if (!b.hulls.includes(spec.hull)) return "Fighter bays need a Large or Huge hull";
+    if (!fighterBayChoices(e).some((x) => x.id === b.id)) return "You can't build that fighter bay yet";
+    if (spec.bays.variant !== undefined && !fighterVariantChoices(e).some((v) => v.id === spec.bays!.variant)) return "You can't build that fighter type yet";
+  }
   const st = designStats(e, spec);
   if (st.spaceUsed > st.space + 1e-9) return "Not enough room on this hull";
   return null;
@@ -223,6 +318,7 @@ export function addDesign(state: GameState, e: Empire, spec: DesignSpec): ShipDe
     cost: st.cost,
     space: Math.round(st.spaceUsed * 10) / 10,
     extraRange: st.extraRange,
+    ...(spec.bays && spec.bays.count > 0 ? { bays: { ...spec.bays } } : {}),
   };
   state.designs[d.id] = d;
   return d;
