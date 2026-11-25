@@ -132,3 +132,4 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 .empire-card { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: start; }
 .empire-card img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
 .empire-card .row { grid-column: 1 / -1; }
+.quote { font-style: italic; opacity: 0.85; }

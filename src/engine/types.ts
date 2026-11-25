@@ -103,6 +103,46 @@ export interface Empire {
   atWar: Record<Id, number>;
   /** Empires that have offered this one peace (accept by offering back). */
   peaceOffers: Id[];
+  /** How this empire feels about each other empire, -100 (hatred) to 100 (devotion). */
+  relations: Record<Id, number>;
+  /** Treaties with each empire -> turn signed. */
+  treaties: Record<Id, Partial<Record<TreatyKind, number>>>;
+  /** Spy networks this empire runs against others. */
+  spies: Record<Id, SpyNetwork>;
+  /** Percent of total production spent on internal security (0-10). */
+  security: number;
+}
+
+export type TreatyKind = "trade" | "research" | "nap" | "alliance";
+export const TREATIES: readonly TreatyKind[] = ["trade", "research", "nap", "alliance"];
+
+export type SpyMission = "steal" | "sabotage" | "watch";
+export interface SpyNetwork {
+  /** Percent of total production spent on spies against this empire (0-10). */
+  alloc: number;
+  mission: SpyMission;
+  /** BC saved toward the next agent. */
+  progress: number;
+  agents: number;
+}
+
+export type ProposalKind = "trade" | "research" | "nap" | "alliance" | "techSwap" | "tribute" | "joinWar";
+export interface Proposal {
+  id: number;
+  from: Id;
+  to: Id;
+  kind: ProposalKind;
+  /** techSwap: tech the proposer gives. */
+  offerTech?: string;
+  /** techSwap / tribute: tech the proposer wants. */
+  wantTech?: string;
+  /** tribute: BC wanted. */
+  bc?: number;
+  /** joinWar: empire to fight. */
+  targetId?: Id;
+  turn: number;
+  /** What the proposer says, filled in for AI proposers. */
+  says?: string;
 }
 
 export interface Fleet {
@@ -139,7 +179,8 @@ export interface GameEvent {
   empireId: Id | null;
   kind:
     | "explored" | "colonized" | "shipBuilt" | "research" | "growth" | "contact"
-    | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion";
+    | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion"
+    | "diplomacy" | "spy";
   text: string;
   starId?: Id;
 }
@@ -158,6 +199,9 @@ export interface GameState {
   /** Every empire's own ship designs, keyed by design id (built-ins live in data/ships). */
   designs: Record<string, ShipDesign>;
   nextDesignId: number;
+  /** Diplomatic proposals waiting for an answer. */
+  proposals: Proposal[];
+  nextProposalId: number;
   /** Events from the most recent turn. */
   events: GameEvent[];
   /** Set once the player uses the cheat menu; shown in the save list. */
@@ -171,4 +215,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;

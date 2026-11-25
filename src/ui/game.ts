@@ -1,7 +1,9 @@
 // The in-game screen: star map, top bar, star/colony/fleet panel, research,
 // End Turn with the "next up" bar, turn reports and the game menu.
 
-import { runAITurns } from "../ai";
+import { aiAnswerProposals, runAITurns } from "../ai";
+import { say } from "../engine/dialogue";
+import type { TreatyKind } from "../engine/types";
 import {
   applyCommand, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
   popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, HULLS, HULL_SIZES, MAX_DESIGNS,
@@ -17,6 +19,14 @@ import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider }
 import { art, setImageLoadedHandler } from "./assets";
 import { StarMap } from "./map";
 import { autosave } from "./storage";
+
+const TREATY_LABEL: Record<TreatyKind, string> = { trade: "Trade agreement", research: "Research pact", nap: "Non-aggression pact", alliance: "Alliance" };
+const TREATY_HELP: Record<TreatyKind, string> = {
+  trade: "both earn BC each turn", research: "+5% research each", nap: "a promise not to attack", alliance: "friends in war",
+};
+function moodWord(n: number): string {
+  return n >= 60 ? "devoted" : n >= 30 ? "friendly" : n >= 10 ? "warm" : n > -10 ? "neutral" : n > -30 ? "wary" : n > -60 ? "hostile" : "hateful";
+}
 
 const PLAYER = 0;
 const SLIDER_NAMES: Record<Slider, string> = {
@@ -94,6 +104,7 @@ export class GameScreen {
     this.refresh();
     const mine = this.view.events.filter((e) => e.turn === processedTurn);
     if (mine.length) this.showReport(processedTurn, mine);
+    else this.showProposals();
   }
 
   // ---------- Top bar & end bar ----------
@@ -417,16 +428,32 @@ export class GameScreen {
     this.modal((box, close) => {
       const draw = () => {
         const v = makeView(this.state, PLAYER);
-        box.innerHTML = `<h2>Empires</h2><p class="dim">Empires you have met. Full diplomacy (treaties, trade, spies) comes in a later stage.</p>`;
+        box.innerHTML = `<h2>Empires</h2><p class="dim">Empires you have met. Tap Talk for treaties, trades, gifts and spies.</p>`;
+        const sec = el("div", { class: "tech-card" });
+        sec.innerHTML = `<b>Internal security</b> <span class="dim">· ${v.me.security}% of production · catches enemy spies</span>`;
+        const secIn = el("input", { type: "range", min: "0", max: "10", value: String(v.me.security), style: "width:100%;accent-color:#6fb6ff" });
+        secIn.onchange = () => { this.cmd({ type: "setSecurity", percent: Number(secIn.value) }); draw(); };
+        sec.append(secIn);
+        box.append(sec);
+        const waiting = v.proposals.filter((p) => p.to === PLAYER);
+        if (waiting.length) {
+          const b = el("button", { class: "primary", style: "width:100%;margin:6px 0" }, `📨 ${waiting.length} message${waiting.length > 1 ? "s" : ""} waiting`);
+          b.onclick = () => { close(); this.showProposals(); };
+          box.append(b);
+        }
         if (!v.contacts.length) box.append(el("p", {}, "You haven't met anyone yet. Keep exploring."));
         for (const o of v.contacts) {
           const card = el("div", { class: "tech-card empire-card" });
           const colonies = Object.values(v.knowledge).filter((k) => k.ownerId === o.id).length;
           card.innerHTML = `<img src="${art.portrait(o.raceId)}" alt=""><div><b style="color:${o.color}">${esc(o.name)}</b>${o.alive ? "" : " <span class='dim'>(destroyed)</span>"}
-            <div class="dim">${race(o.raceId).name} · ${colonies} known colonies</div>
+            <div class="dim">${race(o.raceId).name} · ${colonies} known colonies · ${moodWord(o.attitude)} toward you</div>
+            ${o.treaties.length ? `<div class="good">${o.treaties.map((t) => TREATY_LABEL[t]).join(" · ")}</div>` : ""}
             <div>${o.warSince !== null ? `<b class="bad">At war</b> since turn ${o.warSince}${o.offersPeace ? " · <span class='good'>they offer peace</span>" : ""}` : "At peace"}</div></div>`;
           if (o.alive) {
             const row = el("div", { class: "row", style: "justify-content:flex-start" });
+            const talk = el("button", { class: "small primary" }, "Talk");
+            talk.onclick = () => { close(); this.showDiplomacy(o.id); };
+            row.append(talk);
             if (o.warSince === null) {
               const war = el("button", { class: "small" }, "Declare war");
               war.onclick = () => { this.confirmWar(o.id, o.name); draw(); };
@@ -449,6 +476,168 @@ export class GameScreen {
       };
       draw();
     });
+  }
+
+  /** Proposals other empires sent us; answered one by one. */
+  private showProposals(): void {
+    const waiting = makeView(this.state, PLAYER).proposals.filter((p) => p.to === PLAYER);
+    if (!waiting.length) return;
+    this.modal((box, close) => {
+      const draw = () => {
+        const v = makeView(this.state, PLAYER);
+        const list = v.proposals.filter((p) => p.to === PLAYER);
+        if (!list.length) { close(); this.refresh(); return; }
+        box.innerHTML = `<h2>📨 Messages</h2>`;
+        for (const p of list) {
+          const o = v.contacts.find((x) => x.id === p.from);
+          const card = el("div", { class: "tech-card empire-card" });
+          card.innerHTML = `<img src="${art.portrait(o?.raceId ?? "humans")}" alt=""><div><b style="color:${o?.color ?? "#fff"}">${esc(o?.name ?? "?")}</b>
+            ${p.says ? `<div class="quote">${esc(p.says)}</div>` : ""}<div>${esc(p.text)}</div></div>`;
+          const row = el("div", { class: "row", style: "justify-content:flex-start" });
+          const yes = el("button", { class: "small primary" }, "Accept");
+          const no = el("button", { class: "small" }, "Refuse");
+          yes.onclick = () => { this.cmd({ type: "respond", proposalId: p.id, accept: true }); draw(); };
+          no.onclick = () => { this.cmd({ type: "respond", proposalId: p.id, accept: false }); draw(); };
+          row.append(yes, no);
+          card.append(row);
+          box.append(card);
+        }
+        const row = el("div", { class: "row" });
+        const later = el("button", {}, "Decide later");
+        later.onclick = () => { close(); this.refresh(); };
+        row.append(later);
+        box.append(row);
+      };
+      draw();
+    });
+  }
+
+  /** Talk to one empire: treaties, tech trades, gifts, demands and spies. */
+  private showDiplomacy(id: Id): void {
+    this.modal((box, close) => {
+      const draw = (reply = "") => {
+        const v = makeView(this.state, PLAYER);
+        const o = v.contacts.find((x) => x.id === id);
+        if (!o) { close(); return; }
+        const them = this.state.empires[id]!;
+        const greet = reply || say(v.turn, them, o.warSince !== null ? "threaten" : "greeting", this.state.empires[PLAYER]!);
+        box.innerHTML = `<div class="empire-card"><img src="${art.portrait(o.raceId)}" alt=""><div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
+          <div class="dim">${race(o.raceId).name} · ${moodWord(o.attitude)} toward you (${o.attitude > 0 ? "+" : ""}${o.attitude})</div></div></div>
+          <div class="quote" style="margin:8px 0">${esc(greet)}</div>`;
+        const ask = (proposal: Record<string, unknown>) => {
+          const before = this.state.events.length;
+          if (!this.cmd({ type: "propose", to: id, proposal: proposal as never })) return;
+          aiAnswerProposals(this.state);
+          const answer = this.state.events.slice(before).filter((e) => e.empireId === PLAYER && e.kind === "diplomacy").map((e) => e.text).join(" ");
+          draw(answer || "They will think about it.");
+        };
+
+        // Treaties
+        const tr = el("div", { class: "tech-card" });
+        tr.innerHTML = `<b>Treaties</b>`;
+        if (o.warSince !== null) {
+          tr.append(el("div", { class: "bad" }, `At war since turn ${o.warSince}. Make peace first.`));
+          const peace = el("button", { class: "small" }, o.offersPeace ? "Accept their peace offer" : o.weOfferedPeace ? "Peace offered" : "Offer peace");
+          peace.disabled = o.weOfferedPeace && !o.offersPeace;
+          peace.onclick = () => { this.cmd({ type: "offerPeace", targetId: id }); draw(); };
+          tr.append(peace);
+        } else {
+          for (const k of ["trade", "research", "nap", "alliance"] as const) {
+            const has = o.treaties.includes(k);
+            const row = el("div", { class: "design-row" }, `<span style="flex:1">${has ? "✓ " : ""}${TREATY_LABEL[k]} <span class="dim">${TREATY_HELP[k]}</span></span>`);
+            const b = el("button", { class: "small" }, has ? "Cancel" : "Propose");
+            b.onclick = () => {
+              if (has) { if (confirm(`Cancel your ${TREATY_LABEL[k]}? They will resent it.`)) { this.cmd({ type: "breakTreaty", with: id, treaty: k }); draw(); } }
+              else ask({ kind: k });
+            };
+            row.append(b);
+            tr.append(row);
+          }
+          const war = el("button", { class: "small", style: "margin-top:6px" }, "Declare war");
+          war.onclick = () => { this.confirmWar(id, o.name); draw(); };
+          tr.append(war);
+        }
+        box.append(tr);
+
+        // Technology
+        const tt = el("div", { class: "tech-card" });
+        tt.innerHTML = `<b>Technology</b> <span class="dim">· they know ${o.theirTechs.length} techs you don't; you know ${o.ourTechs.length} they don't</span>`;
+        const techSel = (ids: string[]) => {
+          const sel = el("select", { class: "tech-select" });
+          for (const t of ids.map(tech).sort((a, b) => b.tier - a.tier)) sel.append(el("option", { value: t.id }, `${t.name} (tier ${t.tier})`));
+          return sel;
+        };
+        if (o.theirTechs.length) {
+          const want = techSel(o.theirTechs);
+          tt.append(el("div", { class: "design-row" }, "<span>Ask for</span>"));
+          tt.lastElementChild!.append(want);
+          if (o.ourTechs.length && o.warSince === null) {
+            const give = techSel(o.ourTechs);
+            const row = el("div", { class: "design-row" }, "<span>In exchange for</span>");
+            row.append(give);
+            tt.append(row);
+            const swap = el("button", { class: "small primary" }, "Offer exchange");
+            swap.onclick = () => ask({ kind: "techSwap", offerTech: give.value, wantTech: want.value });
+            tt.append(swap);
+          }
+          const demand = el("button", { class: "small" }, "Demand it as tribute");
+          demand.onclick = () => ask({ kind: "tribute", wantTech: want.value });
+          tt.append(demand);
+        }
+        box.append(tt);
+
+        // Gifts
+        const gf = el("div", { class: "tech-card" });
+        gf.innerHTML = `<b>Gifts</b> <span class="dim">· improve how they feel about you · treasury ${fmt(v.me.treasury)} BC</span>`;
+        for (const amount of [50, 200, 500]) {
+          const b = el("button", { class: "small", style: "margin:2px" }, `${amount} BC`);
+          b.disabled = v.me.treasury < amount;
+          b.onclick = () => { this.cmd({ type: "gift", to: id, bc: amount }); draw(this.lastLine(id)); };
+          gf.append(b);
+        }
+        if (o.ourTechs.length) {
+          const give = techSel(o.ourTechs);
+          const b = el("button", { class: "small" }, "Give tech");
+          b.onclick = () => { this.cmd({ type: "gift", to: id, bc: 0, techId: give.value }); draw(this.lastLine(id)); };
+          const row = el("div", { class: "design-row" });
+          row.append(give, b);
+          gf.append(row);
+        }
+        box.append(gf);
+
+        // Spies
+        const sp = el("div", { class: "tech-card" });
+        const net = o.spies;
+        sp.innerHTML = `<b>Spies</b> <span class="dim">· ${net?.agents ?? 0} agents in place · ${net?.alloc ?? 0}% of production</span>`;
+        const alloc = el("input", { type: "range", min: "0", max: "10", value: String(net?.alloc ?? 0), style: "width:100%;accent-color:#6fb6ff" });
+        const mission = el("select", { class: "tech-select" });
+        for (const [m, label] of [["watch", "Watch (see their colonies)"], ["steal", "Steal technology"], ["sabotage", "Sabotage factories and bases"]] as const) {
+          const opt = el("option", { value: m }, label);
+          if ((net?.mission ?? "watch") === m) opt.selected = true;
+          mission.append(opt);
+        }
+        const apply = () => { this.cmd({ type: "setSpies", targetId: id, alloc: Number(alloc.value), mission: mission.value as never }); draw(); };
+        alloc.onchange = apply;
+        mission.onchange = apply;
+        sp.append(alloc, mission);
+        box.append(sp);
+
+        const row = el("div", { class: "row" });
+        const back = el("button", {}, "Back");
+        back.onclick = () => { close(); this.showEmpires(); };
+        const done = el("button", { class: "primary" }, "Done");
+        done.onclick = () => { close(); this.refresh(); };
+        row.append(back, done);
+        box.append(row);
+      };
+      draw();
+    });
+  }
+
+  private lastLine(id: Id): string {
+    const name = this.state.empires[id]!.name;
+    const ev = [...this.state.events].reverse().find((e) => e.empireId === PLAYER && e.kind === "diplomacy" && e.text.startsWith(name));
+    return ev?.text ?? "";
   }
 
   private refreshKeepScroll(): void {
@@ -496,12 +685,12 @@ export class GameScreen {
     this.modal((box, close) => {
       const pic = contact ? `<img class="event-pic" src="${art.event("contact")}" alt="">`
         : war ? `<img class="event-pic" src="${art.event("crisis")}" alt="">` : "";
-      const order = ["war", "invasion", "battle", "contact", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
+      const order = ["war", "invasion", "battle", "contact", "diplomacy", "spy", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
       const sorted = [...events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
       box.innerHTML = `${pic}<h2>Turn ${turn} report</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
       const row = el("div", { class: "row" });
       const ok = el("button", { class: "primary" }, "Continue");
-      ok.onclick = close;
+      ok.onclick = () => { close(); this.showProposals(); };
       row.append(ok);
       box.append(row);
     });

@@ -7,12 +7,15 @@ import {
   endTurn, newGame, planetCapacity, serialize, SLIDERS, type GameSettings, type GameState,
 } from "../src/engine";
 
+const peak = new Map<number, number>();
 function play(settings: GameSettings, turns: number): GameState {
   const g = newGame(settings);
+  peak.clear();
   for (let t = 0; t < turns; t++) {
     runAITurns(g, true);
     endTurn(g);
     checkInvariants(g);
+    for (const e of g.empires) peak.set(e.id, Math.max(peak.get(e.id) ?? 0, Object.values(g.colonies).filter((c) => c.empireId === e.id).length));
   }
   return g;
 }
@@ -36,7 +39,8 @@ function checkInvariants(g: GameState): void {
 describe("self-play", () => {
   it("plays 200 turns on a medium spiral and every empire expands", () => {
     const g = play({ seed: 42, size: "medium", shape: "spiral", rivals: 5, playerRaceId: "vossari", playerName: "Test" }, 200);
-    const counts = g.empires.map((e) => Object.values(g.colonies).filter((c) => c.empireId === e.id).length);
+    // Empires can be conquered now, so check each one grew to 3+ colonies at some point.
+    const counts = g.empires.map((e) => peak.get(e.id) ?? 0);
     for (const n of counts) expect(n).toBeGreaterThanOrEqual(3);
     const explored = g.empires.map((e) => Object.values(e.knowledge).filter((k) => k.explored).length);
     for (const n of explored) expect(n).toBeGreaterThanOrEqual(8);

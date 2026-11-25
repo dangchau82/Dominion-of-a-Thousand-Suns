@@ -37,6 +37,14 @@ function migrateV3(state: GameState): void {
   state.version = 4;
 }
 
+/** Version 4 saves had no diplomacy or spies. */
+function migrateV4(state: GameState): void {
+  for (const e of state.empires) { e.relations = {}; e.treaties = {}; e.spies = {}; e.security = 2; }
+  state.proposals = [];
+  state.nextProposalId = 1;
+  state.version = 5;
+}
+
 export function serialize(state: GameState): string {
   return JSON.stringify(state);
 }
@@ -49,6 +57,7 @@ export function deserialize(json: string): GameState {
   if (data.version === 1) migrateV1(data as GameState);
   if (data.version === 2) migrateV2(data as GameState);
   if (data.version === 3) migrateV3(data as GameState);
+  if (data.version === 4) migrateV4(data as GameState);
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

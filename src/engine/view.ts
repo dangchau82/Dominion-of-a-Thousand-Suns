@@ -3,6 +3,7 @@
 
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
+import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
 import type { ShipDesign } from "./data/ships";
 import {
   canColonize, colonyScanRange, factoryCost, fuelRange, maxHostility, planetCapacity, popCost, robotControls,
@@ -16,7 +17,7 @@ import { colonyBudget, type ColonyBudget } from "./turn";
 import {
   FIELDS,
   type Colony, type Empire, type Fleet, type Id, type GameEvent, type GameState, type ResearchField,
-  type StarColor, type StarKnowledge, type Difficulty,
+  type StarColor, type StarKnowledge, type Difficulty, type Proposal, type SpyNetwork, type TreatyKind,
 } from "./types";
 
 export interface PublicStar {
@@ -35,6 +36,17 @@ export interface KnownEmpire {
   offersPeace: boolean;
   /** We have offered them peace. */
   weOfferedPeace: boolean;
+  /** How they feel about us (-100..100); diplomats can read this. */
+  attitude: number;
+  /** How we feel about them. */
+  ourFeeling: number;
+  treaties: TreatyKind[];
+  /** Techs they know and we don't (could be traded, demanded or stolen). */
+  theirTechs: string[];
+  /** Techs we know and they don't. */
+  ourTechs: string[];
+  /** Our spy network against them. */
+  spies: SpyNetwork | null;
 }
 
 export interface ColonyInfo extends Colony {
@@ -52,6 +64,8 @@ export interface EmpireView {
   turn: number;
   difficulty: Difficulty;
   me: Empire;
+  /** Diplomatic proposals to or from this empire, with a plain description. */
+  proposals: (Proposal & { text: string })[];
   /** Ship designs this empire can build (built-ins first). */
   designs: ShipDesign[];
   race: Race;
@@ -97,6 +111,8 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     return {
       id: o.id, name: o.name, raceId: o.raceId, color: o.color, alive: o.alive,
       warSince: e.atWar[o.id] ?? null, offersPeace: e.peaceOffers.includes(o.id), weOfferedPeace: o.peaceOffers.includes(e.id),
+      attitude: Math.round(relation(o, e)), ourFeeling: Math.round(relation(e, o)), treaties: treatiesWith(e, o),
+      theirTechs: tradeableTechs(o, e), ourTechs: tradeableTechs(e, o), spies: e.spies[o.id] ? { ...e.spies[o.id]! } : null,
     };
   });
 
@@ -111,6 +127,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
   return {
     turn: state.turn,
     difficulty: state.settings.difficulty ?? "normal",
+    proposals: state.proposals.filter((p) => p.to === empireId || p.from === empireId).map((p) => ({ ...p, text: describeProposal(state, p) })),
     me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
     stars: state.stars.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, color: s.color, nebula: s.nebula })),
     events: state.events.filter((ev) => ev.empireId === null || ev.empireId === empireId).map((ev) => ({ ...ev })),

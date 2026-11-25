@@ -7,6 +7,8 @@
 
 import { HULLS, type ShipDesign } from "./data/ships";
 import { tech } from "./tech";
+import { say } from "./dialogue";
+import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
 import { shipDesign } from "./designs";
 import { beamHitChance } from "./formulas";
 import { empireRace, newColony, shipCount } from "./game";
@@ -332,8 +334,12 @@ export function resolveCombat(state: GameState): void {
 }
 
 export function declareWar(state: GameState, a: Empire, b: Empire): void {
+  // Breaking a pact to attack is remembered by the victim.
+  for (const k of treatiesWith(a, b)) breakTreaty(state, a, b, k);
+  adjustRelation(b, a, -30);
   a.atWar[b.id] = state.turn;
   b.atWar[a.id] = state.turn;
+  if (!a.isPlayer) state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: say(state.turn, a, "declareWar", b) });
   a.peaceOffers = a.peaceOffers.filter((x) => x !== b.id);
   b.peaceOffers = b.peaceOffers.filter((x) => x !== a.id);
   state.events.push({ turn: state.turn, empireId: null, kind: "war", text: `The ${a.name} declared war on the ${b.name}!` });
@@ -350,6 +356,6 @@ export function offerPeace(state: GameState, a: Empire, b: Empire): boolean {
     return true;
   }
   if (!b.peaceOffers.includes(a.id)) b.peaceOffers.push(a.id);
-  state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: `The ${a.name} offer peace.` });
+  state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: `The ${a.name} offer peace.${!a.isPlayer ? ` ${say(state.turn, a, "offerPeace", b)}` : ""}` });
   return false;
 }

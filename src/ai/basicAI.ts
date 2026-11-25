@@ -9,8 +9,11 @@
 
 import type { Command } from "../engine/commands";
 import { designStats, partChoices, type DesignSpec } from "../engine/designs";
+import type { ProposalInput } from "../engine/diplomacy";
 import { MAX_DESIGNS, type HullSize, type ShipDesign } from "../engine/data/ships";
-import type { Tech } from "../engine/data/techs";
+import { TECHS, type Tech } from "../engine/data/techs";
+
+const TECH_TIERS = new Map(TECHS.map((t) => [t.id, t.tier]));
 import type { ColonyInfo, EmpireView, KnownEmpire, PublicStar } from "../engine/view";
 import type { Fleet, Id, ResearchField, SliderSet } from "../engine/types";
 
@@ -99,7 +102,9 @@ function diplomacy(ctx: Ctx): void {
   if (ctx.wars.length > 0 || view.turn < ctx.level.firstWar) return;
   const myFleet = view.fleets.reduce((a, f) => a + warPower(ctx, f), 0);
   const candidates = view.contacts
-    .filter((c) => c.alive && c.warSince === null)
+    // Honorable races keep their pacts.
+    .filter((c) => c.alive && c.warSince === null && !(ctx.honor >= 0.4 && (c.treaties.includes("nap") || c.treaties.includes("alliance"))))
+    .filter((c) => !c.treaties.includes("alliance"))
     .map((c) => {
       const cols = enemyColonies(ctx, c.id);
       const near = cols.length ? Math.min(...cols.map((x) => dist(x.star, nearestColony(ctx, x.star) ? ctx.starById.get(nearestColony(ctx, x.star)!.starId)! : x.star))) : 99;
@@ -115,6 +120,85 @@ function diplomacy(ctx: Ctx): void {
   const armed = myFleet >= 300 + view.turn * 2;
   const mood = coin(view, 99 + best.c.id) < (0.04 + ctx.aggression * 0.08) * ctx.level.warMood;
   if (best.ratio >= needRatio && armed && mood) cmds.push({ type: "declareWar", targetId: best.c.id });
+}
+
+// ---------- treaties, trades and spies ----------
+
+const tierOf = (id: string) => Number(TECH_TIERS.get(id) ?? 1);
+
+/** Answers to proposals addressed to us. Also used for instant replies to the player. */
+function answers(ctx: Ctx): void {
+  const { view, cmds } = ctx;
+  const mine = myPop(ctx);
+  for (const p of view.proposals.filter((x) => x.to === view.me.id)) {
+    const c = view.contacts.find((x) => x.id === p.from);
+    if (!c) continue;
+    const rel = c.ourFeeling;
+    const theirs = knownPop(ctx, c.id);
+    let ok = false;
+    switch (p.kind) {
+      case "trade": case "research": ok = rel >= -15 && c.warSince === null; break;
+      case "nap": ok = rel >= 5 || theirs > mine * 1.4; break;
+      case "alliance": ok = rel >= 45; break;
+      case "techSwap": ok = rel >= -20 && tierOf(p.offerTech!) >= tierOf(p.wantTech!) - (rel >= 30 ? 1 : 0); break;
+      case "tribute": ok = theirs > mine * 1.5 && ctx.aggression < 0.6 && (!p.bc || p.bc <= view.me.treasury * 0.5); break;
+      case "joinWar": {
+        const target = p.targetId !== undefined ? knownPop(ctx, p.targetId) : 0;
+        ok = (rel >= 35 || c.treaties.includes("alliance")) && mine >= target * 0.8;
+        break;
+      }
+    }
+    cmds.push({ type: "respond", proposalId: p.id, accept: ok });
+  }
+}
+
+function deals(ctx: Ctx): void {
+  const { view, cmds } = ctx;
+  if ((view.turn + view.me.id * 3) % 8 !== 0) return;
+  const mine = myPop(ctx);
+  const pending = new Set(view.proposals.filter((p) => p.from === view.me.id).map((p) => `${p.to}:${p.kind}`));
+  for (const c of view.contacts) {
+    if (!c.alive) continue;
+    const rel = c.ourFeeling;
+    const ask = (proposal: ProposalInput) => { if (!pending.has(`${c.id}:${proposal.kind}`)) cmds.push(propose(c.id, proposal)); };
+    if (c.warSince === null) {
+      if (!c.treaties.includes("trade") && rel >= -5) ask({ kind: "trade" });
+      else if (!c.treaties.includes("research") && rel >= 10) ask({ kind: "research" });
+      else if (!c.treaties.includes("nap") && rel >= 20) ask({ kind: "nap" });
+      else if (!c.treaties.includes("alliance") && rel >= 55 && ctx.honor >= 0.5) ask({ kind: "alliance" });
+      // Swap a tech of ours for one of theirs at a similar level.
+      if (rel >= 15 && (view.turn + c.id) % 16 < 8 && c.theirTechs.length && c.ourTechs.length) {
+        const want = [...c.theirTechs].sort((a, b) => tierOf(b) - tierOf(a))[0]!;
+        const offer = [...c.ourTechs].sort((a, b) => tierOf(a) - tierOf(b)).find((id) => tierOf(id) >= tierOf(want));
+        if (offer) ask({ kind: "techSwap", offerTech: offer, wantTech: want });
+      }
+      // Bullies demand tribute from much weaker neighbours.
+      if (ctx.aggression > 0.55 && rel < 10 && c.theirTechs.length && mine > knownPop(ctx, c.id) * 1.8 && coin(view, 7 + c.id) < 0.3) {
+        ask({ kind: "tribute", wantTech: [...c.theirTechs].sort((a, b) => tierOf(b) - tierOf(a))[0]! });
+      }
+    }
+    // Ask friends to join our wars.
+    for (const w of ctx.wars) {
+      if (c.id !== w.id && c.warSince === null && (rel >= 35 || c.treaties.includes("alliance"))) ask({ kind: "joinWar", targetId: w.id });
+    }
+  }
+}
+
+function propose(to: Id, proposal: ProposalInput): Command {
+  return { type: "propose", to, proposal };
+}
+
+function espionage(ctx: Ctx): void {
+  const { view, cmds } = ctx;
+  if ((view.turn + view.me.id) % 10 !== 2) return;
+  cmds.push({ type: "setSecurity", percent: 2 + Math.round(ctx.aggression * 2) + (ctx.wars.length ? 2 : 0) });
+  for (const c of view.contacts) {
+    if (!c.alive) continue;
+    const atWar = c.warSince !== null;
+    const alloc = atWar ? 3 : c.ourFeeling < -25 ? 2 : ctx.curiosity > 0.7 && c.theirTechs.length > 5 ? 1 : 0;
+    const mission = atWar && ctx.aggression > 0.5 ? "sabotage" : alloc > 0 ? "steal" : "watch";
+    if (alloc > 0 || (c.spies?.alloc ?? 0) > 0) cmds.push({ type: "setSpies", targetId: c.id, alloc, mission });
+  }
 }
 
 // ---------- research ----------
@@ -401,9 +485,16 @@ function military(ctx: Ctx): void {
 
 // ---------- entry point ----------
 
-export function basicAITurn(view: EmpireView): Command[] {
+/** Only the answers to waiting proposals (for an instant reply to the player). */
+export function basicAIAnswers(view: EmpireView): Command[] {
+  const ctx = makeCtx(view);
+  answers(ctx);
+  return ctx.cmds;
+}
+
+function makeCtx(view: EmpireView): Ctx {
   const p = view.race.personality;
-  const ctx: Ctx = {
+  return {
     level: LEVEL[view.difficulty] ?? LEVEL.normal,
     view,
     cmds: [],
@@ -415,7 +506,14 @@ export function basicAITurn(view: EmpireView): Command[] {
     taken: new Set(view.fleets.map((f) => f.destStarId).filter((d): d is Id => d !== null)),
     starById: new Map(view.stars.map((s) => [s.id, s])),
   };
+}
+
+export function basicAITurn(view: EmpireView): Command[] {
+  const ctx = makeCtx(view);
+  answers(ctx);
   diplomacy(ctx);
+  deals(ctx);
+  espionage(ctx);
   research(ctx);
   designs(ctx);
   const openTargets = expansion(ctx);

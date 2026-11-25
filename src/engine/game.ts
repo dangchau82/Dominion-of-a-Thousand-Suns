@@ -38,7 +38,7 @@ export function newGame(settings: GameSettings): GameState {
 
   const state: GameState = {
     version: SAVE_VERSION, turn: 1, settings, rng, stars,
-    empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1,
+    empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1, proposals: [], nextProposalId: 1,
   };
 
   races.forEach((r, i) => {
@@ -58,6 +58,10 @@ export function newGame(settings: GameSettings): GameState {
       contacts: [],
       atWar: {},
       peaceOffers: [],
+      relations: {},
+      treaties: {},
+      spies: {},
+      security: 2,
     };
     state.empires.push(empire);
     for (const spec of starterDesigns()) addDesign(state, empire, spec);

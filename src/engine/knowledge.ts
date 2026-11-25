@@ -2,6 +2,7 @@
 // (visible in the night sky); planets are only known once a ship visits,
 // and owners/populations only while in scanner range.
 
+import { say } from "./dialogue";
 import { colonyScanRange, distance } from "./formulas";
 import type { Empire, GameEvent, GameState, Id, Star } from "./types";
 
@@ -52,8 +53,8 @@ function makeContact(state: GameState, a: Empire, b: Empire): void {
   if (a.contacts.includes(b.id)) return;
   a.contacts.push(b.id);
   b.contacts.push(a.id);
-  addEvent(state, { empireId: a.id, kind: "contact", text: `First contact with the ${b.name}.` });
-  addEvent(state, { empireId: b.id, kind: "contact", text: `First contact with the ${a.name}.` });
+  addEvent(state, { empireId: a.id, kind: "contact", text: `First contact with the ${b.name}.${!b.isPlayer ? ` ${say(state.turn, b, "firstContact", a)}` : ""}` });
+  addEvent(state, { empireId: b.id, kind: "contact", text: `First contact with the ${a.name}.${!a.isPlayer ? ` ${say(state.turn, a, "firstContact", b)}` : ""}` });
 }
 
 /** Refresh every empire's view of explored stars in range, and detect first contacts. */

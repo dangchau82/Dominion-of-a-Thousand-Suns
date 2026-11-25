@@ -3,6 +3,7 @@
 
 import { researchChoices } from "./tech";
 import { atWar, declareWar, offerPeace } from "./combat";
+import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
 import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
 import { empire, empireRace, newColony, shipCount, star } from "./game";
@@ -10,7 +11,7 @@ import { exploreStar, isExplored } from "./knowledge";
 import { fleetExtraRange, inFuelRange } from "./movement";
 import {
   FIELDS, SLIDERS,
-  type Colony, type GameState, type Id, type ResearchField, type Slider, type SliderSet,
+  type Colony, type GameState, type Id, type ResearchField, type Slider, type SliderSet, type SpyMission, type TreatyKind,
 } from "./types";
 
 export type Command =
@@ -22,6 +23,12 @@ export type Command =
   | { type: "setResearchProject"; field: ResearchField; techId: string }
   | { type: "createDesign"; spec: DesignSpec }
   | { type: "declareWar"; targetId: Id }
+  | { type: "propose"; to: Id; proposal: ProposalInput }
+  | { type: "respond"; proposalId: number; accept: boolean }
+  | { type: "gift"; to: Id; bc: number; techId?: string }
+  | { type: "breakTreaty"; with: Id; treaty: TreatyKind }
+  | { type: "setSpies"; targetId: Id; alloc: number; mission: SpyMission }
+  | { type: "setSecurity"; percent: number }
   | { type: "offerPeace"; targetId: Id }
   | { type: "sendTransports"; fromStarId: Id; toStarId: Id; troops: number }
   | { type: "scrapDesign"; designId: string }
@@ -122,6 +129,43 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if (!e.contacts.includes(t.id)) return fail("You haven't met them");
       if (atWar(e, t)) return fail("Already at war");
       declareWar(state, e, t);
+      return { ok: true };
+    }
+    case "propose": {
+      const t = state.empires[cmd.to];
+      if (!t) return fail("No such empire");
+      const err = checkProposal(state, e, t, cmd.proposal);
+      if (err) return fail(err);
+      makeProposal(state, e, t, cmd.proposal);
+      return { ok: true };
+    }
+    case "respond": {
+      const p = state.proposals.find((x) => x.id === cmd.proposalId && x.to === empireId);
+      if (!p) return fail("That offer has expired");
+      const err = answerProposal(state, e, p, cmd.accept, (a, b) => declareWar(state, a, b));
+      return err ? fail(err) : { ok: true };
+    }
+    case "gift": {
+      const t = state.empires[cmd.to];
+      if (!t) return fail("No such empire");
+      const err = giveGift(state, e, t, cmd.bc, cmd.techId);
+      return err ? fail(err) : { ok: true };
+    }
+    case "breakTreaty": {
+      const t = state.empires[cmd.with];
+      if (!t || !hasTreaty(e, t, cmd.treaty)) return fail("No such treaty");
+      breakTreaty(state, e, t, cmd.treaty);
+      return { ok: true };
+    }
+    case "setSpies": {
+      const t = state.empires[cmd.targetId];
+      if (!t || t.id === e.id || !e.contacts.includes(t.id)) return fail("You haven't met them");
+      if (!["steal", "sabotage", "watch"].includes(cmd.mission)) return fail("Unknown mission");
+      setSpies(e, t.id, cmd.alloc, cmd.mission);
+      return { ok: true };
+    }
+    case "setSecurity": {
+      e.security = Math.max(0, Math.min(10, Math.round(cmd.percent)));
       return { ok: true };
     }
     case "offerPeace": {

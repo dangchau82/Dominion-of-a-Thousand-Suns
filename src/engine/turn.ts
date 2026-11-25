@@ -4,6 +4,7 @@ import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
 import { shipDesign } from "./designs";
 import { resolveCombat } from "./combat";
+import { applyTreaties, processEspionage, researchPactBonus, spendingShare, updateRelations } from "./diplomacy";
 import {
   colonyProduction, factoryCost, FIELD_NAMES, maxUsableFactories, planetCapacity,
   popCost, popGrowth,
@@ -29,7 +30,9 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   const e = state.empires[c.empireId] as Empire;
   const s = state.stars[c.starId] as Star;
   const production = s.planet ? colonyProduction(c, s.planet, e, empireRace(e)) : 0;
-  const part = (pct: number) => (production * pct) / 100;
+  // Spies and internal security are paid first, out of every colony's output.
+  const net = production * (1 - spendingShare(e));
+  const part = (pct: number) => (net * pct) / 100;
   return {
     production,
     ship: part(c.sliders.ship), defense: part(c.sliders.defense), industry: part(c.sliders.industry),
@@ -109,7 +112,7 @@ function processColony(state: GameState, c: Colony): number {
 function processResearch(state: GameState, e: Empire, points: number): void {
   const r = empireRace(e);
   const rs = e.research;
-  points *= 1 + techStats(e).research;
+  points *= 1 + techStats(e).research + researchPactBonus(e);
   for (const f of FIELDS) {
     rs.progress[f] += (points * rs.alloc[f]) / 100;
     for (;;) {
@@ -154,10 +157,14 @@ export function endTurn(state: GameState): void {
     if (e.alive) processResearch(state, e, researchByEmpire.get(e.id) ?? 0);
   }
 
+  processEspionage(state);
+  applyTreaties(state);
+
   mergeFleets(state);
   moveFleets(state);
   resolveCombat(state);
   updateVision(state);
+  updateRelations(state);
   updateAlive(state);
   state.turn++;
 }
