@@ -154,3 +154,22 @@ video.living { background: #050814; pointer-events: none; }
   box-shadow: 0 0 28px rgba(120,160,255,0.35); animation: fc-in 0.9s ease-out; }
 @keyframes fc-in { from { opacity: 0; transform: scale(0.92); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 @media (prefers-reduced-motion: reduce) { .first-contact .fc-portrait { animation: none; } }
+
+/* ---------- Easier tapping (chunky controls, like classic 4X panels) ---------- */
+button { min-height: 40px; }
+button.small { min-height: 38px; padding: 8px 12px; font-size: 14px; }
+.tech-select { min-height: 40px; padding: 6px 8px; font-size: 15px; border-radius: 8px; }
+.slider-row input[type=range] { height: 36px; }
+.fleet { padding: 10px; gap: 10px; }
+.fleet img { width: 44px; height: 44px; }
+.fleet button.small { flex: 1 1 auto; min-width: 120px; }
+.hint { font-size: 15px; padding: 10px 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+.panel .close { min-width: 44px; min-height: 44px; font-size: 18px; }
+.panel-tabs { display: flex; gap: 6px; margin: 0 52px 8px 0; }
+.panel-tabs button { flex: 1; min-height: 46px; font-size: 16px; font-weight: 600; background: var(--panel-2); }
+.panel-tabs button.on { border-color: var(--gold); color: var(--gold); box-shadow: inset 0 -3px 0 var(--gold); }
+@media (pointer: coarse) {
+  button { min-height: 44px; }
+  button.small { min-height: 42px; }
+}
+@media (max-width: 899px) { .hint { top: auto; bottom: calc(96px + env(safe-area-inset-bottom)); width: calc(100% - 20px); max-width: 520px; box-sizing: border-box; } }

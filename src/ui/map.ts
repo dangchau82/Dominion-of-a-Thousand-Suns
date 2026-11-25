@@ -11,7 +11,16 @@ const STAR_COLORS: Record<StarColor, string> = {
 export interface MapOverlay {
   selectedStar: Id | null;
   /** When choosing a destination: the fleet being moved (to draw fuel range). */
-  moving: { fleet: Fleet; extraRange: number } | null;
+  moving: { fleet: Fleet; extraRange: number; settling: boolean } | null;
+}
+
+/** What a tap on a ship icon hit. */
+export interface FleetTap {
+  mine: boolean;
+  fleetId: number | null;
+  starId: Id | null;
+  destStarId: Id | null;
+  empireId: Id;
 }
 
 export class StarMap {
@@ -30,6 +39,10 @@ export class StarMap {
   private raf = 0;
   onTapStar: (id: Id) => void = () => {};
   onTapEmpty: () => void = () => {};
+  onTapFleet: (hit: FleetTap) => void = () => {};
+  /** Where ship icons were drawn last frame, for tapping. */
+  private fleetHits: (FleetTap & { x: number; y: number; r: number })[] = [];
+  private pulseTimer = 0;
 
   constructor(parent: HTMLElement) {
     this.canvas = document.createElement("canvas");
@@ -154,8 +167,18 @@ export class StarMap {
 
   private tap(sx: number, sy: number): void {
     if (!this.view) return;
+    // Ship icons first (they sit beside their star), unless we're picking a destination.
+    if (!this.overlay.moving) {
+      let hit: (typeof this.fleetHits)[number] | null = null;
+      let hd = Infinity;
+      for (const h of this.fleetHits) {
+        const d = Math.hypot(h.x - sx, h.y - sy);
+        if (d <= h.r && d < hd) { hd = d; hit = h; }
+      }
+      if (hit) { this.onTapFleet(hit); return; }
+    }
     let best: Id | null = null;
-    let bestD = 26;
+    let bestD = matchMedia("(pointer: coarse)").matches ? 38 : 28; // generous tap area around stars
     for (const s of this.view.stars) {
       const [x, y] = this.toScreen(s.x, s.y);
       const d = Math.hypot(x - sx, y - sy);
@@ -205,11 +228,19 @@ export class StarMap {
     // Empire territory: a soft tint with a crisp border around each empire's known colonies.
     this.drawTerritories(ctx, v, W, H, colorOf);
 
-    // Fuel range while picking a destination.
+    // Fuel range while picking a destination. The rest of space is dimmed so your empire stands out.
+    const mv = this.overlay.moving;
+    const reachLy = mv ? v.stats.fuelRange + mv.extraRange : 0;
+    const reachable = (sx: number, sy: number) =>
+      !mv || v.colonies.some((c) => { const s = v.stars[c.starId]!; return Math.hypot(s.x - sx, s.y - sy) <= reachLy + 1e-9; });
+    if (mv) {
+      ctx.fillStyle = "rgba(1,2,8,0.55)";
+      ctx.fillRect(0, 0, W, H);
+    }
     if (this.overlay.moving) {
       const r = (v.stats.fuelRange + this.overlay.moving.extraRange) * this.scale;
-      ctx.fillStyle = "rgba(111,182,255,0.06)";
-      ctx.strokeStyle = "rgba(111,182,255,0.4)";
+      ctx.fillStyle = "rgba(111,182,255,0.09)";
+      ctx.strokeStyle = "rgba(111,182,255,0.55)";
       ctx.setLineDash([6, 6]);
       for (const c of v.colonies) {
         const s = v.stars[c.starId]!;
@@ -255,10 +286,12 @@ export class StarMap {
       const explored = !!k?.explored;
       const col = STAR_COLORS[s.color];
       const r = Math.max(2.2, Math.min(7.5, this.scale * 0.11)) * SIZE[s.color];
+      const far = mv ? !reachable(s.x, s.y) : false;
+      const dimK = far ? 0.3 : 1;
       if (s.nebula) this.drawNebula(ctx, x, y, s.id);
 
       // Corona, then a hot white core.
-      ctx.globalAlpha = explored ? 0.7 : 0.35;
+      ctx.globalAlpha = (explored ? 0.7 : 0.35) * dimK;
       const g = ctx.createRadialGradient(x, y, 0, x, y, r * 4.2);
       g.addColorStop(0, hexA(col, 0.9));
       g.addColorStop(0.25, hexA(col, 0.35));
@@ -273,7 +306,7 @@ export class StarMap {
         const len = r * 3.4;
         ctx.beginPath(); ctx.moveTo(x - len, y); ctx.lineTo(x + len, y); ctx.moveTo(x, y - len); ctx.lineTo(x, y + len); ctx.stroke();
       }
-      ctx.globalAlpha = explored ? 1 : 0.55;
+      ctx.globalAlpha = (explored ? 1 : 0.55) * dimK;
       const core = ctx.createRadialGradient(x, y, 0, x, y, r);
       core.addColorStop(0, "#ffffff");
       core.addColorStop(0.45, col);
@@ -305,6 +338,36 @@ export class StarMap {
           for (const dx of [-5, 0, 5]) { ctx.beginPath(); ctx.arc(x + dx, y - r - 10 - (dx === 0 ? 2 : 0), 1.8, 0, Math.PI * 2); ctx.fill(); }
         }
       }
+      // While sending ships: your colonies glow and pulse, and worlds a colony ship can settle get a green ring.
+      if (mv && owner === me.id) {
+        const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 260);
+        ctx.save();
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, r + 26);
+        glow.addColorStop(0, hexA(me.color, 0.55));
+        glow.addColorStop(1, hexA(me.color, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(x, y, r + 26, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowColor = me.color; ctx.shadowBlur = 18;
+        ctx.strokeStyle = me.color; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(x, y, r + 7, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 0.25 + 0.5 * (1 - pulse);
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, y, r + 9 + pulse * 10, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+      if (mv?.settling && !far && v.canSettle(s.id)) {
+        ctx.save();
+        ctx.strokeStyle = "#5fe08a"; ctx.shadowColor = "#5fe08a"; ctx.shadowBlur = 10; ctx.lineWidth = 2.2;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.arc(x, y, r + 8, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+      if (mv && mv.fleet.starId === s.id) {
+        ctx.save();
+        ctx.fillStyle = "#f3c560"; ctx.font = "bold 11px system-ui, sans-serif";
+        ctx.fillText("FROM HERE", x, y - r - 16);
+        ctx.restore();
+      }
       if (this.overlay.selectedStar === s.id) {
         ctx.save();
         ctx.strokeStyle = "#f3c560";
@@ -317,13 +380,15 @@ export class StarMap {
         ctx.beginPath(); ctx.arc(x, y, r + 16, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
       }
-      if (showNames) {
+      if (showNames || (mv && (owner === me.id || (!far && this.scale >= 12)))) {
         const mine = owner === me.id;
         const known = owner !== null && owner !== undefined;
         ctx.font = `${known ? "600 " : ""}${explored ? "" : "italic "}12px "Segoe UI", system-ui, sans-serif`;
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.9)";
         ctx.shadowBlur = 4;
+        if (mv && mine) { ctx.shadowColor = me.color; ctx.shadowBlur = 10; ctx.font = `700 13px "Segoe UI", system-ui, sans-serif`; }
+        ctx.globalAlpha = far ? 0.4 : 1;
         ctx.fillStyle = known ? (mine ? "#ffffff" : lighten(colorOf(owner))) : explored ? "#b9c3dc" : "#5f6a86";
         ctx.fillText(s.name, x, y + r + 17);
         ctx.restore();
@@ -332,7 +397,9 @@ export class StarMap {
 
     // Fleets.
     const shipSize = Math.max(20, Math.min(44, this.scale * 0.75));
-    const drawShip = (raceId: string | null, color: string, x: number, y: number, count: number) => {
+    this.fleetHits = [];
+    const drawShip = (raceId: string | null, color: string, x: number, y: number, count: number, hit?: FleetTap) => {
+      if (hit) this.fleetHits.push({ ...hit, x, y, r: Math.max(22, shipSize * 0.7) });
       ctx.save();
       ctx.shadowColor = color;
       ctx.shadowBlur = 10; // keeps dark hulls visible on the dark map
@@ -359,19 +426,24 @@ export class StarMap {
         const [x2, y2] = this.toScreen(d.x, d.y);
         const len = Math.hypot(x2 - x1, y2 - y1) || 1;
         const step = Math.min(len * 0.4, shipSize * 1.4);
-        drawShip(me.raceId, me.color, x1 + ((x2 - x1) / len) * step, y1 + ((y2 - y1) / len) * step, n);
+        drawShip(me.raceId, me.color, x1 + ((x2 - x1) / len) * step, y1 + ((y2 - y1) / len) * step, n,
+          { mine: true, fleetId: f.id, starId: f.starId, destStarId: f.destStarId, empireId: me.id });
         continue;
       }
       const [x, y] = this.toScreen(f.x, f.y);
       const off = f.starId !== null ? shipSize * 0.75 : 0;
-      drawShip(me.raceId, me.color, x - off, y - off * 0.6, n);
+      drawShip(me.raceId, me.color, x - off, y - off * 0.6, n,
+        { mine: true, fleetId: f.id, starId: f.starId, destStarId: f.destStarId, empireId: me.id });
     }
     for (const f of v.seenFleets) {
       const [x, y] = this.toScreen(f.x, f.y);
       const c = v.contacts.find((k) => k.id === f.empireId);
       const off = f.starId !== null ? shipSize * 0.75 : 0;
-      drawShip(c?.raceId ?? null, c?.color ?? "#ff6b6b", x + off, y - off * 0.6, f.ships);
+      drawShip(c?.raceId ?? null, c?.color ?? "#ff6b6b", x + off, y - off * 0.6, f.ships,
+        { mine: false, fleetId: null, starId: f.starId, destStarId: null, empireId: f.empireId });
     }
+
+    if (mv) { clearTimeout(this.pulseTimer); this.pulseTimer = window.setTimeout(() => this.draw(), 40); }
 
     // Soft vignette so the edges of the screen fall away into space.
     const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.max(W, H) * 0.8);

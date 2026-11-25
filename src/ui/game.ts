@@ -23,7 +23,7 @@ import { researchChoices, tech, techCost } from "../engine/tech";
 import { TECHS } from "../engine/data/techs";
 import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
 import { art, portraitHTML, setImageLoadedHandler } from "./assets";
-import { StarMap } from "./map";
+import { StarMap, type FleetTap } from "./map";
 import { autosave } from "./storage";
 
 const TREATY_LABEL: Record<TreatyKind, string> = { trade: "Trade agreement", research: "Research pact", nap: "Non-aggression pact", alliance: "Alliance" };
@@ -85,6 +85,7 @@ export class GameScreen {
   private hint: HTMLElement | null = null;
   private view!: EmpireView;
   private selected: Id | null = null;
+  private panelTab: "planet" | "ships" = "planet";
   private moving: { fleetId: Id; ships: Record<string, number> } | null = null;
   private busy = false;
 
@@ -95,6 +96,7 @@ export class GameScreen {
     root.append(this.top, this.endbar);
     this.map.onTapStar = (id) => this.tapStar(id);
     this.map.onTapEmpty = () => { if (!this.moving) this.select(null); };
+    this.map.onTapFleet = (h) => this.tapFleet(h);
     setImageLoadedHandler(() => this.map.draw());
     const home = state.stars[state.empires[PLAYER]!.capitalStarId]!;
     this.map.centerOn(home.x, home.y, Math.min(46, Math.max(26, Math.min(window.innerWidth, window.innerHeight) / 22)));
@@ -106,10 +108,10 @@ export class GameScreen {
 
   private refresh(): void {
     this.view = makeView(this.state, PLAYER);
-    let moving: { fleet: Fleet; extraRange: number } | null = null;
+    let moving: { fleet: Fleet; extraRange: number; settling: boolean } | null = null;
     if (this.moving) {
       const f = this.view.fleets.find((x) => x.id === this.moving!.fleetId);
-      if (f) moving = { fleet: f, extraRange: fleetExtraRange(this.state, { ...f, ships: this.moving.ships }) };
+      if (f) moving = { fleet: f, extraRange: fleetExtraRange(this.state, { ...f, ships: this.moving.ships }), settling: colonyShipCount(this.state, this.moving.ships) > 0 };
     }
     this.map.update(this.view, { selectedStar: this.selected, moving });
     this.renderTop();
@@ -288,7 +290,23 @@ export class GameScreen {
     this.select(id);
   }
 
-  private select(id: Id | null): void {
+  /** Tapping a ship icon on the map opens that star's Ships tab (or the destination, for ships in flight). */
+  private tapFleet(h: FleetTap): void {
+    play("click");
+    if (h.starId !== null) { this.panelTab = "ships"; this.select(h.starId, true); return; }
+    if (h.mine && h.destStarId !== null) {
+      const f = this.view.fleets.find((x) => x.id === h.fleetId);
+      const dest = this.view.stars[h.destStarId]!;
+      if (f) this.toast(`Heading to ${dest.name}, ${this.view.turnsTo(f, dest.id) <= 1 ? "arrives next turn" : `arrives in ${this.view.turnsTo(f, dest.id)} turns`}.`);
+      this.panelTab = "ships"; this.select(h.destStarId, true);
+      return;
+    }
+    const o = this.view.contacts.find((x) => x.id === h.empireId);
+    this.toast(`A fleet of the ${o?.name ?? "unknown empire"} in deep space.`);
+  }
+
+  private select(id: Id | null, keepTab = false): void {
+    if (!keepTab) this.panelTab = "planet";
     this.selected = id;
     if (id !== null) { const s = this.state.stars[id]!; this.map.focus(s.x, s.y); }
     this.refresh();
@@ -296,7 +314,7 @@ export class GameScreen {
 
   private startMove(f: Fleet, ships: Record<string, number>): void {
     this.moving = { fleetId: f.id, ships };
-    this.setHint("Tap a star to send them there. Blue area = within fuel range.");
+    this.setHint("Tap a star to send them there. Your colonies glow; the blue area is your fuel range; green rings are worlds you can settle.");
     this.refresh();
   }
 
@@ -326,6 +344,28 @@ export class GameScreen {
     close.onclick = () => this.select(null);
     p.append(close);
 
+    const fleetsHere = v.fleets.filter((f) => f.starId === s.id || f.destStarId === s.id);
+    const foreignHere = v.seenFleets.filter((f) => f.starId === s.id);
+    const shipCountHere = fleetsHere.filter((f) => f.starId === s.id).reduce((n, f) => n + Object.values(f.ships).reduce((a, b) => a + b, 0), 0);
+    const hasShips = fleetsHere.length > 0 || foreignHere.length > 0;
+    const tab = hasShips ? this.panelTab : "planet";
+    if (hasShips) {
+      const tabs = el("div", { class: "panel-tabs" });
+      const tp = el("button", { class: tab === "planet" ? "on" : "" }, "🪐 Planet");
+      const ts = el("button", { class: tab === "ships" ? "on" : "" }, `🚀 Ships${shipCountHere ? ` (${shipCountHere})` : ""}${foreignHere.length ? " ⚠" : ""}`);
+      tp.onclick = () => { this.panelTab = "planet"; this.renderPanel(); };
+      ts.onclick = () => { this.panelTab = "ships"; this.renderPanel(); };
+      tabs.append(tp, ts);
+      p.append(tabs);
+    }
+    if (tab === "ships") {
+      p.append(el("h2", { style: "margin:4px 0 6px" }, esc(s.name)));
+      p.append(this.fleetsBlock(s.id));
+      this.panel = p;
+      this.root.append(p);
+      return;
+    }
+
     if (!k?.explored) {
       p.append(el("div", {}, `<h2>${esc(s.name)}</h2><div class="chips"><span class="chip">${s.color} star</span>${s.nebula ? '<span class="chip">nebula</span>' : ""}</div>
         <p class="dim">Unexplored. Send a scout to find out what's here.</p>`));
@@ -350,7 +390,7 @@ export class GameScreen {
       if (c) p.append(this.colonyBlock(c.starId));
       if (k.ownerId !== null && k.ownerId !== PLAYER) p.append(this.foreignBlock(s.id, k.ownerId));
     }
-    p.append(this.fleetsBlock(s.id));
+    if (!hasShips) p.append(this.fleetsBlock(s.id));
     this.panel = p;
     this.root.append(p);
   }

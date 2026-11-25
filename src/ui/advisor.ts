@@ -13,7 +13,7 @@ const idle = (v: EmpireView, kind: string) => v.fleets.some((f) => f.starId !== 
 
 export const TIPS: Tip[] = [
   { id: "start", when: (v) => v.turn <= 2, text: "Welcome, ruler! Tap your home star to open its colony. The sliders split its production between ships, defense, industry, ecology and research." },
-  { id: "scouts", when: (v) => v.turn <= 6 && idle(v, "scout"), text: "Your scouts are waiting. Tap your home star, choose a scout under Fleets, press Move, then tap an unexplored star." },
+  { id: "scouts", when: (v) => v.turn <= 6 && idle(v, "scout"), text: "Your scouts are waiting. Tap the ship icon beside your home star, press Send 1 Scout, then tap an unexplored star." },
   { id: "colony-ship", when: (v) => idle(v, "colony") && v.stars.some((s) => v.canSettle(s.id)), text: "You have a colony ship and a world it can settle. Stars you can settle get a green ring while moving it." },
   { id: "research", when: (v) => v.turn >= 4, text: "Open Research (top right) to see what you're studying. Push one field's slider up to get its tech much sooner." },
   { id: "contact", when: (v) => v.contacts.length > 0, text: "You've met another empire! Open ☰ → Empires → Talk to trade, sign treaties, swap techs or send spies." },
