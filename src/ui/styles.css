@@ -135,3 +135,9 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 .quote { font-style: italic; opacity: 0.85; }
 .standings { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
 .standings th, .standings td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #1b2440; }
+.advisor { position: fixed; left: 10px; bottom: 74px; max-width: 320px; z-index: 30; background: rgba(14,22,42,0.96);
+  border: 1px solid #c9a24a; border-radius: 10px; padding: 10px 12px; font-size: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+.advisor { z-index: 15; }
+.advisor b { color: #e8c46a; }
+.advisor button { margin-top: 6px; }
+@media (max-width: 899px) { .advisor { bottom: auto; top: 104px; left: 8px; right: 8px; max-width: none; } }

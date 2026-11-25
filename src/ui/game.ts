@@ -3,6 +3,9 @@
 
 import { aiAnswerProposals, runAITurns } from "../ai";
 import { say } from "../engine/dialogue";
+import { play, setSound, soundOn } from "./sound";
+import { markSeen, nextTip, setTipsOff, tipsOff } from "./advisor";
+import type { EventEffect } from "../engine/data/events";
 import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/buildings";
 import type { TreatyKind } from "../engine/types";
 import {
@@ -34,6 +37,23 @@ const SPECIAL_HELP: Record<string, string> = {
   "stasis-field": "freezes the largest enemy group in round 1", "cloaking-field": "+2 beam and missile defense",
   "repulsor-beam": "+3 missile defense", "displacement-field": "25% of hits on it miss", "planet-cracker": "can destroy an undefended enemy planet",
 };
+
+function effectText(fx: EventEffect): string {
+  const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  switch (fx.kind) {
+    case "money": return `${sign(fx.amount)} BC`;
+    case "research": return `${sign(fx.amount)} ${fx.field} research`;
+    case "population": return `${sign(fx.amount)} population`;
+    case "factories": return `${sign(fx.amount)} factories`;
+    case "morale": return `${sign(fx.amount * 10)} culture`;
+    case "culture": return `${sign(fx.amount)} culture`;
+    case "ships": return `+${fx.count} ${fx.template === "scout" ? "scout" : "colony ship"}${fx.count > 1 ? "s" : ""}`;
+    case "relations": return `${sign(fx.amount)} relations`;
+    case "planetSize": return `${sign(fx.amount)} planet size`;
+    case "revealStars": return `reveal ${fx.count} stars`;
+    default: return "";
+  }
+}
 
 const PLAYER = 0;
 const SLIDER_NAMES: Record<Slider, string> = {
@@ -89,6 +109,19 @@ export class GameScreen {
     this.renderTop();
     this.renderEndbar();
     this.renderPanel();
+    this.renderTip();
+  }
+
+  /** One advisor tip at a time, in a small card that can be dismissed. */
+  private renderTip(): void {
+    document.getElementById("advisor")?.remove();
+    const tip = nextTip(this.view);
+    if (!tip) return;
+    const card = el("div", { id: "advisor", class: "advisor" }, `<b>Advisor</b><div>${esc(tip.text)}</div>`);
+    const ok = el("button", { class: "small" }, "Got it");
+    ok.onclick = () => { markSeen(tip.id); this.renderTip(); };
+    card.append(ok);
+    document.body.append(card);
   }
 
   private cmd(c: Command): boolean {
@@ -103,6 +136,7 @@ export class GameScreen {
     this.busy = true;
     this.moving = null;
     this.setHint(null);
+    play("turn");
     const processedTurn = this.state.turn;
     // AI empires give their orders through the same command system, then the turn resolves.
     runAITurns(this.state);
@@ -111,8 +145,48 @@ export class GameScreen {
     this.busy = false;
     this.refresh();
     const mine = this.view.events.filter((e) => e.turn === processedTurn);
+    this.playFor(mine);
     if (mine.length) this.showReport(processedTurn, mine);
     else this.showProposals();
+  }
+
+  private playFor(events: { kind: string }[]): void {
+    const kinds = new Set(events.map((e) => e.kind));
+    const s = kinds.has("war") ? "war" : kinds.has("battle") || kinds.has("invasion") ? "battle"
+      : kinds.has("colonized") ? "colony" : kinds.has("research") ? "discovery" : kinds.has("diplomacy") || kinds.has("contact") ? "message" : null;
+    if (s) setTimeout(() => play(s), 250);
+  }
+
+  /** Let the AI run the player's empire for a few turns; stop when something needs the ruler. */
+  private autopilot(turns: number): void {
+    if (this.busy) return;
+    this.busy = true;
+    this.moving = null;
+    const startTurn = this.state.turn;
+    const me = this.state.empires[PLAYER]!;
+    let stopReason = "";
+    const step = (left: number) => {
+      const t = this.state.turn;
+      runAITurns(this.state, true);
+      endTurn(this.state);
+      autosave(this.state);
+      const evs = this.state.events.filter((e) => e.turn === t && (e.empireId === PLAYER || e.empireId === null));
+      if (this.state.winner) stopReason = "The game has been decided.";
+      else if (evs.some((e) => e.kind === "war" && e.text.includes(me.name) && e.text.includes("declared war"))) stopReason = "War was declared involving you.";
+      else if (evs.some((e) => e.kind === "invasion" && e.empireId === PLAYER && e.text.includes("captured"))) stopReason = "A planet changed hands.";
+      else if (this.state.council.session || this.state.council.awaitingVerdict !== null) stopReason = "The Galactic Council is in session.";
+      else if (!me.alive) stopReason = "Your empire has fallen.";
+      this.refresh();
+      if (left > 1 && !stopReason) setTimeout(() => step(left - 1), 30);
+      else {
+        this.busy = false;
+        const all = this.state.events.filter((e) => e.turn >= startTurn && (e.empireId === PLAYER || e.empireId === null) && ["war", "invasion", "battle", "contact", "council", "culture", "colonized"].includes(e.kind));
+        this.toast(stopReason || `Autopilot ran ${this.state.turn - startTurn} turns.`);
+        if (all.length) this.showReport(this.state.turn - 1, all.slice(-25));
+        else this.showProposals();
+      }
+    };
+    step(turns);
   }
 
   // ---------- Top bar & end bar ----------
@@ -512,7 +586,33 @@ export class GameScreen {
     if (v.winner && !v.keepPlaying) return this.showGameOver();
     if (v.council.awaitingVerdict !== null) return this.showVerdict();
     if (v.council.session && v.council.session.myVote === undefined && v.council.session.weight[PLAYER] !== undefined) return this.showCouncil();
+    if (v.pendingEvents.length) return this.showRandomEvent();
     this.showMessages();
+  }
+
+  private showRandomEvent(): void {
+    const ev = makeView(this.state, PLAYER).pendingEvents[0];
+    if (!ev) return this.showMessages();
+    play("message");
+    this.modal((box, close) => {
+      box.innerHTML = `<img class="event-pic" src="${art.event(ev.art)}" alt=""><h2>${esc(ev.title)}</h2><p>${esc(ev.text)}</p>`;
+      const col = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
+      ev.choices.forEach((c, i) => {
+        const fx = c.effects.map(effectText).filter(Boolean).join(", ");
+        const b = el("button", {}, `<b>${esc(c.label)}</b>${fx ? `<br><span class="dim" style="font-size:12px">${esc(fx)}</span>` : ""}`);
+        b.onclick = () => {
+          this.cmd({ type: "chooseEvent", eventId: ev.id, choice: i });
+          box.innerHTML = `<h2>${esc(ev.title)}</h2><p>${esc(c.result)}</p>`;
+          const ok = el("button", { class: "primary" }, "Continue");
+          ok.onclick = () => { close(); this.refresh(); this.showProposals(); };
+          const r = el("div", { class: "row" });
+          r.append(ok);
+          box.append(r);
+        };
+        col.append(b);
+      });
+      box.append(col);
+    });
   }
 
   private showCouncil(): void {
@@ -566,6 +666,7 @@ export class GameScreen {
     const v = makeView(this.state, PLAYER);
     const w = v.winner!;
     const won = w.empireId === PLAYER;
+    play(won ? "victory" : "defeat");
     const who = this.state.empires[w.empireId]!;
     const how: Record<string, string> = {
       conquest: "by conquest", council: "by vote of the Galactic Council", culture: "through culture", technology: "by building the Ascension Gate",
@@ -1209,9 +1310,20 @@ export class GameScreen {
       box.innerHTML = `<h2>Game menu</h2><p class="dim">Your game saves automatically after every turn on this device.</p>`;
       const row = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       const exp = el("button", {}, "Export save code (move to another device)");
+      const auto = el("div", { class: "row", style: "justify-content:flex-start;flex-wrap:wrap;gap:6px" }, "<span class='dim' style='width:100%'>Autopilot: the AI runs your empire, stopping for wars, council votes and the end of the game.</span>");
+      for (const n of [5, 10, 25]) {
+        const b = el("button", { class: "small" }, `▶ ${n} turns`);
+        b.onclick = () => { close(); this.autopilot(n); };
+        auto.append(b);
+      }
+      row.append(auto);
+      const snd = el("button", {}, `Sound: ${soundOn() ? "on" : "off"}`);
+      snd.onclick = () => { setSound(!soundOn()); snd.textContent = `Sound: ${soundOn() ? "on" : "off"}`; play("click"); };
+      const tips = el("button", {}, `Advisor tips: ${tipsOff() ? "off" : "on"}`);
+      tips.onclick = () => { setTipsOff(!tipsOff()); tips.textContent = `Advisor tips: ${tipsOff() ? "off" : "on"}`; this.renderTip(); };
       const vic = el("button", {}, "Victory and the Galactic Council");
       vic.onclick = () => { close(); this.showVictory(); };
-      row.append(vic);
+      row.append(vic, snd, tips);
       const mine = el("button", {}, "Your empire: culture, leaders, wonders");
       mine.onclick = () => { close(); this.showEmpire(); };
       row.append(mine);

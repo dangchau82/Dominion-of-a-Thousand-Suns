@@ -7,6 +7,8 @@ import { describeProposal, relation, tradeableTechs, treatiesWith } from "./dipl
 import { buildable, buyCost } from "./civ";
 import { techVictoryProgress, votesOf } from "./victory";
 import { canSettleStarless } from "./abilities";
+import { describeEvent, eventsFor } from "./events";
+import type { EventEffect } from "./data/events";
 import { GOLDEN_AGE_AT } from "./data/buildings";
 import type { ShipDesign } from "./data/ships";
 import {
@@ -80,6 +82,8 @@ export interface EmpireView {
     defied: boolean;
   };
   winner: Winner | null;
+  /** Random events waiting for our choice, with names filled in. */
+  pendingEvents: { id: number; title: string; art: string; text: string; choices: { label: string; result: string; effects: EventEffect[] }[] }[];
   keepPlaying: boolean;
   /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
   standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean }[];
@@ -163,6 +167,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       defied: state.council.defied,
     },
     winner: state.winner ? { ...state.winner } : null,
+    pendingEvents: eventsFor(state, empireId).map((p) => ({ id: p.id, ...structuredClone(describeEvent(state, p)) })),
     keepPlaying: !!state.keepPlaying,
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),

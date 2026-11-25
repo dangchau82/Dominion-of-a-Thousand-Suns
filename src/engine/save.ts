@@ -79,6 +79,7 @@ export function deserialize(json: string): GameState {
   if (data.version === 4) migrateV4(data as GameState);
   if (data.version === 5) migrateV5(data as GameState);
   if (data.version === 6) migrateV6(data as GameState);
+  if (data.version === 7) { const s = data as GameState; s.pendingEvents = []; s.nextEventId = 1; s.version = 8; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

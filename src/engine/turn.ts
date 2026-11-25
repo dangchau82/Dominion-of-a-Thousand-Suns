@@ -4,6 +4,7 @@ import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
 import { shipDesign } from "./designs";
 import { resolveCombat } from "./combat";
+import { rollEvents } from "./events";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -175,6 +176,7 @@ export function endTurn(state: GameState): void {
   }
 
   processCivilization(state);
+  rollEvents(state);
   processEspionage(state);
   applyTreaties(state);
 

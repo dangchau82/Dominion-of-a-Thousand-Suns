@@ -41,7 +41,7 @@ export function newGame(settings: GameSettings): GameState {
   const state: GameState = {
     version: SAVE_VERSION, turn: 1, settings, rng, stars,
     empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1, proposals: [], nextProposalId: 1, wonders: {}, nextLeaderId: 1,
-    council: { nextTurn: COUNCIL_FIRST, session: null, awaitingVerdict: null, defied: false }, winner: null,
+    council: { nextTurn: COUNCIL_FIRST, session: null, awaitingVerdict: null, defied: false }, winner: null, pendingEvents: [], nextEventId: 1,
   };
 
   races.forEach((r, i) => {

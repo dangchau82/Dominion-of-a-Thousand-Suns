@@ -14,14 +14,14 @@ export function tradeMultiplier(e: Empire): number {
   return is(e, "humans") ? 1.5 : 1;
 }
 
-/** Drovani: ocean worlds hold double population. */
+/** Drovani: ocean worlds hold 50% more population. */
 export function capacityMultiplier(p: Planet, owner?: Empire): number {
-  return owner && is(owner, "drovani") && p.climate === "ocean" ? 2 : 1;
+  return owner && is(owner, "drovani") && p.climate === "ocean" ? 1.5 : 1;
 }
 
 /** Nyx Collective: build population in factories, at half the cost. */
 export function popCostMultiplier(e: Empire): number {
-  return is(e, "nyx") ? 0.5 : 1;
+  return is(e, "nyx") ? 0.65 : 1;
 }
 
 /** Verdane: grow 50% faster around bright (white, yellow, blue) stars. */
@@ -55,7 +55,7 @@ export function canSettleStarless(e: Empire): boolean {
   return is(e, "quorai");
 }
 export function stellarHabitat(): Planet {
-  return { climate: "inferno", size: 25, terraform: 0, minerals: "rich", environment: "normal", special: null };
+  return { climate: "inferno", size: 15, terraform: 0, minerals: "normal", environment: "normal", special: null };
 }
 
 /** Tarkhan Hunt: gunners hit harder (+1 damage per hit) and always fire first. */

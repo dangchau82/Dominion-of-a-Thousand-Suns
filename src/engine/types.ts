@@ -129,6 +129,8 @@ export interface Empire {
   leaders: Leader[];
   /** A leader offering to serve, until offerUntil. */
   leaderOffer: Leader | null;
+  /** Recent random events (so they don't repeat too soon). */
+  recentEvents?: string[];
 }
 
 export interface Leader {
@@ -141,6 +143,16 @@ export interface Leader {
   /** BC per turn. */
   salary: number;
   offerUntil: number;
+}
+
+export interface PendingEvent {
+  id: number;
+  empireId: Id;
+  eventId: string;
+  turn: number;
+  colonyStarId: Id | null;
+  starId: Id | null;
+  rivalId: Id | null;
 }
 
 export type VictoryKind = "conquest" | "council" | "culture" | "technology";
@@ -261,6 +273,9 @@ export interface GameState {
   /** Set when someone has won; the player may keep playing afterwards. */
   winner: Winner | null;
   keepPlaying?: boolean;
+  /** Random events waiting for their empire's choice. */
+  pendingEvents: PendingEvent[];
+  nextEventId: number;
   /** Diplomatic proposals waiting for an answer. */
   proposals: Proposal[];
   nextProposalId: number;
@@ -277,4 +292,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;

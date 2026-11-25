@@ -5,6 +5,7 @@ import { researchChoices } from "./tech";
 import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
 import { castVote, councilVerdict } from "./victory";
+import { resolveEvent } from "./events";
 import { canSettleStarless, fundMultiplier, stellarHabitat } from "./abilities";
 import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
 import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
@@ -38,6 +39,7 @@ export type Command =
   | { type: "councilVote"; candidateId: Id | null }
   | { type: "councilVerdict"; accept: boolean }
   | { type: "keepPlaying" }
+  | { type: "chooseEvent"; eventId: number; choice: number }
   | { type: "crackPlanet"; fleetId: Id }
   | { type: "fundShips"; starId: Id; bc: number }
   | { type: "dismissLeader"; leaderId: number }
@@ -210,6 +212,12 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       const f = state.fleets.find((x) => x.id === cmd.fleetId);
       if (!f) return fail("No such fleet");
       const err = crackPlanet(state, e, f);
+      return err ? fail(err) : { ok: true };
+    }
+    case "chooseEvent": {
+      const p = state.pendingEvents.find((x) => x.id === cmd.eventId && x.empireId === empireId);
+      if (!p) return fail("That event is over");
+      const err = resolveEvent(state, p, cmd.choice);
       return err ? fail(err) : { ok: true };
     }
     case "keepPlaying": {

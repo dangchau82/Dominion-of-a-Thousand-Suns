@@ -263,6 +263,36 @@ function civilization(ctx: Ctx): void {
   if (offer && view.me.leaders.length < 3 && view.me.treasury >= offer.cost * 1.3) cmds.push({ type: "hireLeader" });
 }
 
+// ---------- random events ----------
+
+function randomEvents(ctx: Ctx): void {
+  const { view, cmds } = ctx;
+  for (const ev of view.pendingEvents) {
+    let best = 0;
+    let bestScore = -Infinity;
+    ev.choices.forEach((c, i) => {
+      let s = 0;
+      for (const fx of c.effects) {
+        switch (fx.kind) {
+          case "money": s += fx.amount < 0 && view.me.treasury < -fx.amount ? -999 : fx.amount; break;
+          case "research": s += fx.amount * (0.6 + ctx.curiosity * 0.4); break;
+          case "population": s += fx.amount * 25; break;
+          case "factories": s += fx.amount * 10; break;
+          case "morale": s += fx.amount * 8; break;
+          case "culture": s += fx.amount; break;
+          case "ships": s += fx.count * (fx.template === "colony" ? 120 : 25); break;
+          case "relations": s += fx.amount * 3 * ctx.honor; break;
+          case "planetSize": s += fx.amount * 15; break;
+          case "revealStars": s += fx.count * (view.turn < 100 ? 25 : 8); break;
+          default: break;
+        }
+      }
+      if (s > bestScore) { bestScore = s; best = i; }
+    });
+    cmds.push({ type: "chooseEvent", eventId: ev.id, choice: best });
+  }
+}
+
 // ---------- the Galactic Council ----------
 
 function council(ctx: Ctx): void {
@@ -687,6 +717,7 @@ function makeCtx(view: EmpireView): Ctx {
 export function basicAITurn(view: EmpireView): Command[] {
   const ctx = makeCtx(view);
   answers(ctx);
+  randomEvents(ctx);
   council(ctx);
   diplomacy(ctx);
   deals(ctx);
