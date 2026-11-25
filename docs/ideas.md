@@ -70,6 +70,24 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 | Carriers and fighters | Star Wars' fighter swarms | Large ships launch fighters that swarm, screen and intercept missiles. | idea | **Must-have.** Needs combat work: fighters as their own shot pool, carriers as a special system. |
 | Smugglers and blockades | Star Wars' smugglers | Blockade a rival's trade to cut their income; smugglers break blockades for a fee. | idea | Trade treaties already pay per turn. |
 
+## Added 2026-11-25 (inspired by Firefly, the Riddick films and the Aliens films)
+
+| Idea | Inspired by | How it plays in our game | Status | Notes |
+|---|---|---|---|---|
+| Frontier job board | Firefly's odd jobs | Minor races and traders post contracts (carry cargo, escort, smuggle, rescue) for BC, culture or favours; risky jobs pay more. | idea | Uses minor races and the money sinks; gives small empires income. |
+| Mad raiders from the edge | Firefly's savage raiders | A late, terrifying pirate swarm that comes from the map's edge, wrecks colonies and can't be bargained with. | idea | A "pirates" lair that roams; pairs with the gates/ambush rules. |
+| A buried government secret | Firefly's hidden planet | A story event: an empire's old experiment (a pacification gas, a failed super-soldier) is uncovered; reveal it, bury it, or use it. | idea | Gemini writing job; ties into unrest. |
+| A legendary ship and crew | Firefly's crew | Name one ship; it gains a captain and crew traits as it survives battles, and losing it hurts morale. | idea | Pairs with leader traits and living-ship ages. |
+| Death worlds | Riddick's scorched and night-creature planets | Rare planets with deadly cycles (scorching days, monsters at night): rich but costly to hold; needs special tech or buildings. | idea | New planet specials. |
+| Prison worlds | Riddick's prison planets | Turn a harsh world into a penal colony: cheap population and labour, but unrest, escapes and riots. | idea | Uses unrest; a use for poor planets. |
+| A death-cult crusade | Riddick's conquering cult | A violent counterpart to the Crusade: convert or be destroyed; its fleets get stronger with each world taken. | idea | Late crisis; a contrast to the peaceful Candescent Fold. |
+| "You keep what you take" | Riddick's conqueror's rule | Capturing an enemy capital lets you take one of their leaders, techs or wonders. | idea | **Makes conquest pay** (open problem: conquest rarely decides games). |
+| The silent colony | Aliens: the colony that stops answering | A colony goes quiet; send troops to find out. Inside: an alien infestation, survivors, or something worse. | idea | An expedition-style crisis with ground combat. |
+| Alien infestation | Aliens: the hive | A creature hive spreads to nearby colonies through transports and traders; fight it on the ground, quarantine, or burn the planet from orbit (lose the colony, stop the spread). | idea | Fits the "hive" lair and the crises engine. |
+| The company that wants a specimen | Aliens: the corporation | A trade guild offers a fortune to bring back a living alien: huge research or money, with a chance it escapes. | idea | Gemini gamble event with failPath. |
+| Synthetic crew | Aliens: the androids | Android leaders: no salary and steady bonuses, but a small chance of a hidden agenda (spying for another empire). | idea | A leader trait family. |
+| Drop troops and ground war | Aliens: the marines | Better invasions: troop types, armour and ground battles worth researching, not just numbers. | idea | Helps conquest matter. |
+
 ## Living ships (Danny's idea, 2026-11-25)
 
 Organic ships that are **grown, not built**. Natural for the Kethrak Hive, Verdane, Ixil and Ruuvak; a late Planetology tech for everyone else.
