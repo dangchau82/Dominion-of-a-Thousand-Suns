@@ -7,6 +7,7 @@ import { resolveEvent } from "../src/engine/events";
 import { STORYLINES } from "../src/engine/data/storylines";
 import { STORYLINES_2 } from "../src/engine/data/storylines-2";
 import { STORYLINES_3 } from "../src/engine/data/storylines-3";
+import { STORYLINES_4 } from "../src/engine/data/storylines-4";
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
 import { GATE_EVENTS, GATE_TYPES, STANCES } from "../src/engine/data/gates";
 
@@ -368,10 +369,10 @@ describe("gates and ambushes (Gemini)", () => {
   });
 });
 
-describe("race storylines batches 2-3 (Gemini)", () => {
+describe("race storylines batches 2-4 (Gemini)", () => {
   it("6 chapters per race, 2 forks each, in scale, clean text", () => {
-    const batch = [...STORYLINES_2, ...STORYLINES_3];
-    for (const race of ["vossari", "kethrak", "lumen", "thraal", "seraphine", "orrun", "nyx", "velari", "drovani", "gorrath"]) {
+    const batch = [...STORYLINES_2, ...STORYLINES_3, ...STORYLINES_4];
+    for (const race of ["vossari", "kethrak", "lumen", "thraal", "seraphine", "orrun", "nyx", "velari", "drovani", "gorrath", "ixil", "verdane", "raxxan", "ruuvak", "tarkhan"]) {
       expect(batch.filter((c) => c.raceId === race).map((c) => c.chapter)).toEqual([1, 2, 3, 4, "5A", "5B"]);
     }
     const ids = [...STORYLINES, ...batch].map((c) => c.id);
