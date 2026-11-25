@@ -13,7 +13,7 @@ it("balance", () => {
   for (let g = 0; g < GAMES; g++) {
     // rotate who is in each game so every race appears equally
     const race = ids[g % ids.length]!;
-    const s = newGame({ seed: 2000 + g, size: SIZE, shape: "ellipse", rivals: RIVALS, playerRaceId: race, playerName: "P", difficulty: "normal" } as never);
+    const s = newGame({ seed: Number(process.env.SEED0 ?? 2000) + g, size: SIZE, shape: "ellipse", rivals: RIVALS, playerRaceId: race, playerName: "P", difficulty: "normal" } as never);
     // Nobody is "the player" here, so a game only ends with a real win (or turn 400).
     for (const e of s.empires) e.isPlayer = false;
     let t = 0;
