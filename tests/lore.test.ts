@@ -135,3 +135,25 @@ describe("Gemini pack 2: prophecies, minor races, expeditions", () => {
     }
   });
 });
+
+import { RESOLUTIONS } from "../src/engine/data/resolutions";
+import { REBEL_FACTIONS, SPY_MISSION_TEXTS, UNREST_EVENTS } from "../src/engine/data/unrest";
+import { RACES } from "../src/engine/data/races";
+
+describe("Gemini pack 3: council resolutions, unrest and civil war", () => {
+  const LIMIT: Record<string, number> = { production: 0.08, research: 0.08, growth: 0.15, range: 1, attack: 1, spying: 1, relations: 10, trade: 0.15, culture: 0.15 };
+  it("resolutions: 12, within limits, 10-25 turns", () => {
+    expect(RESOLUTIONS.length).toBe(12);
+    for (const r of RESOLUTIONS) {
+      expect(r.duration).toBeGreaterThanOrEqual(10); expect(r.duration).toBeLessThanOrEqual(25);
+      for (const [k, v] of Object.entries(r.bonus)) expect(Math.abs(v as number)).toBeLessThanOrEqual(LIMIT[k]!);
+      if (r.target === "oneEmpire") expect(r.aimedAt).toBeDefined();
+    }
+  });
+  it("unrest events in scale; a rebel faction for every race; three spy missions", () => {
+    expect(UNREST_EVENTS.length).toBe(10);
+    for (const e of UNREST_EVENTS) { checkText(e); expect(e.title).not.toMatch(/\{/); for (const c of e.choices) for (const fx of c.effects) expect(inScale(fx)).toBe(true); }
+    expect(REBEL_FACTIONS.map((f) => f.raceId).sort()).toEqual(RACES.map((r) => r.id).sort());
+    expect(SPY_MISSION_TEXTS.map((m) => m.mission).sort()).toEqual(["fundRebels", "inciteUnrest", "spreadPropaganda"]);
+  });
+});
