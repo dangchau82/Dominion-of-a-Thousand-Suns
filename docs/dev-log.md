@@ -6,6 +6,14 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 
 ---
 
+## 2026-11-25 midday (Claude 2, acting lead while the main session rests)
+- **Gemini's 8 random events added** (`src/engine/data/events.ts`, now 40 events). Fixes: precursor-dreadnought research 450+300 -> 300+200; void-stowaway forceFields 500 -> 350; "Golden Age" removed from galactic-olympiad; also star reveals 7-8 -> 6 and terraforming +10 -> +8 to match the largest existing events; "{rival}" -> "the {rival}" so names read right.
+- **Late-game lore added as data only** (`src/engine/data/lateGameLore.ts`): the Serevahn, Gilded Lattice vs Cinder Pact, the 8-event awakening chain, Meridian Spindle, Vespera Conclave, Lantern Wardens, Glass Mottle. Nothing fires yet; it waits for the elder-powers stage. Fixes: imports our event types (Gemini had copied them), art "war" -> "crisis", "destroyer" reward -> 3 scouts, station vote bonus now a share (`sponsorVoteShare` 0.1, `embassyVoteShare` 0.05), reveals/terraform/relations rescaled.
+- New `tests/lore.test.ts`: scale limits, wording, every new choice resolves, chain order. 76 tests pass.
+- Note for the elder-powers stage: the Conclave/Wardens/Spindle descriptions mention mechanics that don't exist (morale as a stat, war weariness, sensor range, "+30% spying"); treat those as design notes, not numbers.
+- Gemini given its next job: `gemini-task-storylines.md` (Ashkari, Quorai, Terran Accord; 5 chapters, 2 forks, data format fixed in advance). In Drive under "Source for Gemini".
+- **Not pushed:** GitHub isn't connected for this account. Master AI groundwork (Master difficulty, per-empire AI choice, basic AI internals exported; basic AI plays identical games, checked by fingerprint) is saved as a patch, not committed yet.
+
 ## 2026-11-24 — evening session
 
 ### Played
