@@ -4,7 +4,7 @@
 import { researchChoices } from "./tech";
 import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
-import { castVote, councilVerdict } from "./victory";
+import { castVote, councilVerdict, fightOn } from "./victory";
 import { resolveEvent } from "./events";
 import { canSettleStarless, fundMultiplier, stellarHabitat } from "./abilities";
 import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
@@ -225,6 +225,8 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     }
     case "keepPlaying": {
       if (!e.isPlayer || !state.winner || !e.alive) return fail("Nothing to continue");
+      // Won: carry on for fun. Lost: refuse defeat and fight on for a comeback.
+      if (state.winner.empireId !== e.id) { const err = fightOn(state, e); return err ? fail(err) : { ok: true }; }
       state.keepPlaying = true;
       return { ok: true };
     }

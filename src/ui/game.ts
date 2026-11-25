@@ -868,12 +868,13 @@ export class GameScreen {
     };
     this.modal((box, close) => {
       box.innerHTML = `<img class="event-pic" src="${art.event(won ? "victory" : "crisis")}" alt="">
-        <h2>${won ? "Victory!" : "Defeat"}</h2>
+        <h2>${won ? (w.comeback ? "Comeback victory!" : "Victory!") : "Defeat"}</h2>
         <p>${won ? `You have won the galaxy ${how[w.kind]} on turn ${w.turn}.` : `The ${esc(who.name)} won the galaxy ${how[w.kind]} on turn ${w.turn}.`}</p>
         <p class="dim">Your empire: ${v.colonies.length} colonies, ${fmt(v.colonies.reduce((a, c) => a + c.population, 0), 0)} population, ${v.me.research.known.length} techs, ${fmt(v.me.culture, 0)} culture${this.state.cheated ? " · cheats were used" : ""}.</p>`;
       const row = el("div", { class: "row" });
+      if (v.me.alive && !won) box.append(el("p", { class: "dim" }, "Not ready to give up? <b>Fight on</b>: the game continues and only you can still win, by any path. If your empire falls, their victory stands."));
       if (v.me.alive) {
-        const keep = el("button", {}, "Keep playing");
+        const keep = el("button", { class: won ? "" : "gold" }, won ? "Keep playing" : "⚔️ Fight on");
         keep.onclick = () => { this.cmd({ type: "keepPlaying" }); autosave(this.state); close(); this.refresh(); };
         row.append(keep);
       }

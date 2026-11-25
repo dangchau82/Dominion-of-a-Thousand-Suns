@@ -36,7 +36,9 @@ export function techVictoryProgress(e: Empire): number {
 
 function win(state: GameState, empireId: Id, kind: VictoryKind): void {
   if (state.winner) return;
-  state.winner = { empireId, kind, turn: state.turn };
+  // After "Fight on", rivals have had their win; only the player can still take the galaxy.
+  if (state.rivalWin && !state.empires[empireId]!.isPlayer) return;
+  state.winner = { empireId, kind, turn: state.turn, ...(state.rivalWin ? { comeback: true } : {}) };
   const e = state.empires[empireId]!;
   const how: Record<VictoryKind, string> = {
     conquest: "by conquest: no rival remains",
@@ -97,6 +99,10 @@ export function resolveCouncil(state: GameState): void {
     return;
   }
   const player = state.empires.find((e) => e.isPlayer);
+  if (state.rivalWin && !state.empires[elected]!.isPlayer) {
+    ev(state, null, `The council favors the ${state.empires[elected]!.name}, but the ${player?.name ?? "defiant"} still refuse to bow. The struggle goes on.`);
+    return;
+  }
   if (state.empires[elected]!.isPlayer || !player || !player.alive) win(state, elected, "council");
   else {
     state.council.awaitingVerdict = elected;
@@ -122,6 +128,8 @@ export function checkVictory(state: GameState): void {
   if (state.winner) return;
   const alive = state.empires.filter((e) => e.alive);
   const player = state.empires.find((e) => e.isPlayer);
+  // Fighting on after a rival's win: if the player falls, that rival's win stands.
+  if (state.rivalWin && player && !player.alive) { state.winner = { ...state.rivalWin }; return; }
   if (alive.length === 1) return win(state, alive[0]!.id, "conquest");
   if (player && !player.alive && alive.length) {
     // The player is gone: the strongest survivor takes the galaxy.
@@ -132,4 +140,15 @@ export function checkVictory(state: GameState): void {
     if (e.wonders.includes(ASCENSION_GATE)) return win(state, e.id, "technology");
     if (e.culture >= CULTURE_VICTORY) return win(state, e.id, "culture");
   }
+}
+
+/** "Fight on": the player refuses a rival's victory. The game goes on; only the player can still win. */
+export function fightOn(state: GameState, player: Empire): string | null {
+  const w = state.winner;
+  if (!w || w.empireId === player.id || !player.alive) return "Nothing to fight on against";
+  state.rivalWin = { ...w };
+  state.winner = null;
+  state.keepPlaying = false;
+  ev(state, null, `The ${player.name} refuse to accept the ${state.empires[w.empireId]!.name}'s victory and fight on!`);
+  return null;
 }

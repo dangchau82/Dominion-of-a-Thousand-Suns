@@ -167,6 +167,8 @@ export interface Winner {
   empireId: Id;
   kind: VictoryKind;
   turn: number;
+  /** The player won after refusing an earlier rival victory ("Fight on"). */
+  comeback?: boolean;
 }
 
 export interface CouncilSession {
@@ -280,6 +282,8 @@ export interface GameState {
   /** Set when someone has won; the player may keep playing afterwards. */
   winner: Winner | null;
   keepPlaying?: boolean;
+  /** A rival's win the player refused to accept ("Fight on"). Only the player can win from then on. */
+  rivalWin?: Winner | null;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;

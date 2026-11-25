@@ -172,7 +172,7 @@ function newLeader(state: GameState): Leader {
   return {
     id: state.nextLeaderId++, name, kind, level,
     cost: Math.round(120 * level * scale), salary: Math.round((2 + level * 2) * scale),
-    offerUntil: state.turn + 6,
+    offerUntil: state.turn + 10,
   };
 }
 

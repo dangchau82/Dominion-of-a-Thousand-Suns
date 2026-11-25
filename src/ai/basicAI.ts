@@ -97,6 +97,8 @@ interface Ctx {
   cmds: Command[];
   designs: Map<string, ShipDesign>;
   focus: FocusKnobs;
+  /** Empires we accepted a deal from this turn: no war on them the same turn. */
+  dealtWith: Set<Id>;
   aggression: number;
   honor: number;
   curiosity: number;
@@ -169,7 +171,9 @@ function diplomacy(ctx: Ctx): void {
   const candidates = view.contacts
     // Honorable races keep their pacts.
     .filter((c) => c.alive && c.warSince === null && !(ctx.honor >= 0.4 && (c.treaties.includes("nap") || c.treaties.includes("alliance"))))
-    .filter((c) => !c.treaties.includes("alliance"))
+    .filter((c) => !c.treaties.includes("alliance") && !ctx.dealtWith.has(c.id))
+    // Partners we trade or research with are friends unless we're truly ruthless.
+    .filter((c) => ctx.honor < 0.3 || !(c.treaties.includes("research") || c.treaties.includes("trade")))
     .map((c) => {
       const cols = enemyColonies(ctx, c.id);
       const near = cols.length ? Math.min(...cols.map((x) => dist(x.star, nearestColony(ctx, x.star) ? ctx.starById.get(nearestColony(ctx, x.star)!.starId)! : x.star))) : 99;
@@ -214,6 +218,7 @@ function answers(ctx: Ctx): void {
       }
     }
     cmds.push({ type: "respond", proposalId: p.id, accept: ok });
+    if (ok) ctx.dealtWith.add(p.from);
   }
 }
 
@@ -305,17 +310,19 @@ function civilization(ctx: Ctx): void {
     }
     if (best) cmds.push({ type: "setBuilding", starId: c.starId, buildingId: best });
   }
-  // Don't sit on a hoard: buy buildings, then fund warships.
-  let spare = view.me.treasury - (200 + view.turn * 3);
+  // Leaders first (offers don't last), then don't sit on a hoard: buy buildings, then fund ships.
+  const offer = view.me.leaderOffer;
+  let reserve = 150 + view.turn * 1.5;
+  if (offer && view.me.leaders.length < 3 && view.me.treasury >= offer.cost * 1.1) { cmds.push({ type: "hireLeader" }); reserve += offer.cost; }
+  let spare = view.me.treasury - reserve;
   for (const c of [...view.colonies].sort((a, b) => view.buyCost(a.starId) - view.buyCost(b.starId))) {
     const cost = view.buyCost(c.starId);
     if (cost > 0 && cost <= spare * 0.5) { cmds.push({ type: "buyBuilding", starId: c.starId }); spare -= cost; }
   }
   const yard = view.colonies.find((c) => c.isCapital && c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship")
-    ?? view.colonies.find((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship");
-  if (yard && spare > 100) cmds.push({ type: "fundShips", starId: yard.starId, bc: Math.floor(spare * (ctx.wars.length ? 0.6 : 0.3)) });
-  const offer = view.me.leaderOffer;
-  if (offer && view.me.leaders.length < 3 && view.me.treasury >= offer.cost * 1.3) cmds.push({ type: "hireLeader" });
+    ?? view.colonies.find((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship")
+    ?? view.colonies.find((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "colony");
+  if (yard && spare > 100) cmds.push({ type: "fundShips", starId: yard.starId, bc: Math.floor(spare * (ctx.wars.length ? 0.7 : 0.4)) });
 }
 
 // ---------- random events ----------
@@ -807,6 +814,7 @@ function makeCtx(view: EmpireView): Ctx {
   const focus = FOCUS[view.me.focus ?? "balanced"] ?? FOCUS.balanced;
   return {
     focus,
+    dealtWith: new Set<Id>(),
     threat: findThreat(view),
     level: LEVEL[view.difficulty] ?? LEVEL.normal,
     view,
