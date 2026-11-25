@@ -124,7 +124,6 @@ describe("leader traits (Gemini)", () => {
 });
 
 import { EXPEDITIONS } from "../src/engine/data/expeditions";
-import { RACES } from "../src/engine/data/races";
 import { MINOR_RACES } from "../src/engine/data/minorRaces";
 import { PROPHECIES } from "../src/engine/data/prophecies";
 
