@@ -4,7 +4,8 @@
 import { runAITurns } from "../ai";
 import {
   applyCommand, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
-  popGrowth, race, SHIP_TEMPLATES, template,
+  popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, HULLS, HULL_SIZES, MAX_DESIGNS,
+  type DesignSpec, type HullSize,
   type Command, type EmpireView, type GameState,
 } from "../engine";
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
@@ -65,7 +66,7 @@ export class GameScreen {
     let moving: { fleet: Fleet; extraRange: number } | null = null;
     if (this.moving) {
       const f = this.view.fleets.find((x) => x.id === this.moving!.fleetId);
-      if (f) moving = { fleet: f, extraRange: fleetExtraRange({ ...f, ships: this.moving.ships }) };
+      if (f) moving = { fleet: f, extraRange: fleetExtraRange(this.state, { ...f, ships: this.moving.ships }) };
     }
     this.map.update(this.view, { selectedStar: this.selected, moving });
     this.renderTop();
@@ -231,7 +232,7 @@ export class GameScreen {
 
     const note: Record<Slider, string> = {
       ship: c.buildTemplate
-        ? b.ship > 0 ? `${template(c.buildTemplate).name} in ${Math.max(1, Math.ceil((template(c.buildTemplate).cost - c.shipProgress) / b.ship))} turn(s)` : `Building ${template(c.buildTemplate).name}: add spending`
+        ? b.ship > 0 ? `${this.tpl(c.buildTemplate).name} in ${Math.max(1, Math.ceil((this.tpl(c.buildTemplate).cost - c.shipProgress) / b.ship))} turn(s)` : `Building ${this.tpl(c.buildTemplate).name}: add spending`
         : "Nothing chosen to build",
       defense: b.defense > 0 ? `Next missile base in ${Math.max(1, Math.ceil((50 - c.defenseProgress) / b.defense))} turn(s)` : "",
       industry: c.factories >= c.maxFactories - 0.5 ? "Factories full; extra goes half to treasury" : `+${fmt(b.industry / v.stats.factoryCost)} factories/turn`,
@@ -268,14 +269,17 @@ export class GameScreen {
     }
     const build = el("div", { class: "section" }, "<div class='dim' style='margin-bottom:6px'>Shipyard builds:</div>");
     const seg = el("div", { class: "seg" });
-    const choices: (string | null)[] = [null, ...Object.keys(SHIP_TEMPLATES)];
+    const choices: (string | null)[] = [null, ...designsOf(this.state, PLAYER).map((d) => d.id)];
     for (const t of choices) {
-      const label = t === null ? "Nothing" : `${template(t).name} (${template(t).cost})`;
+      const label = t === null ? "Nothing" : `${this.tpl(t).name} (${this.tpl(t).cost})`;
       const bt = el("button", { class: c.buildTemplate === t ? "on" : "" }, label);
       bt.onclick = () => { this.cmd({ type: "setBuild", starId, templateId: t }); this.refreshKeepScroll(); };
       seg.append(bt);
     }
     build.append(seg);
+    const designBtn = el("button", { class: "small", style: "margin-top:6px" }, "🛠️ Ship designs");
+    designBtn.onclick = () => this.showDesigns();
+    build.append(designBtn);
     wrap.append(build);
     return wrap;
   }
@@ -291,11 +295,11 @@ export class GameScreen {
     if (here.length) wrap.append(el("div", { class: "dim" }, "Here:"));
     for (const f of here) {
       const box = el("div", { class: "fleet" });
-      const desc = Object.entries(f.ships).filter(([, n]) => n > 0).map(([t, n]) => `${n} ${template(t).name}${n > 1 ? "s" : ""}`).join(", ");
+      const desc = Object.entries(f.ships).filter(([, n]) => n > 0).map(([t, n]) => `${n} ${this.tpl(t).name}${n > 1 ? "s" : ""}`).join(", ");
       box.innerHTML = `<img src="${art.ship(v.me.raceId, 1)}" alt=""><div class="fl-text">${esc(desc)}</div>`;
       for (const [t, n] of Object.entries(f.ships)) {
         if (n <= 0) continue;
-        const one = el("button", { class: "small" }, `Send 1 ${template(t).name}`);
+        const one = el("button", { class: "small" }, `Send 1 ${this.tpl(t).name}`);
         one.onclick = () => this.startMove(f, { [t]: 1 });
         box.append(one);
       }
@@ -312,7 +316,7 @@ export class GameScreen {
       wrap.append(box);
     }
     const shipList = (f: Fleet) => Object.entries(f.ships).filter(([, n]) => n > 0)
-      .map(([t, n]) => `${n} ${template(t).name}${n > 1 ? "s" : ""}`).join(", ");
+      .map(([t, n]) => `${n} ${this.tpl(t).name}${n > 1 ? "s" : ""}`).join(", ");
     const when = (t: number) => (t <= 1 ? "arrives next turn" : `arrives in ${t} turns`);
     if (leaving.length) wrap.append(el("div", { class: "dim", style: "margin-top:8px" }, "Leaving (they depart when you end the turn):"));
     for (const f of leaving) {
@@ -475,7 +479,7 @@ export class GameScreen {
       if (!v.fleets.length) box.append(el("p", { class: "dim" }, "No fleets."));
       for (const f of v.fleets) {
         const where = f.starId !== null ? `at ${v.stars[f.starId]!.name}` : `heading to ${v.stars[f.destStarId!]!.name} (${v.turnsTo(f, f.destStarId!)} turns)`;
-        const desc = Object.entries(f.ships).filter(([, n]) => n > 0).map(([t, n]) => `${n} ${template(t).name}`).join(", ");
+        const desc = Object.entries(f.ships).filter(([, n]) => n > 0).map(([t, n]) => `${n} ${this.tpl(t).name}`).join(", ");
         const b = el("button", { style: "display:block;width:100%;text-align:left;margin:6px 0" }, `${esc(desc)} <span class="dim">· ${esc(where)}</span>`);
         b.onclick = () => {
           close();
@@ -487,10 +491,188 @@ export class GameScreen {
         box.append(b);
       }
       const row = el("div", { class: "row" });
+      const des = el("button", {}, "🛠️ Ship designs");
+      des.onclick = () => { close(); this.showDesigns(); };
       const ok = el("button", {}, "Close");
       ok.onclick = close;
-      row.append(ok);
+      row.append(des, ok);
       box.append(row);
+    });
+  }
+
+  private tpl(id: string) {
+    return shipDesign(this.state, id);
+  }
+
+  /** List of designs, with scrap buttons and a way into the designer. */
+  private showDesigns(): void {
+    this.modal((box, close) => {
+      const draw = () => {
+        const e = this.state.empires[PLAYER]!;
+        const mine = designsOf(this.state, PLAYER);
+        const own = mine.filter((d) => d.empireId !== null);
+        box.innerHTML = `<h2>Ship designs</h2><p class="dim">${own.length}/${MAX_DESIGNS} designs of your own. Scout and Colony Ship are always available.</p>`;
+        for (const d of mine) {
+          const card = el("div", { class: "tech-card" });
+          if (d.empireId === null) {
+            card.innerHTML = `<b>${esc(d.name)}</b> <span class="dim">· ${d.cost} BC · ${d.role === "scout" ? "+3 ly range, explores" : "settles new worlds"}</span>`;
+          } else {
+            const st = designStats(e, d);
+            const guns = st.weapons.map((w) => `${w.count}× ${w.name} (${w.min === w.max ? w.min : `${w.min}–${w.max}`})`).join(", ") || "unarmed";
+            const count = this.state.fleets.filter((f) => f.empireId === PLAYER).reduce((n, f) => n + (f.ships[d.id] ?? 0), 0);
+            card.innerHTML = `<b>${esc(d.name)}</b> <span class="dim">· ${HULLS[d.hull].name} hull · ${d.cost} BC${count ? ` · ${count} built` : ""}</span>
+              <div class="dim">${esc(guns)}</div>
+              <div class="dim">Hits ${st.hits} · Attack ${st.attack} · Defense ${st.beamDefense}/${st.missileDefense} · Shield ${st.shield}</div>`;
+            const scrap = el("button", { class: "small" }, count ? `Scrap (and ${count} ships)` : "Scrap");
+            scrap.onclick = () => {
+              if (count && !confirm(`Scrap ${d.name}? Its ${count} ships will be broken up for a 25% refund.`)) return;
+              this.cmd({ type: "scrapDesign", designId: d.id });
+              draw();
+            };
+            card.append(scrap);
+          }
+          box.append(card);
+        }
+        const row = el("div", { class: "row" });
+        const add = el("button", { class: "primary" }, "+ New design");
+        add.disabled = own.length >= MAX_DESIGNS;
+        add.onclick = () => { close(); this.showDesigner(); };
+        const ok = el("button", {}, "Close");
+        ok.onclick = () => { close(); this.refresh(); };
+        row.append(add, ok);
+        box.append(row);
+      };
+      draw();
+    });
+  }
+
+  private showDesigner(): void {
+    const e = this.state.empires[PLAYER]!;
+    const parts = partChoices(e);
+    const best = (list: { id: string; tier: number }[]) => list.reduce<string | null>((b, t) => (!b || t.tier >= (list.find((x) => x.id === b)?.tier ?? 0) ? t.id : b), null);
+    const spec: DesignSpec = {
+      name: "", hull: "medium",
+      computer: best(parts.computer), shield: best(parts.shield), ecm: null, armor: best(parts.armor),
+      weapons: [{ techId: best(parts.weapons) ?? "laser", count: 0 }], specials: [],
+    };
+    const NAMES: Record<HullSize, string[]> = {
+      small: ["Dart", "Wasp", "Lancer", "Kestrel", "Needle"], medium: ["Corsair", "Falchion", "Warden", "Talon", "Harrier"],
+      large: ["Bastion", "Monarch", "Tempest", "Leviathan", "Paladin"], huge: ["Colossus", "Behemoth", "Sovereign", "Titan", "Dominion"],
+    };
+    const suggest = () => {
+      const taken = new Set(designsOf(this.state, PLAYER).map((d) => d.name.toLowerCase()));
+      return NAMES[spec.hull].find((n) => !taken.has(n.toLowerCase())) ?? `${HULLS[spec.hull].name} ${taken.size + 1}`;
+    };
+    spec.name = suggest();
+
+    this.modal((box, close) => {
+      const draw = () => {
+        const st = designStats(e, spec);
+        const err = checkDesign(this.state, e, spec);
+        const pct = Math.min(100, (st.spaceUsed / st.space) * 100);
+        box.innerHTML = `<h2>Ship designer</h2>`;
+
+        const nameIn = el("input", { type: "text", value: spec.name, maxlength: "24", class: "tech-select", style: "width:100%" });
+        nameIn.oninput = () => { spec.name = nameIn.value; };
+        nameIn.onchange = () => draw();
+        box.append(el("div", { class: "dim" }, "Name"), nameIn);
+
+        const hullSeg = el("div", { class: "seg", style: "margin:8px 0" });
+        for (const h of HULL_SIZES) {
+          const b = el("button", { class: spec.hull === h ? "on" : "" }, `${HULLS[h].name}<br><span class="dim">${HULLS[h].cost} BC · room ${HULLS[h].space}</span>`);
+          b.onclick = () => {
+            const wasSuggested = Object.values(NAMES).flat().includes(spec.name);
+            spec.hull = h;
+            if (wasSuggested || !spec.name.trim()) spec.name = suggest();
+            draw();
+          };
+          hullSeg.append(b);
+        }
+        box.append(hullSeg);
+
+        const pick = (label: string, list: { id: string; name: string }[], value: string | null, set: (v: string | null) => void, allowNone = true) => {
+          const sel = el("select", { class: "tech-select" });
+          if (allowNone) sel.append(el("option", { value: "" }, "None"));
+          for (const t of list) {
+            const o = el("option", { value: t.id }, t.name);
+            if (t.id === value) o.selected = true;
+            sel.append(o);
+          }
+          sel.onchange = () => { set(sel.value || null); draw(); };
+          const lab = el("label", { class: "design-row" }, `<span>${label}</span>`);
+          lab.append(sel);
+          box.append(lab);
+        };
+        pick("Computer", parts.computer, spec.computer, (v) => (spec.computer = v));
+        pick("Armor", parts.armor, spec.armor, (v) => (spec.armor = v));
+        pick("Shield", parts.shield, spec.shield, (v) => (spec.shield = v));
+        pick("Jammer (ECM)", parts.ecm, spec.ecm, (v) => (spec.ecm = v));
+
+        box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Weapons (up to 4 banks)"));
+        spec.weapons.forEach((w, i) => {
+          const row = el("div", { class: "design-row" });
+          const sel = el("select", { class: "tech-select" });
+          for (const t of parts.weapons) {
+            const o = el("option", { value: t.id }, t.name);
+            if (t.id === w.techId) o.selected = true;
+            sel.append(o);
+          }
+          sel.onchange = () => { w.techId = sel.value; draw(); };
+          const minus = el("button", { class: "small" }, "−");
+          const plus = el("button", { class: "small" }, "+");
+          minus.onclick = () => { w.count = Math.max(0, w.count - 1); draw(); };
+          plus.onclick = () => { w.count++; draw(); };
+          row.append(sel, minus, el("b", { style: "min-width:2ch;text-align:center" }, String(w.count)), plus);
+          if (spec.weapons.length > 1) {
+            const rm = el("button", { class: "small" }, "✕");
+            rm.onclick = () => { spec.weapons.splice(i, 1); draw(); };
+            row.append(rm);
+          }
+          box.append(row);
+        });
+        if (spec.weapons.length < 4 && parts.weapons.length) {
+          const addW = el("button", { class: "small" }, "+ Weapon bank");
+          addW.onclick = () => { spec.weapons.push({ techId: parts.weapons[0]!.id, count: 1 }); draw(); };
+          box.append(addW);
+        }
+
+        if (parts.specials.length) {
+          box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Specials (up to 3)"));
+          for (const t of parts.specials) {
+            const on = spec.specials.includes(t.id);
+            const b = el("button", { class: `small ${on ? "on" : ""}`, style: "margin:2px" }, `${on ? "✓ " : ""}${t.name}`);
+            b.onclick = () => {
+              spec.specials = on ? spec.specials.filter((x) => x !== t.id) : [...spec.specials, t.id];
+              draw();
+            };
+            box.append(b);
+          }
+        } else {
+          box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Specials: research Propulsion and Force Fields to unlock ship specials."));
+        }
+
+        const sum = el("div", { class: "tech-card" });
+        const guns = st.weapons.map((w) => `${w.count}× ${w.name} ${w.min === w.max ? w.min : `${w.min}–${w.max}`} dmg`).join(", ") || "unarmed";
+        sum.innerHTML = `<div>Room used <b>${fmt(st.spaceUsed)}</b> / ${st.space}</div>
+          <div class="bar"><i style="width:${pct}%;${st.spaceUsed > st.space ? "background:#e05a5a" : ""}"></i></div>
+          <div style="margin-top:6px"><b>${fmt(st.cost)} BC</b> each · Hits ${st.hits} · Speed ${fmt(st.speed)} ly/turn</div>
+          <div class="dim">Attack ${st.attack} · Beam defense ${st.beamDefense} · Missile defense ${st.missileDefense} · Shield ${st.shield}</div>
+          <div class="dim">${esc(guns)}</div>
+          ${err ? `<div style="color:#f0a0a0;margin-top:4px">${esc(err)}</div>` : ""}`;
+        box.append(sum);
+
+        const row = el("div", { class: "row" });
+        const save = el("button", { class: "primary" }, "Save design");
+        save.disabled = !!err;
+        save.onclick = () => {
+          if (this.cmd({ type: "createDesign", spec: structuredClone(spec) })) { autosave(this.state); close(); this.refresh(); this.showDesigns(); }
+        };
+        const cancel = el("button", {}, "Cancel");
+        cancel.onclick = () => { close(); this.showDesigns(); };
+        row.append(save, cancel);
+        box.append(row);
+      };
+      draw();
     });
   }
 

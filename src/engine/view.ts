@@ -2,7 +2,8 @@
 // It is a deep copy, so nothing done to it can touch the real game.
 
 import { RACES, type Race } from "./data/races";
-import { template } from "./data/ships";
+import { designsOf, shipDesign } from "./designs";
+import type { ShipDesign } from "./data/ships";
 import {
   canColonize, colonyScanRange, factoryCost, fuelRange, maxHostility, planetCapacity, popCost, robotControls,
   shipSpeed, workerProductivity,
@@ -44,6 +45,8 @@ export interface ResearchProject {
 export interface EmpireView {
   turn: number;
   me: Empire;
+  /** Ship designs this empire can build (built-ins first). */
+  designs: ShipDesign[];
   race: Race;
   stars: PublicStar[];
   knowledge: Record<Id, StarKnowledge>;
@@ -97,7 +100,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
 
   return {
     turn: state.turn,
-    me, race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
+    me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
     stars: state.stars.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, color: s.color, nebula: s.nebula })),
     events: state.events.filter((ev) => ev.empireId === null || ev.empireId === empireId).map((ev) => ({ ...ev })),
     stats: {
@@ -106,7 +109,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       workerProductivity: workerProductivity(e, r), popCost: popCost(e), terraform: ts.terraform,
       growthBonus: ts.growth, researchBonus: ts.research, projects,
     },
-    reachable: (starId, fleet) => inFuelRange(state, e, state.stars[starId]!, fleetExtraRange(fleet)),
+    reachable: (starId, fleet) => inFuelRange(state, e, state.stars[starId]!, fleetExtraRange(state, fleet)),
     canSettle: (starId) => {
       const k = e.knowledge[starId];
       if (!k?.explored || !k.planet) return false;
@@ -134,7 +137,7 @@ export function forecast(state: GameState, empireId: Id, horizon = 2): Forecast[
     const s = state.stars[c.starId]!;
     const b = colonyBudget(state, c);
     if (c.buildTemplate && b.ship > 0) {
-      const t = template(c.buildTemplate);
+      const t = shipDesign(state, c.buildTemplate);
       const turns = Math.ceil((t.cost - c.shipProgress) / b.ship - 1e-9);
       if (turns <= horizon) out.push({ inTurns: Math.max(1, turns), text: `${t.name} at ${s.name}`, starId: s.id });
     }

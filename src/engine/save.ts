@@ -4,6 +4,7 @@
 import { race } from "./data/races";
 import { makeRng } from "./rng";
 import { learn, newResearchState, TECH_BY_ID } from "./tech";
+import { addDesign, starterDesigns } from "./designs";
 import { FIELDS, SAVE_VERSION, type GameState } from "./types";
 
 /** Version 1 saves had research "levels"; give each empire a tech tree and the techs those levels imply. */
@@ -19,7 +20,15 @@ function migrateV1(state: GameState): void {
     for (const f of FIELDS) rs.current[f] = null;
     e.research = rs;
   }
-  state.version = SAVE_VERSION;
+  state.version = 2;
+}
+
+/** Version 2 saves had no ship designer; give every empire the starter designs. */
+function migrateV2(state: GameState): void {
+  state.designs = {};
+  state.nextDesignId = 1;
+  for (const e of state.empires) for (const spec of starterDesigns()) addDesign(state, e, spec);
+  state.version = 3;
 }
 
 export function serialize(state: GameState): string {
@@ -32,6 +41,7 @@ export function deserialize(json: string): GameState {
     throw new Error("This doesn't look like a saved game.");
   }
   if (data.version === 1) migrateV1(data as GameState);
+  if (data.version === 2) migrateV2(data as GameState);
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

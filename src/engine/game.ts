@@ -6,6 +6,7 @@ import { bridgeStars, generateStars, pickHomeStars, prepareHome } from "./galaxy
 import { exploreStar } from "./knowledge";
 import * as R from "./rng";
 import { newResearchState } from "./tech";
+import { addDesign, starterDesigns } from "./designs";
 import {
   FIELDS, SAVE_VERSION,
   type Colony, type Empire, type Fleet, type GameSettings, type GameState, type Id,
@@ -37,7 +38,7 @@ export function newGame(settings: GameSettings): GameState {
 
   const state: GameState = {
     version: SAVE_VERSION, turn: 1, settings, rng, stars,
-    empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [],
+    empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1,
   };
 
   races.forEach((r, i) => {
@@ -57,6 +58,7 @@ export function newGame(settings: GameSettings): GameState {
       contacts: [],
     };
     state.empires.push(empire);
+    for (const spec of starterDesigns()) addDesign(state, empire, spec);
     const capital = newColony(home.id, empire.id, 50, 1, true);
     capital.factories = 30;
     state.colonies[home.id] = capital;

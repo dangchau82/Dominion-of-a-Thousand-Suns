@@ -1,29 +1,80 @@
-// Stage 1 ship templates. Stage 2 replaces these with the ship designer.
+// Ship hulls and the built-in designs every empire shares.
+// Hull numbers follow the classic four sizes (space, cost and hits grow about 5x per size).
 
-export type ShipRole = "scout" | "colony";
+import type { Id } from "../types";
 
-export interface ShipTemplate {
+export type HullSize = "small" | "medium" | "large" | "huge";
+export const HULL_SIZES: readonly HullSize[] = ["small", "medium", "large", "huge"];
+
+export interface Hull {
+  name: string;
+  /** Room for components. */
+  space: number;
+  /** Cost of the empty hull in BC. */
+  cost: number;
+  /** Hit points before armor. */
+  hits: number;
+  /** Base chance-to-dodge bonus: small ships are harder to hit. */
+  defense: number;
+  /** How much bigger hull-wide parts (computers, shields, jammers, armor) are on this hull. */
+  factor: number;
+}
+
+export const HULLS: Record<HullSize, Hull> = {
+  small: { name: "Small", space: 40, cost: 6, hits: 3, defense: 2, factor: 1 },
+  medium: { name: "Medium", space: 200, cost: 36, hits: 18, defense: 1, factor: 5 },
+  large: { name: "Large", space: 1000, cost: 200, hits: 100, defense: 0, factor: 25 },
+  huge: { name: "Huge", space: 5000, cost: 1200, hits: 600, defense: 0, factor: 125 },
+};
+
+export type ShipRole = "scout" | "colony" | "warship";
+
+export interface WeaponMount {
+  techId: string;
+  count: number;
+}
+
+export interface ShipDesign {
   id: string;
+  /** null for the built-in designs every empire can build. */
+  empireId: Id | null;
   name: string;
   role: ShipRole;
-  /** Cost in BC (production points). */
+  hull: HullSize;
+  computer: string | null;
+  shield: string | null;
+  ecm: string | null;
+  armor: string | null;
+  /** Up to four weapon banks. */
+  weapons: WeaponMount[];
+  /** Up to three special systems (tech ids). */
+  specials: string[];
+  /** Fixed when the design is made, like the classic game. */
   cost: number;
+  space: number;
   /** Extra fuel range beyond the empire's base range (light-years). */
   extraRange: number;
 }
 
-export const SHIP_TEMPLATES: Record<string, ShipTemplate> = {
-  scout: { id: "scout", name: "Scout", role: "scout", cost: 12, extraRange: 3 },
-  colony: { id: "colony", name: "Colony Ship", role: "colony", cost: 150, extraRange: 0 },
+const builtin = (d: Pick<ShipDesign, "id" | "name" | "role" | "hull" | "cost" | "extraRange">): ShipDesign => ({
+  empireId: null, computer: null, shield: null, ecm: null, armor: null, weapons: [], specials: [], space: 0, ...d,
+});
+
+export const BUILTIN_DESIGNS: Record<string, ShipDesign> = {
+  scout: builtin({ id: "scout", name: "Scout", role: "scout", hull: "small", cost: 12, extraRange: 3 }),
+  colony: builtin({ id: "colony", name: "Colony Ship", role: "colony", hull: "large", cost: 150, extraRange: 0 }),
 };
 
-export function template(id: string): ShipTemplate {
-  const t = SHIP_TEMPLATES[id];
-  if (!t) throw new Error(`Unknown ship template ${id}`);
-  return t;
-}
+/** Each empire may keep this many designs of its own (built-ins don't count). */
+export const MAX_DESIGNS = 6;
 
 /** Cost in BC of one missile base (planetary defense). */
 export const MISSILE_BASE_COST = 50;
 /** Starting fleet for every empire (same for player and AI). */
 export const STARTING_FLEET: Record<string, number> = { scout: 2, colony: 1 };
+
+/** Special systems that go on ships (other "special" techs work empire-wide). */
+export const SHIP_SPECIALS: readonly string[] = [
+  "inertial-dampers", "warp-dampener", "subspace-interdictor", "stasis-field", "cloaking-field",
+  "repulsor-beam", "displacement-field", "planet-cracker",
+];

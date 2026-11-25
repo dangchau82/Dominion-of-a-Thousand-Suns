@@ -126,3 +126,6 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 .tech-list details.known summary { color: #9fe3a5; }
 .tech-list details.missing { opacity: 0.5; }
 .tech-list .quote { font-style: italic; opacity: 0.75; margin-top: 3px; }
+.design-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.design-row > span { min-width: 92px; }
+.design-row select { flex: 1; min-width: 0; }

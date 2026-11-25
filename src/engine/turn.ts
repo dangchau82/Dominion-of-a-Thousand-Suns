@@ -1,7 +1,8 @@
 // End-of-turn processing. Same order for every empire, player or AI.
 
 import { ensureProject, learn, tech, techCost, techStats } from "./tech";
-import { MISSILE_BASE_COST, template } from "./data/ships";
+import { MISSILE_BASE_COST } from "./data/ships";
+import { shipDesign } from "./designs";
 import {
   colonyProduction, factoryCost, FIELD_NAMES, maxUsableFactories, planetCapacity,
   popCost, popGrowth,
@@ -46,7 +47,7 @@ function processColony(state: GameState, c: Colony): number {
 
   // Ships
   if (c.buildTemplate) {
-    const t = template(c.buildTemplate);
+    const t = shipDesign(state, c.buildTemplate);
     c.shipProgress += b.ship;
     let built = 0;
     while (c.shipProgress >= t.cost) {

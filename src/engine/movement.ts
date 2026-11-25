@@ -1,15 +1,15 @@
 // Fleet range and movement.
 
-import { template } from "./data/ships";
+import { shipDesign } from "./designs";
 import { distance, fuelRange, shipSpeed } from "./formulas";
 import { exploreStar } from "./knowledge";
 import type { Empire, Fleet, GameState, Star } from "./types";
 
 /** Extra range a fleet gets: the smallest bonus among its ships (a fleet moves as one). */
-export function fleetExtraRange(f: Fleet): number {
+export function fleetExtraRange(state: GameState, f: Fleet): number {
   const ids = Object.keys(f.ships).filter((k) => (f.ships[k] ?? 0) > 0);
   if (ids.length === 0) return 0;
-  return Math.min(...ids.map((id) => template(id).extraRange));
+  return Math.min(...ids.map((id) => shipDesign(state, id).extraRange));
 }
 
 /** Distance from a star to the empire's nearest colony. */

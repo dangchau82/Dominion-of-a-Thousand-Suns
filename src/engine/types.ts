@@ -1,3 +1,4 @@
+import type { ShipDesign } from "./data/ships";
 // Core game state. Everything is plain JSON: objects refer to each other by id,
 // so a whole game can be saved, copied for AI simulation, or sent anywhere.
 
@@ -146,6 +147,9 @@ export interface GameState {
   colonies: Record<Id, Colony>;
   fleets: Fleet[];
   nextFleetId: Id;
+  /** Every empire's own ship designs, keyed by design id (built-ins live in data/ships). */
+  designs: Record<string, ShipDesign>;
+  nextDesignId: number;
   /** Events from the most recent turn. */
   events: GameEvent[];
   /** Set once the player uses the cheat menu; shown in the save list. */
@@ -159,4 +163,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;

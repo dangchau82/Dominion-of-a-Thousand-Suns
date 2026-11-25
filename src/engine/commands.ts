@@ -2,7 +2,7 @@
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
 import { researchChoices } from "./tech";
-import { template } from "./data/ships";
+import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
 import { empire, empireRace, newColony, shipCount, star } from "./game";
 import { exploreStar, isExplored } from "./knowledge";
@@ -19,6 +19,8 @@ export type Command =
   | { type: "setBuild"; starId: Id; templateId: string | null }
   | { type: "setResearch"; alloc: Record<ResearchField, number> }
   | { type: "setResearchProject"; field: ResearchField; techId: string }
+  | { type: "createDesign"; spec: DesignSpec }
+  | { type: "scrapDesign"; designId: string }
   | { type: "moveFleet"; fleetId: Id; destStarId: Id; ships?: Record<string, number> }
   | { type: "colonize"; fleetId: Id };
 
@@ -101,13 +103,37 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "setBuild": {
       const c = ownColony(state, empireId, cmd.starId);
       if (!c) return fail("Not your colony");
-      if (cmd.templateId !== null) template(cmd.templateId);
+      if (cmd.templateId !== null && !designsOf(state, empireId).some((d) => d.id === cmd.templateId)) return fail("Unknown design");
       if (c.buildTemplate !== cmd.templateId) c.shipProgress = 0;
       c.buildTemplate = cmd.templateId;
       return { ok: true };
     }
     case "setResearch": {
       e.research.alloc = normalizeTo100(cmd.alloc, FIELDS);
+      return { ok: true };
+    }
+    case "createDesign": {
+      const err = checkDesign(state, e, cmd.spec);
+      if (err) return fail(err);
+      addDesign(state, e, cmd.spec);
+      return { ok: true };
+    }
+    case "scrapDesign": {
+      // Like the classic game: scrapping a design scraps every ship of it, for a small refund.
+      const d = state.designs[cmd.designId];
+      if (!d || d.empireId !== empireId) return fail("Not your design");
+      let n = 0;
+      for (const f of state.fleets) {
+        if (f.empireId !== empireId) continue;
+        n += f.ships[d.id] ?? 0;
+        delete f.ships[d.id];
+      }
+      state.fleets = state.fleets.filter((f) => shipCount(f) > 0);
+      for (const c of Object.values(state.colonies)) {
+        if (c.empireId === empireId && c.buildTemplate === d.id) { c.buildTemplate = null; c.shipProgress = 0; }
+      }
+      e.treasury += n * d.cost * SCRAP_REFUND;
+      delete state.designs[d.id];
       return { ok: true };
     }
     case "setResearchProject": {
@@ -132,14 +158,14 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
           if (f.starId === null) return fail("Cannot split a fleet in flight");
           const ships: Record<string, number> = {};
           for (const [t, n] of Object.entries(cmd.ships)) if (n > 0) ships[t] = n;
-          const extra = fleetExtraRange({ ...f, ships });
+          const extra = fleetExtraRange(state, { ...f, ships });
           if (!inFuelRange(state, e, dest, extra)) return fail("Out of fuel range");
           for (const [t, n] of Object.entries(ships)) f.ships[t] = (f.ships[t] ?? 0) - n;
           moving = { id: state.nextFleetId++, empireId, ships, x: f.x, y: f.y, starId: f.starId, destStarId: null };
           state.fleets.push(moving);
         }
       }
-      if (!inFuelRange(state, e, dest, fleetExtraRange(moving))) return fail("Out of fuel range");
+      if (!inFuelRange(state, e, dest, fleetExtraRange(state, moving))) return fail("Out of fuel range");
       if (moving.starId === dest.id) { moving.destStarId = null; return { ok: true, fleetId: moving.id }; }
       moving.destStarId = dest.id;
       return { ok: true, fleetId: moving.id };

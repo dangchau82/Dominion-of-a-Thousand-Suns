@@ -7,4 +7,5 @@ export { makeView, forecast, type EmpireView, type Forecast, type PublicStar, ty
 export { serialize, deserialize, exportCode, importCode } from "./save";
 export { RACES, race, type Race } from "./data/races";
 export { CLIMATES } from "./data/planets";
-export { SHIP_TEMPLATES, template } from "./data/ships";
+export { BUILTIN_DESIGNS, HULLS, HULL_SIZES, MAX_DESIGNS, type ShipDesign, type HullSize } from "./data/ships";
+export { shipDesign, designsOf, designStats, partChoices, checkDesign, type DesignSpec, type DesignStats } from "./designs";
