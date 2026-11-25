@@ -7,6 +7,7 @@
 
 import { HULLS, type ShipDesign } from "./data/ships";
 import { tech } from "./tech";
+import { empireBonus, transferWonders } from "./civ";
 import { say } from "./dialogue";
 import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
 import { shipDesign } from "./designs";
@@ -73,7 +74,7 @@ function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count
   const maxHp = d.role === "warship" ? h.hits * (1 + 0.5 * Math.max(0, armor - 1)) : d.role === "transport" ? 1 : h.hits;
   return {
     side, empireId: e.id, key: d.id, name: d.name, count, start: count, hp: maxHp, maxHp,
-    attack: levelOf(d.computer, "computer") + r.shipAttack,
+    attack: levelOf(d.computer, "computer") + r.shipAttack + (d.role === "warship" ? empireBonus(e).attack : 0),
     beamDef: h.defense + r.shipDefense,
     missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm"),
     shield: levelOf(d.shield, "shield"),
@@ -239,6 +240,7 @@ function bomb(state: GameState, s: Star, c: Colony, attacker: Empire, owner: Emp
   state.events.push({ turn: state.turn, empireId: owner.id, kind: "battle", starId: s.id, text });
   if (c.population < 0.5) {
     delete state.colonies[s.id];
+    transferWonders(state, s.id, null);
     const t2 = `The colony on ${s.name} has been wiped out.`;
     state.events.push({ turn: state.turn, empireId: attacker.id, kind: "battle", starId: s.id, text: t2 });
     state.events.push({ turn: state.turn, empireId: owner.id, kind: "battle", starId: s.id, text: t2 });
@@ -271,8 +273,11 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
   f.ships.transport = 0;
   if (att > 0) {
     const old = c;
-    const captured = newColony(s.id, attacker.id, att, old.foundedTurn);
+    const cap = s.planet ? s.planet.size + s.planet.terraform + techStats(attacker).terraform : att;
+    const captured = newColony(s.id, attacker.id, Math.min(att, cap), old.foundedTurn);
     captured.factories = old.factories;
+    captured.buildings = [...old.buildings];
+    transferWonders(state, s.id, attacker);
     state.colonies[s.id] = captured;
     const text = `The ${attacker.name} captured ${s.name} with ${plural(att, "surviving troop")}.`;
     state.events.push({ turn: state.turn, empireId: attacker.id, kind: "invasion", starId: s.id, text });

@@ -3,6 +3,7 @@
 
 import { aiAnswerProposals, runAITurns } from "../ai";
 import { say } from "../engine/dialogue";
+import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/buildings";
 import type { TreatyKind } from "../engine/types";
 import {
   applyCommand, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
@@ -40,7 +41,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
   if (html) e.innerHTML = html;
   return e;
 }
-const fmt = (n: number, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toLocaleString();
+const fmt = (n: number, d = 1) => ((Math.round(n * 10 ** d) / 10 ** d) || 0).toLocaleString();
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 export class GameScreen {
@@ -289,10 +290,19 @@ export class GameScreen {
       seg.append(bt);
     }
     build.append(seg);
+    if (c.buildTemplate && v.me.treasury >= 50) {
+      const t = this.tpl(c.buildTemplate);
+      const need = Math.max(0, Math.ceil(t.cost - c.shipProgress));
+      const amount = Math.min(Math.floor(v.me.treasury), Math.max(need, 1));
+      const fund = el("button", { class: "small", style: "margin:6px 6px 0 0" }, `💰 Fund from treasury (${amount} BC)`);
+      fund.onclick = () => { this.cmd({ type: "fundShips", starId, bc: amount }); this.refreshKeepScroll(); };
+      build.append(fund);
+    }
     const designBtn = el("button", { class: "small", style: "margin-top:6px" }, "🛠️ Ship designs");
     designBtn.onclick = () => this.showDesigns();
     build.append(designBtn);
     wrap.append(build);
+    wrap.append(this.buildingsBlock(starId));
     return wrap;
   }
 
@@ -685,7 +695,7 @@ export class GameScreen {
     this.modal((box, close) => {
       const pic = contact ? `<img class="event-pic" src="${art.event("contact")}" alt="">`
         : war ? `<img class="event-pic" src="${art.event("crisis")}" alt="">` : "";
-      const order = ["war", "invasion", "battle", "contact", "diplomacy", "spy", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
+      const order = ["war", "invasion", "battle", "contact", "diplomacy", "spy", "culture", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
       const sorted = [...events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
       box.innerHTML = `${pic}<h2>Turn ${turn} report</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
       const row = el("div", { class: "row" });
@@ -802,6 +812,95 @@ export class GameScreen {
       ok.onclick = close;
       row.append(des, ok);
       box.append(row);
+    });
+  }
+
+  private buildingsBlock(starId: Id): HTMLElement {
+    const v = this.view;
+    const c = v.colonies.find((x) => x.starId === starId)!;
+    const box = el("div", { class: "section" });
+    const built = c.buildings.map((id) => BUILDING_BY_ID.get(id)!);
+    box.innerHTML = `<div class='dim' style='margin-bottom:4px'>Buildings</div>
+      ${built.length ? `<div class="chips">${built.map((b) => `<span class="chip ${b.wonder ? "good" : ""}" title="${esc(b.description)}">${esc(b.name)}</span>`).join("")}</div>` : `<div class="dim">None yet.</div>`}`;
+    if (c.buildQueue) {
+      const b = BUILDING_BY_ID.get(c.buildQueue)!;
+      const perTurn = c.factories >= c.maxFactories - 0.5 ? c.budget.industry : c.budget.industry / 2;
+      const turns = perTurn > 0 ? Math.ceil((b.cost - c.buildProgress) / perTurn) : null;
+      const cost = v.buyCost(starId);
+      const row = el("div", { style: "margin-top:6px" }, `Building <b>${esc(b.name)}</b> <span class="dim">${fmt(c.buildProgress)}/${b.cost} · ${turns === null ? "needs Industry spending" : `${turns} turn${turns > 1 ? "s" : ""}`}</span>
+        <div class="bar"><i style="width:${Math.min(100, (c.buildProgress / b.cost) * 100)}%"></i></div>`);
+      const buy = el("button", { class: "small", style: "margin:4px 6px 0 0" }, `Buy now (${cost} BC)`);
+      buy.disabled = v.me.treasury < cost;
+      buy.onclick = () => { this.cmd({ type: "buyBuilding", starId }); this.refreshKeepScroll(); };
+      const stop = el("button", { class: "small" }, "Stop");
+      stop.onclick = () => { this.cmd({ type: "setBuilding", starId, buildingId: null }); this.refreshKeepScroll(); };
+      row.append(buy, stop);
+      box.append(row);
+    }
+    const options = v.buildable(starId).filter((id) => id !== c.buildQueue).map((id) => BUILDING_BY_ID.get(id)!);
+    if (options.length) {
+      const sel = el("select", { class: "tech-select", style: "width:100%;margin-top:6px" });
+      sel.append(el("option", { value: "" }, c.buildQueue ? "Switch to…" : "Start building…"));
+      for (const b of options) {
+        const taken = b.wonder ? "" : "";
+        sel.append(el("option", { value: b.id }, `${b.wonder ? "★ " : ""}${b.name} (${b.cost}) — ${b.description}${taken}`));
+      }
+      sel.onchange = () => { if (sel.value) { this.cmd({ type: "setBuilding", starId, buildingId: sel.value }); this.refreshKeepScroll(); } };
+      box.append(sel);
+      box.append(el("div", { class: "dim", style: "font-size:12px;margin-top:4px" }, "Buildings take half of Industry spending (all of it once factories are full). ★ = wonder, one per galaxy."));
+    }
+    return box;
+  }
+
+  /** Culture, golden ages, leaders and the galaxy's wonders. */
+  private showEmpire(): void {
+    this.modal((box, close) => {
+      const draw = () => {
+        const v = makeView(this.state, PLAYER);
+        const me = v.me;
+        const next = v.nextGoldenAge;
+        box.innerHTML = `<h2>${esc(me.name)}</h2>
+          <div class="tech-card"><b>Culture</b> <span class="dim">· ${fmt(me.culture)}${next ? ` / ${next} for the next golden age` : " · every golden age reached"}</span>
+            ${next ? `<div class="bar"><i style="width:${Math.min(100, (me.culture / next) * 100)}%"></i></div>` : ""}
+            ${me.goldenAge ? `<div class="good">✨ Golden age until turn ${me.goldenAgeUntil}: +20% production, +10% research</div>` : ""}
+            <div class="dim" style="font-size:12px">Culture comes from buildings, wonders and population.</div></div>`;
+        const lead = el("div", { class: "tech-card" });
+        lead.innerHTML = `<b>Leaders</b> <span class="dim">· up to 3 · salaries come from the treasury (${fmt(me.treasury)} BC)</span>`;
+        for (const l of me.leaders) {
+          const k = LEADER_KINDS[l.kind];
+          const row = el("div", { class: "design-row" }, `<span style="flex:1"><b>${esc(l.name)}</b>, ${k.title} ${"★".repeat(l.level)} <span class="dim">· boosts ${k.text} · ${l.salary} BC/turn</span></span>`);
+          const fire = el("button", { class: "small" }, "Dismiss");
+          fire.onclick = () => { if (confirm(`Dismiss ${l.name}?`)) { this.cmd({ type: "dismissLeader", leaderId: l.id }); draw(); } };
+          row.append(fire);
+          lead.append(row);
+        }
+        if (!me.leaders.length) lead.append(el("div", { class: "dim" }, "No leaders yet. Candidates offer their service from time to time."));
+        if (me.leaderOffer) {
+          const l = me.leaderOffer;
+          const k = LEADER_KINDS[l.kind];
+          const row = el("div", { class: "design-row", style: "margin-top:6px" }, `<span style="flex:1">Offer: <b>${esc(l.name)}</b>, ${k.title} ${"★".repeat(l.level)} <span class="dim">· boosts ${k.text} · ${l.salary} BC/turn · until turn ${l.offerUntil}</span></span>`);
+          const hire = el("button", { class: "small primary" }, `Hire (${l.cost} BC)`);
+          hire.disabled = me.treasury < l.cost || me.leaders.length >= 3;
+          hire.onclick = () => { this.cmd({ type: "hireLeader" }); draw(); };
+          row.append(hire);
+          lead.append(row);
+        }
+        box.append(lead);
+        const won = el("div", { class: "tech-card" });
+        won.innerHTML = `<b>Wonders of the galaxy</b>`;
+        for (const b of BUILDINGS.filter((x) => x.wonder)) {
+          const w = v.wonders[b.id];
+          const who = !w ? `<span class="dim">not yet built</span>` : w.empireId === PLAYER ? `<span class="good">yours</span>` : w.empireId < 0 ? `<span class="dim">destroyed</span>` : esc(this.state.empires[w.empireId]!.name);
+          won.append(el("div", { style: "margin:4px 0" }, `★ <b>${esc(b.name)}</b> · ${who}<div class="dim" style="font-size:12px">${esc(b.description)}</div>`));
+        }
+        box.append(won);
+        const row = el("div", { class: "row" });
+        const ok = el("button", { class: "primary" }, "Done");
+        ok.onclick = () => { close(); this.refresh(); };
+        row.append(ok);
+        box.append(row);
+      };
+      draw();
     });
   }
 
@@ -986,6 +1085,9 @@ export class GameScreen {
       box.innerHTML = `<h2>Game menu</h2><p class="dim">Your game saves automatically after every turn on this device.</p>`;
       const row = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       const exp = el("button", {}, "Export save code (move to another device)");
+      const mine = el("button", {}, "Your empire: culture, leaders, wonders");
+      mine.onclick = () => { close(); this.showEmpire(); };
+      row.append(mine);
       const emp = el("button", {}, "Empires: war and peace");
       emp.onclick = () => { close(); this.showEmpires(); };
       row.append(emp);

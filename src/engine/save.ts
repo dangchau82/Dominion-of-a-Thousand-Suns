@@ -45,6 +45,17 @@ function migrateV4(state: GameState): void {
   state.version = 5;
 }
 
+/** Version 5 saves had no buildings, culture, wonders or leaders. */
+function migrateV5(state: GameState): void {
+  for (const e of state.empires) {
+    Object.assign(e, { culture: 0, goldenAges: 0, goldenAgeUntil: 0, goldenAge: false, wonders: [], leaders: [], leaderOffer: null });
+  }
+  for (const c of Object.values(state.colonies)) Object.assign(c, { buildings: [], buildQueue: null, buildProgress: 0 });
+  state.wonders = {};
+  state.nextLeaderId = 1;
+  state.version = 6;
+}
+
 export function serialize(state: GameState): string {
   return JSON.stringify(state);
 }
@@ -58,6 +69,7 @@ export function deserialize(json: string): GameState {
   if (data.version === 2) migrateV2(data as GameState);
   if (data.version === 3) migrateV3(data as GameState);
   if (data.version === 4) migrateV4(data as GameState);
+  if (data.version === 5) migrateV5(data as GameState);
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

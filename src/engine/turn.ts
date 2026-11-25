@@ -4,6 +4,7 @@ import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
 import { shipDesign } from "./designs";
 import { resolveCombat } from "./combat";
+import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
 import { applyTreaties, processEspionage, researchPactBonus, spendingShare, updateRelations } from "./diplomacy";
 import {
   colonyProduction, factoryCost, FIELD_NAMES, maxUsableFactories, planetCapacity,
@@ -30,13 +31,17 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   const e = state.empires[c.empireId] as Empire;
   const s = state.stars[c.starId] as Star;
   const production = s.planet ? colonyProduction(c, s.planet, e, empireRace(e)) : 0;
+  // Buildings, wonders, leaders and golden ages raise output.
+  const ce = colonyEffects(c);
+  const eb = empireBonus(e);
+  const boosted = production * (1 + ce.production + eb.production);
   // Spies and internal security are paid first, out of every colony's output.
-  const net = production * (1 - spendingShare(e));
+  const net = boosted * (1 - spendingShare(e));
   const part = (pct: number) => (net * pct) / 100;
   return {
-    production,
-    ship: part(c.sliders.ship), defense: part(c.sliders.defense), industry: part(c.sliders.industry),
-    ecology: part(c.sliders.ecology), research: part(c.sliders.research),
+    production: boosted,
+    ship: part(c.sliders.ship) * (1 + ce.ships), defense: part(c.sliders.defense), industry: part(c.sliders.industry),
+    ecology: part(c.sliders.ecology), research: part(c.sliders.research) * (1 + ce.research + eb.research),
   };
 }
 
@@ -77,23 +82,32 @@ function processColony(state: GameState, c: Colony): number {
     event(state, { empireId: e.id, kind: "baseBuilt", text: `${s.name} built a missile base (${c.missileBases} total).`, starId: s.id });
   }
 
-  // Industry: build factories up to what the population can run.
+  // Industry: a building in progress takes half (all, once factories are full);
+  // the rest builds factories up to what the population can run.
   const room = Math.max(0, maxUsableFactories(c, e) - c.factories);
+  let industry = b.industry;
+  if (c.buildQueue) {
+    const toBuilding = room > 0 ? industry / 2 : industry;
+    industry = industry - toBuilding + progressBuilding(state, e, c, toBuilding);
+  }
+  e.treasury += colonyEffects(c).treasury * b.production;
   if (room > 0) {
     const cost = factoryCost(e);
-    const built = Math.min(room, b.industry / cost);
+    const built = Math.min(room, industry / cost);
     c.factories += built;
-    leftover += b.industry - built * cost;
+    leftover += industry - built * cost;
     const fullPlanetMax = planetCapacity(s.planet, e) * (maxUsableFactories(c, e) / Math.max(c.population, 1e-9));
     if (built >= room - 1e-9 && c.factories >= fullPlanetMax - 1e-6) {
       event(state, { empireId: e.id, kind: "factoriesDone", text: `${s.name} has all the factories its people can run.`, starId: s.id });
     }
   } else {
-    leftover += b.industry;
+    leftover += industry;
   }
 
   // Ecology: natural growth, then buy extra population with ecology spending.
   const cap = planetCapacity(s.planet, e);
+  // A conquered world may hold more people than its new owner's tech supports.
+  if (c.population > cap) c.population = cap;
   const wasFull = c.population >= cap - 1e-9;
   c.population += popGrowth(c.population, s.planet, r, e);
   const space = Math.max(0, cap - c.population);
@@ -157,6 +171,7 @@ export function endTurn(state: GameState): void {
     if (e.alive) processResearch(state, e, researchByEmpire.get(e.id) ?? 0);
   }
 
+  processCivilization(state);
   processEspionage(state);
   applyTreaties(state);
 

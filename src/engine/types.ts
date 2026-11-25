@@ -1,3 +1,4 @@
+import type { LeaderKind } from "./data/buildings";
 import type { ShipDesign } from "./data/ships";
 // Core game state. Everything is plain JSON: objects refer to each other by id,
 // so a whole game can be saved, copied for AI simulation, or sent anywhere.
@@ -55,6 +56,11 @@ export interface Colony {
   missileBases: number;
   foundedTurn: number;
   isCapital: boolean;
+  /** Finished buildings (ids from data/buildings). */
+  buildings: string[];
+  /** Building under construction, or null. */
+  buildQueue: string | null;
+  buildProgress: number;
 }
 
 export type ResearchField =
@@ -111,6 +117,30 @@ export interface Empire {
   spies: Record<Id, SpyNetwork>;
   /** Percent of total production spent on internal security (0-10). */
   security: number;
+  /** Culture points earned so far. */
+  culture: number;
+  /** Golden ages reached so far. */
+  goldenAges: number;
+  /** A golden age runs until this turn. */
+  goldenAgeUntil: number;
+  goldenAge: boolean;
+  /** Wonders this empire holds. */
+  wonders: string[];
+  leaders: Leader[];
+  /** A leader offering to serve, until offerUntil. */
+  leaderOffer: Leader | null;
+}
+
+export interface Leader {
+  id: number;
+  name: string;
+  kind: LeaderKind;
+  level: number;
+  /** BC to hire. */
+  cost: number;
+  /** BC per turn. */
+  salary: number;
+  offerUntil: number;
 }
 
 export type TreatyKind = "trade" | "research" | "nap" | "alliance";
@@ -180,7 +210,7 @@ export interface GameEvent {
   kind:
     | "explored" | "colonized" | "shipBuilt" | "research" | "growth" | "contact"
     | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion"
-    | "diplomacy" | "spy";
+    | "diplomacy" | "spy" | "culture";
   text: string;
   starId?: Id;
 }
@@ -199,6 +229,9 @@ export interface GameState {
   /** Every empire's own ship designs, keyed by design id (built-ins live in data/ships). */
   designs: Record<string, ShipDesign>;
   nextDesignId: number;
+  /** Wonders built so far: wonder id -> who holds it and where. */
+  wonders: Record<string, { empireId: Id; starId: Id; turn: number }>;
+  nextLeaderId: number;
   /** Diplomatic proposals waiting for an answer. */
   proposals: Proposal[];
   nextProposalId: number;
@@ -215,4 +248,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;

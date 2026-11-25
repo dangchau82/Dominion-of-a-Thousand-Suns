@@ -4,6 +4,7 @@
 
 import { race } from "./data/races";
 import { say } from "./dialogue";
+import { empireBonus } from "./civ";
 import { colonyProduction, distance } from "./formulas";
 import { empireRace } from "./game";
 import * as R from "./rng";
@@ -218,7 +219,7 @@ export function updateRelations(state: GameState): void {
     for (const bid of a.contacts) {
       const b = state.empires[bid]!;
       if (!b.alive) continue;
-      let base = race(b.raceId).diplomacy * 8 + treatiesWith(a, b).length * 10;
+      let base = race(b.raceId).diplomacy * 8 + empireBonus(b).relations + treatiesWith(a, b).length * 10;
       if (a.atWar[b.id] !== undefined) base -= 50;
       let friction = 0;
       for (const ca of colonies) {
@@ -247,7 +248,7 @@ export function applyTreaties(state: GameState): void {
       const b = state.empires[Number(bid)]!;
       if (!b.alive) continue;
       const ramp = Math.min(1, (state.turn - t.trade) / 10);
-      a.treasury += 0.05 * Math.min(prod.get(a.id)!, prod.get(b.id)!) * ramp;
+      a.treasury += 0.02 * Math.min(prod.get(a.id)!, prod.get(b.id)!) * ramp * (1 + empireBonus(a).trade);
     }
   }
   // Proposals last until the end of the turn after they were made.
@@ -272,7 +273,7 @@ export function processEspionage(state: GameState): void {
       if (net.agents >= MAX_AGENTS) net.progress = Math.min(net.progress, AGENT_COST);
       if (net.agents <= 0) continue;
 
-      const edge = (race(e.raceId).spying - race(t.raceId).spying) + (computersTier(e) - computersTier(t)) * 0.5;
+      const edge = (race(e.raceId).spying + empireBonus(e).spying - race(t.raceId).spying - empireBonus(t).spying) + (computersTier(e) - computersTier(t)) * 0.5;
       const catchChance = clamp(0.03 + t.security * 0.012 - edge * 0.02, 0.01, 0.4);
       let caught = 0;
       for (let i = 0; i < Math.min(net.agents, 3); i++) if (R.chance(rng, catchChance)) caught++;

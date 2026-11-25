@@ -201,6 +201,55 @@ function espionage(ctx: Ctx): void {
   }
 }
 
+// ---------- buildings and leaders ----------
+
+const BUILD_PRIORITY: Record<string, (ctx: Ctx, c: ColonyInfo) => number> = {
+  "research-institute": (x) => 5 + x.curiosity * 4,
+  "automated-foundry": () => 6,
+  "hydroponic-farms": (_x, c) => (c.population > c.capacity - 4 ? 7 : 2),
+  "arcology": (_x, c) => (c.population > c.capacity - 6 ? 8 : 3),
+  "spaceport": () => 4,
+  "orbital-drydock": (x, c) => (c.isCapital || c.population > 40 ? 3 + x.aggression * 5 : 0),
+  "civic-forum": () => 3,
+  "grand-theater": () => 3,
+  "planetary-fortress": (x) => (x.wars.length ? 7 : 0.5),
+};
+
+function civilization(ctx: Ctx): void {
+  const { view, cmds } = ctx;
+  for (const c of view.colonies) {
+    const options = view.buildable(c.starId);
+    if (c.buildQueue && options.includes(c.buildQueue)) {
+      // Rich empires finish things early.
+      const cost = view.buyCost(c.starId);
+      if (cost > 0 && view.me.treasury > cost * 2.5 && view.me.treasury > 600) cmds.push({ type: "buyBuilding", starId: c.starId });
+      continue;
+    }
+    if (c.population < 8) continue;
+    const prod = c.budget.production;
+    let best: string | null = null;
+    let bestScore = 0;
+    for (const id of options) {
+      let score: number;
+      if (id.startsWith("w-")) score = c.isCapital && prod > 120 && view.turn > 60 ? 5 + ctx.curiosity * 3 : 0;
+      else score = BUILD_PRIORITY[id]?.(ctx, c) ?? 1;
+      if (score > bestScore) { bestScore = score; best = id; }
+    }
+    if (best) cmds.push({ type: "setBuilding", starId: c.starId, buildingId: best });
+  }
+  // Don't sit on a hoard: buy buildings, then fund warships.
+  let spare = view.me.treasury - (200 + view.turn * 3);
+  for (const c of [...view.colonies].sort((a, b) => view.buyCost(a.starId) - view.buyCost(b.starId))) {
+    const cost = view.buyCost(c.starId);
+    if (cost > 0 && cost <= spare * 0.5) { cmds.push({ type: "buyBuilding", starId: c.starId }); spare -= cost; }
+  }
+  const yard = view.colonies.find((c) => c.isCapital && c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship")
+    ?? view.colonies.find((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship");
+  if (yard && spare > 100) cmds.push({ type: "fundShips", starId: yard.starId, bc: Math.floor(spare * (ctx.wars.length ? 0.6 : 0.3)) });
+  const offer = view.me.leaderOffer;
+  if (offer && view.me.leaders.length < 3 && view.me.treasury >= offer.cost * 1.3) cmds.push({ type: "hireLeader" });
+}
+
 // ---------- research ----------
 
 function research(ctx: Ctx): void {
@@ -366,6 +415,11 @@ function production(ctx: Ctx, settleTargets: number): void {
         ? sliders(0, def, 0, 0, 100 - def)
         : sliders(0, def, factoriesFull ? 0 : 70 - def, growing ? 30 : 0, factoriesFull ? 70 : 0);
     }
+    // Something under construction needs industry.
+    if (c.buildQueue && s.industry < 25) {
+      const move = Math.min(25 - s.industry, s.research);
+      s.industry += move; s.research -= move;
+    }
     if (c.buildTemplate !== want) cmds.push({ type: "setBuild", starId: c.starId, templateId: want });
     cmds.push({ type: "setSliders", starId: c.starId, sliders: s });
   }
@@ -516,6 +570,7 @@ export function basicAITurn(view: EmpireView): Command[] {
   espionage(ctx);
   research(ctx);
   designs(ctx);
+  civilization(ctx);
   const openTargets = expansion(ctx);
   production(ctx, openTargets);
   military(ctx);

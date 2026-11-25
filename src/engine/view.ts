@@ -4,6 +4,8 @@
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
 import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
+import { buildable, buyCost } from "./civ";
+import { GOLDEN_AGE_AT } from "./data/buildings";
 import type { ShipDesign } from "./data/ships";
 import {
   canColonize, colonyScanRange, factoryCost, fuelRange, maxHostility, planetCapacity, popCost, robotControls,
@@ -66,6 +68,10 @@ export interface EmpireView {
   me: Empire;
   /** Diplomatic proposals to or from this empire, with a plain description. */
   proposals: (Proposal & { text: string })[];
+  /** Wonders built anywhere (news travels): wonder id -> holder and turn. */
+  wonders: Record<string, { empireId: Id; turn: number }>;
+  /** Culture needed for the next golden age, or null after the last. */
+  nextGoldenAge: number | null;
   /** Ship designs this empire can build (built-ins first). */
   designs: ShipDesign[];
   race: Race;
@@ -83,6 +89,10 @@ export interface EmpireView {
     /** Current research project and its cost in each field. */
     projects: Record<ResearchField, ResearchProject | null>;
   };
+  /** Buildings a colony of ours could start now. */
+  buildable(starId: Id): string[];
+  /** BC to finish a colony's current building now. */
+  buyCost(starId: Id): number;
   /** Helpers bound to this empire's legal knowledge only. */
   reachable(starId: Id, fleet: Fleet): boolean;
   canSettle(starId: Id): boolean;
@@ -128,6 +138,8 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     turn: state.turn,
     difficulty: state.settings.difficulty ?? "normal",
     proposals: state.proposals.filter((p) => p.to === empireId || p.from === empireId).map((p) => ({ ...p, text: describeProposal(state, p) })),
+    wonders: Object.fromEntries(Object.entries(state.wonders).map(([id, w]) => [id, { empireId: w.empireId, turn: w.turn }])),
+    nextGoldenAge: GOLDEN_AGE_AT[e.goldenAges] ?? null,
     me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
     stars: state.stars.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, color: s.color, nebula: s.nebula })),
     events: state.events.filter((ev) => ev.empireId === null || ev.empireId === empireId).map((ev) => ({ ...ev })),
@@ -136,6 +148,14 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       scanRange: colonyScanRange(e), factoryCost: factoryCost(e), robotControls: robotControls(e),
       workerProductivity: workerProductivity(e, r), popCost: popCost(e), terraform: ts.terraform,
       growthBonus: ts.growth, researchBonus: ts.research, projects,
+    },
+    buildable: (starId) => {
+      const c = state.colonies[starId];
+      return c && c.empireId === empireId ? buildable(state, e, c).map((b) => b.id) : [];
+    },
+    buyCost: (starId) => {
+      const c = state.colonies[starId];
+      return c && c.empireId === empireId ? buyCost(c) : 0;
     },
     reachable: (starId, fleet) => inFuelRange(state, e, state.stars[starId]!, fleetExtraRange(state, fleet)),
     canSettle: (starId) => {

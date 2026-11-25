@@ -3,6 +3,7 @@
 
 import { researchChoices } from "./tech";
 import { atWar, declareWar, offerPeace } from "./combat";
+import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
 import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
 import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
@@ -29,6 +30,11 @@ export type Command =
   | { type: "breakTreaty"; with: Id; treaty: TreatyKind }
   | { type: "setSpies"; targetId: Id; alloc: number; mission: SpyMission }
   | { type: "setSecurity"; percent: number }
+  | { type: "setBuilding"; starId: Id; buildingId: string | null }
+  | { type: "buyBuilding"; starId: Id }
+  | { type: "hireLeader" }
+  | { type: "fundShips"; starId: Id; bc: number }
+  | { type: "dismissLeader"; leaderId: number }
   | { type: "offerPeace"; targetId: Id }
   | { type: "sendTransports"; fromStarId: Id; toStarId: Id; troops: number }
   | { type: "scrapDesign"; designId: string }
@@ -162,6 +168,40 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if (!t || t.id === e.id || !e.contacts.includes(t.id)) return fail("You haven't met them");
       if (!["steal", "sabotage", "watch"].includes(cmd.mission)) return fail("Unknown mission");
       setSpies(e, t.id, cmd.alloc, cmd.mission);
+      return { ok: true };
+    }
+    case "setBuilding": {
+      const c = ownColony(state, empireId, cmd.starId);
+      if (!c) return fail("Not your colony");
+      if (cmd.buildingId !== null && !buildable(state, e, c).some((b) => b.id === cmd.buildingId)) return fail("Can't build that here");
+      c.buildQueue = cmd.buildingId;
+      return { ok: true };
+    }
+    case "buyBuilding": {
+      const c = ownColony(state, empireId, cmd.starId);
+      if (!c || !c.buildQueue) return fail("Nothing being built");
+      const cost = buyCost(c);
+      if (e.treasury < cost) return fail(`Need ${cost} BC`);
+      e.treasury -= cost;
+      progressBuilding(state, e, c, cost / 2);
+      return { ok: true };
+    }
+    case "fundShips": {
+      // Spend treasury on a shipyard's current ship (like transferring the reserve).
+      const c = ownColony(state, empireId, cmd.starId);
+      if (!c || !c.buildTemplate) return fail("This shipyard isn't building anything");
+      if (!(cmd.bc > 0) || cmd.bc > e.treasury) return fail("Not enough BC");
+      e.treasury -= cmd.bc;
+      c.shipProgress += cmd.bc;
+      return { ok: true };
+    }
+    case "hireLeader": {
+      const err = hireLeader(state, e);
+      return err ? fail(err) : { ok: true };
+    }
+    case "dismissLeader": {
+      if (!e.leaders.some((l) => l.id === cmd.leaderId)) return fail("No such leader");
+      e.leaders = e.leaders.filter((l) => l.id !== cmd.leaderId);
       return { ok: true };
     }
     case "setSecurity": {

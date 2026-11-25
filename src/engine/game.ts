@@ -24,6 +24,7 @@ export function newColony(starId: Id, empireId: Id, population: number, turn: nu
     buildTemplate: isCapital ? "scout" : null,
     shipProgress: 0, defenseProgress: 0, missileBases: 0,
     foundedTurn: turn, isCapital,
+    buildings: [], buildQueue: null, buildProgress: 0,
   };
 }
 
@@ -38,7 +39,7 @@ export function newGame(settings: GameSettings): GameState {
 
   const state: GameState = {
     version: SAVE_VERSION, turn: 1, settings, rng, stars,
-    empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1, proposals: [], nextProposalId: 1,
+    empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1, proposals: [], nextProposalId: 1, wonders: {}, nextLeaderId: 1,
   };
 
   races.forEach((r, i) => {
@@ -62,6 +63,13 @@ export function newGame(settings: GameSettings): GameState {
       treaties: {},
       spies: {},
       security: 2,
+      culture: 0,
+      goldenAges: 0,
+      goldenAgeUntil: 0,
+      goldenAge: false,
+      wonders: [],
+      leaders: [],
+      leaderOffer: null,
     };
     state.empires.push(empire);
     for (const spec of starterDesigns()) addDesign(state, empire, spec);

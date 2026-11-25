@@ -5,6 +5,7 @@
 import { CLIMATES, HOSTILE_FROM, MINERAL_MOD } from "./data/planets";
 import type { Race } from "./data/races";
 import { techStats } from "./tech";
+import { empireBonus } from "./civ";
 import type { Climate, Colony, Empire, Environment, Planet, ResearchField } from "./types";
 
 // ---------- Planets ----------
@@ -46,7 +47,7 @@ export function popGrowth(pop: number, planet: Planet, race: Race, owner?: Empir
   const size = planetCapacity(planet, owner);
   const room = size - pop;
   if (room <= 0) return 0;
-  let rate = Math.max(0, (1 - pop / size) / 10) * race.growth * (1 + (owner ? techStats(owner).growth : 0));
+  let rate = Math.max(0, (1 - pop / size) / 10) * race.growth * (1 + (owner ? techStats(owner).growth + empireBonus(owner).growth : 0));
   if (!race.ignoresEnvironment) rate *= environmentGrowthMod(environmentFor(planet, race));
   return Math.min(room, Math.max(0.1, pop * rate));
 }
@@ -107,7 +108,7 @@ export function canColonize(planet: Planet, e: Empire, r: Race): boolean {
 
 /** Base fuel range in light-years from the nearest owned colony. */
 export function fuelRange(e: Empire): number {
-  return 3 + techStats(e).range;
+  return 3 + techStats(e).range + empireBonus(e).range;
 }
 
 /** Ship speed in light-years per turn. */
