@@ -103,7 +103,8 @@ export const RACES: readonly Race[] = [
     growth: 2, ground: 1, travel: "warp", unique: "Population grows twice as fast; extra ground troops from numbers.",
     personality: p(0.7, 0.4, 0.6, 0.3, 0.5) },
   { ...base, id: "tarkhan", name: "Tarkhan Hunt", style: "Gunners", color: "#e06a8a", homeClimate: "arid",
-    shipAttack: 3, production: 1.15, ground: 1, travel: "warp", // balance 2026-11-24: +15% production, +1 ground, no defense penalty (averaged 10 colonies) unique: "Deadly gunners: more accurate, +1 damage per hit, and they always fire first.",
+    // balance 2026-11-24: +15% production, +1 ground, no defense penalty (averaged 10 colonies)
+    shipAttack: 3, production: 1.15, ground: 1, travel: "warp", unique: "Deadly gunners: more accurate, +1 damage per hit, and they always fire first.",
     personality: p(0.7, 0.9, 0.3, 0.4, 0.8) },
 ];
 
