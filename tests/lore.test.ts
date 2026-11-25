@@ -6,6 +6,7 @@ import { AWAKENING_CHAIN, BLIGHT_CRISIS, ELDER_POWERS, STATION } from "../src/en
 import { resolveEvent } from "../src/engine/events";
 import { STORYLINES } from "../src/engine/data/storylines";
 import { STORYLINES_2 } from "../src/engine/data/storylines-2";
+import { STORYLINES_3 } from "../src/engine/data/storylines-3";
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
 import { GATE_EVENTS, GATE_TYPES, STANCES } from "../src/engine/data/gates";
 
@@ -367,14 +368,15 @@ describe("gates and ambushes (Gemini)", () => {
   });
 });
 
-describe("race storylines batch 2 (Gemini)", () => {
+describe("race storylines batches 2-3 (Gemini)", () => {
   it("6 chapters per race, 2 forks each, in scale, clean text", () => {
-    for (const race of ["vossari", "kethrak", "lumen", "thraal", "seraphine"]) {
-      expect(STORYLINES_2.filter((c) => c.raceId === race).map((c) => c.chapter)).toEqual([1, 2, 3, 4, "5A", "5B"]);
+    const batch = [...STORYLINES_2, ...STORYLINES_3];
+    for (const race of ["vossari", "kethrak", "lumen", "thraal", "seraphine", "orrun", "nyx", "velari", "drovani", "gorrath"]) {
+      expect(batch.filter((c) => c.raceId === race).map((c) => c.chapter)).toEqual([1, 2, 3, 4, "5A", "5B"]);
     }
-    const ids = [...STORYLINES, ...STORYLINES_2].map((c) => c.id);
+    const ids = [...STORYLINES, ...batch].map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const c of STORYLINES_2) {
+    for (const c of batch) {
       expect(c.choices.length).toBe(2);
       expect(c.title).not.toMatch(/\{/);
       checkText(c);
