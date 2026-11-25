@@ -53,3 +53,10 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 - Conquest wins two thirds of games — consider making culture/council paths more reachable, or the AI less eager for total war late.
 - Expansionist and Science focus play only slightly differently from Balanced — give them stronger effects.
 - Ashkari still need their living portrait video.
+
+## 2026-11-25 overnight (Sonnet 5.5, Danny's Ashkari game, seed 569607727, large ring, 17 rivals, hard)
+- AI now funds every shipyard from a hoard (was one); `rich` threshold 800+4*turn. Treasuries still 3-7k by T150: income outruns sinks. TODO: more sinks.
+- AI never fights more than 2 wars at once (call-to-war acceptance and runaway-leader declarations were unlimited).
+- Test 'relaxed fewer wars' now sums 3 seeds (single seed was chaotic).
+- Two full playthroughs as Ashkari (warlike autopilot, no cheats, own view only): ELIMINATED around T266-277. At ~T244 every empire declared war on me within 2 turns. Likely cause (UNVERIFIED): autopilot builds the Ascension Gate, which makes everyone treat me as a runaway leader (findThreat, buildingAscension => score 1). Needs: a defence plan before the Gate, or the Gate only when strong.
+- Results for rivals are only for balance work (PEEK=1 in tools/play.test.ts); normal play prints own empire only.

@@ -160,7 +160,8 @@ function diplomacy(ctx: Ctx): void {
   // Stop a runaway leader: war on them, and rally others.
   if (ctx.threat !== null) {
     const t = view.contacts.find((c) => c.id === ctx.threat)!;
-    if (t.warSince === null && !t.treaties.includes("alliance")) {
+    // Never fight more than two wars at once: allies' calls and runaway leaders can't drag us into a dogpile.
+    if (t.warSince === null && !t.treaties.includes("alliance") && ctx.wars.length < 2) {
       const others = view.contacts.filter((c) => c.id !== t.id && c.alive).length;
       if (mine >= knownPop(ctx, t.id) * 0.25 || others >= 2) { cmds.push({ type: "declareWar", targetId: t.id }); return; }
     }
@@ -213,7 +214,7 @@ function answers(ctx: Ctx): void {
       case "tribute": ok = theirs > mine * 1.5 && ctx.aggression < 0.6 && (!p.bc || p.bc <= view.me.treasury * 0.5); break;
       case "joinWar": {
         const target = p.targetId !== undefined ? knownPop(ctx, p.targetId) : 0;
-        ok = p.targetId === ctx.threat || ((rel >= 35 || c.treaties.includes("alliance")) && mine >= target * 0.8);
+        ok = ctx.wars.length < 2 && (p.targetId === ctx.threat || ((rel >= 35 || c.treaties.includes("alliance")) && mine >= target * 0.8));
         break;
       }
     }
@@ -581,7 +582,7 @@ function production(ctx: Ctx, settleTargets: number): void {
   const ramp = atWar ? 1 : Math.min(1, view.turn / 80);
   const wantPower = totalProd * (1.5 + 5 * ctx.aggression) * (atWar ? 1.6 : 1) * ramp * ctx.level.fleet * ctx.focus.fleet;
   // A big hoard turns into ships rather than sitting idle (the treasury then funds the shipyard).
-  const rich = view.me.treasury > 2500 + view.turn * 10;
+  const rich = view.me.treasury > 800 + view.turn * 4;
   const needShips = !!warship && (fleetPower < wantPower || rich);
   const threatened = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
   const enemyNear = (c: ColonyInfo) => view.seenFleets.some((f) => ctx.wars.some((w) => w.id === f.empireId) && dist(f, ctx.starById.get(c.starId)!) < 6);
