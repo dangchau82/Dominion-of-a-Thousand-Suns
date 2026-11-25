@@ -96,3 +96,20 @@ describe("extra star names (Gemini)", () => {
     expect(names.filter((n) => / (II|III|IV|V|VI)$| Minor$/.test(n)).length).toBe(0);
   });
 });
+
+import { LEADER_TRAITS } from "../src/engine/data/leaderTraits";
+
+describe("leader traits (Gemini)", () => {
+  const LIMIT: Record<string, number> = { production: 0.08, research: 0.08, growth: 0.15, range: 1, attack: 1, spying: 1, relations: 10, trade: 0.15, culture: 0.15 };
+  it("every trait has a real upside and a real downside, within limits", () => {
+    expect(LEADER_TRAITS.length).toBe(24);
+    expect(new Set(LEADER_TRAITS.map((t) => t.id)).size).toBe(24);
+    for (const t of LEADER_TRAITS) {
+      expect(Object.keys(t.upside).length).toBeGreaterThan(0);
+      expect(Object.keys(t.downside).length).toBeGreaterThan(0);
+      for (const [k, v] of Object.entries(t.upside)) { expect(v).toBeGreaterThan(0); expect(v).toBeLessThanOrEqual(LIMIT[k]!); }
+      for (const [k, v] of Object.entries(t.downside)) { expect(v).toBeLessThan(0); expect(-v).toBeLessThanOrEqual(LIMIT[k]!); }
+      expect(t.description.split(/\s+/).length).toBeLessThan(25);
+    }
+  });
+});
