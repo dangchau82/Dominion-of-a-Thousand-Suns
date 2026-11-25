@@ -157,3 +157,17 @@ describe("Gemini pack 3: council resolutions, unrest and civil war", () => {
     expect(SPY_MISSION_TEXTS.map((m) => m.mission).sort()).toEqual(["fundRebels", "inciteUnrest", "spreadPropaganda"]);
   });
 });
+
+import { LINEAGES, LIVING_TRAITS, MUTATIONS } from "../src/engine/data/livingShips";
+
+describe("Gemini pack 3: living ships", () => {
+  it("12 traits covering every effect, 10 mutations each with a drawback, 5 lineages", () => {
+    expect(LIVING_TRAITS.length).toBe(12);
+    const kinds = new Set(LIVING_TRAITS.flatMap((t) => t.effects.map((e) => e.kind)));
+    expect([...kinds].sort()).toEqual(["aim", "armor", "evasion", "hits", "regrow", "shieldPierce", "speed"]);
+    expect(MUTATIONS.length).toBe(10);
+    for (const m of MUTATIONS) expect(m.drawback).toBeDefined();
+    expect(LINEAGES.map((l) => l.raceId).sort()).toEqual(["anyone", "ixil", "kethrak", "ruuvak", "verdane"]);
+    expect(new Set([...LIVING_TRAITS, ...MUTATIONS].map((t) => t.id)).size).toBe(22);
+  });
+});

@@ -79,7 +79,7 @@ Organic ships that are **grown, not built**. Natural for the Kethrak Hive, Verda
 4. **Mutations:** a fleet reaching Elder rolls one random extra trait (seeded RNG).
 5. **Weakness:** no energy shields; burning weapons (plasma) hurt them more.
 
-Status: idea, waiting for Danny's answers on (a) organic races only, or a tech for everyone too, and (b) age stages and mutations, or traits only.
+Status: designed (Gemini data in `src/engine/data/livingShips.ts`), waiting for Danny's answers on (a) organic races only, or a tech for everyone too, and (b) age stages and mutations, or traits only.
 Build notes: fleets store only ship counts today, so each fleet needs an age (save version bump plus migration); combat, designs and the AI all need to learn them. Best after the Master AI and the elder-powers stage. Gemini can write the trait and mutation list.
 
 ---
