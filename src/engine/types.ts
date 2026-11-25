@@ -152,6 +152,8 @@ export interface Leader {
   /** BC per turn. */
   salary: number;
   offerUntil: number;
+  /** Personality trait id from LEADER_TRAITS (leaders from before save version 11 have none). */
+  trait?: string;
 }
 
 export interface PendingEvent {
@@ -307,4 +309,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;

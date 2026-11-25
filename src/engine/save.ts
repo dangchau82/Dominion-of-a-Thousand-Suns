@@ -92,6 +92,8 @@ export function deserialize(json: string): GameState {
     for (const e of s.empires) e.borderWarned ??= {};
     s.version = 10;
   }
+  // Version 10 -> 11: leaders gained an optional trait; old leaders simply have none.
+  if (data.version === 10) { (data as GameState).version = 11; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

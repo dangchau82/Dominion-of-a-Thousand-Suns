@@ -6,6 +6,7 @@ import { DIALOGUE } from "../src/engine/data/dialogue";
 import { processEspionage } from "../src/engine/diplomacy";
 import { newColony } from "../src/engine/game";
 import { deserialize, serialize } from "../src/engine/save";
+import { SAVE_VERSION } from "../src/engine/types";
 
 const settings = (over: Partial<GameSettings> = {}): GameSettings => ({
   seed: 2024, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "humans", playerName: "Danny", ...over,
@@ -144,14 +145,14 @@ describe("AI reactions", () => {
     expect(g.events.some((ev) => ev.kind === "diplomacy" && ev.empireId === 0 && expectedSurrender.includes(ev.text))).toBe(true);
   });
 
-  it("saves: a version-9 save still loads and migrates to version 10", () => {
+  it("saves: a version-9 save still loads and migrates to the current version", () => {
     const g = newGame(settings());
     const raw = JSON.parse(serialize(g)) as Record<string, unknown>;
     raw.version = 9;
     for (const e of raw.empires as Record<string, unknown>[]) delete e.borderWarned;
 
     const loaded = deserialize(JSON.stringify(raw));
-    expect(loaded.version).toBe(10);
+    expect(loaded.version).toBe(SAVE_VERSION);
     expect(loaded.empires[0]!.borderWarned).toEqual({});
     expect(loaded.empires[1]!.borderWarned).toEqual({});
   });
