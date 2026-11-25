@@ -18,11 +18,13 @@ it("balance", () => {
     for (const e of s.empires) e.isPlayer = false;
     let t = 0;
     const snap: Record<number, any> = {};
+    let wars = 0, captures = 0;
     while (!s.winner && t < 400) {
       runAITurns(s, true); endTurn(s); t++;
+      for (const ev of s.events) { if (ev.kind === "war" && ev.text.includes("declared")) wars++; if (ev.kind === "invasion" && ev.text.includes("captured")) captures++; }
       if (t === 100 || t === 200) snap[t] = s.empires.map((e) => ({ race: e.raceId, cols: Object.values(s.colonies).filter((c) => c.empireId === e.id).length, alive: e.alive }));
     }
-    rows.push({ g, turns: t, winner: s.winner ? s.empires[s.winner.empireId]!.raceId : null, how: s.winner?.kind ?? null, snap,
+    rows.push({ g, wars, captures, turns: t, winner: s.winner ? s.empires[s.winner.empireId]!.raceId : null, how: s.winner?.kind ?? null, snap,
       maxBases: Math.max(0, ...Object.values(s.colonies).map((c) => c.missileBases)), treasury: s.empires.map((e) => Math.round(e.treasury)), final: s.empires.map((e) => ({ race: e.raceId, cols: Object.values(s.colonies).filter((c) => c.empireId === e.id).length, alive: e.alive, techs: e.research.known.length })) });
     console.log(`game ${g}: ${t} turns, winner ${rows.at(-1).winner} by ${rows.at(-1).how} (${((Date.now() - t0) / 1000) | 0}s)`);
   }
