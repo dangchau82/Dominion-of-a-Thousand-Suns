@@ -32,8 +32,14 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 - Races: Quorai settle bonus 12→8, growth 0.7→0.6, no research bonus. Thraal settle bonus 12→10. Tarkhan +15% production, +1 ground troops, no ship-defense penalty.
 - New: map hover tooltips, auto-explore for scouts, PC keyboard shortcuts, 📜 History screen with graphs, downloadable game log (the chronicle is recorded every turn in the save).
 
+### Re-test after the race changes (18 new games)
+- Winners spread over 11 races (was 7). Quorai wins 6 → 3; Tarkhan won once.
+- Colonies at turn 200: Gorrath 30.8, Quorai 30.4, Thraal 29.2 at the top; Ashkari 12.0, Tarkhan 10.8 at the bottom.
+- Victories: conquest 12, technology 5, culture 1. Game length 238–318 turns.
+
 ### Next to look at
-- Check the race changes with a fresh 18-game run (below, when done).
+- Ashkari and Tarkhan still settle the fewest worlds. Both are warrior races, so maybe that's fine if they win wars, but check their war results.
+- Gorrath (cheap, long-range colony ships) are now the top expanders; watch them.
 - Conquest wins two thirds of games — consider making culture/council paths more reachable, or the AI less eager for total war late.
 - Expansionist and Science focus play only slightly differently from Balanced — give them stronger effects.
 - Ashkari still need their living portrait video.
