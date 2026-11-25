@@ -1,6 +1,7 @@
 // Gemini's 8 new events and the late-game lore: well-formed, in the game's scale, and playable.
 import { describe, expect, it } from "vitest";
 import { newGame } from "../src/engine";
+import { RACES } from "../src/engine/data/races";
 import { EVENTS, type EventEffect, type GameEventDef } from "../src/engine/data/events";
 import { AWAKENING_CHAIN, BLIGHT_CRISIS, ELDER_POWERS, STATION } from "../src/engine/data/lateGameLore";
 import { resolveEvent } from "../src/engine/events";
