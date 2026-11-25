@@ -67,6 +67,12 @@ export const BUILTIN_DESIGNS: Record<string, ShipDesign> = {
   transport: builtin({ id: "transport", name: "Troop Transport", role: "transport", hull: "small", cost: 0, extraRange: 0 }),
 };
 
+/** Extended Fuel Tanks: a ship part that adds range. Unlocked by learning any fuel-range tech. */
+export const FUEL_TANKS = { id: "fuel-tanks", name: "Extended Fuel Tanks", range: 3, spaceShare: 0.1, costShare: 0.1 } as const;
+
+/** A custom colony ship is a Large hull built around a colony pod; the rest of the room is free for extras. */
+export const COLONY_POD = { hull: "large" as HullSize, space: 700, cost: 150 } as const;
+
 /** Each empire may keep this many designs of its own (built-ins don't count). */
 export const MAX_DESIGNS = 6;
 

@@ -8,7 +8,8 @@ const OFF = "dots.tips.off";
 
 export interface Tip { id: string; when: (v: EmpireView) => boolean; text: string }
 
-const idle = (v: EmpireView, kind: string) => v.fleets.some((f) => f.starId !== null && f.destStarId === null && (f.ships[kind] ?? 0) > 0);
+const idle = (v: EmpireView, kind: string) => v.fleets.some((f) => f.starId !== null && f.destStarId === null
+  && Object.entries(f.ships).some(([id, n]) => n > 0 && (id === kind || (kind === "colony" && v.designs.find((d) => d.id === id)?.role === "colony"))));
 
 export const TIPS: Tip[] = [
   { id: "start", when: (v) => v.turn <= 2, text: "Welcome, ruler! Tap your home star to open its colony. The sliders split its production between ships, defense, industry, ecology and research." },

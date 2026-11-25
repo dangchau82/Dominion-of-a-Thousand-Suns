@@ -4,8 +4,8 @@
 // the same field) is adapted from Remnants of the Precursors (GPL-3.0).
 
 import {
-  BUILTIN_DESIGNS, HULLS, MAX_DESIGNS, SHIP_SPECIALS,
-  type HullSize, type ShipDesign, type WeaponMount,
+  BUILTIN_DESIGNS, COLONY_POD, FUEL_TANKS, HULLS, MAX_DESIGNS, SHIP_SPECIALS,
+  type HullSize, type ShipDesign, type ShipRole, type WeaponMount,
 } from "./data/ships";
 import type { Tech } from "./data/techs";
 import { miniaturization, shipSpeed } from "./formulas";
@@ -91,6 +91,8 @@ export interface DesignSpec {
   armor: string | null;
   weapons: WeaponMount[];
   specials: string[];
+  /** "warship" (default) or "colony" (a Large hull with a colony pod; no weapons). */
+  role?: ShipRole;
 }
 
 export interface DesignStats {
@@ -103,13 +105,26 @@ export interface DesignStats {
   missileDefense: number;
   shield: number;
   speed: number;
+  /** Extra fuel range this design carries (light-years). */
+  extraRange: number;
   weapons: { name: string; kind: string; count: number; min: number; max: number }[];
+}
+
+/** True once the empire knows any tech that adds fuel range. */
+export function canUseFuelTanks(e: Empire): boolean {
+  return e.research.known.some((id) => TECH_BY_ID.get(id)?.effects.some((fx) => fx.stat === "range"));
+}
+
+export function fuelTankPart(hull: HullSize): PartSize {
+  const h = HULLS[hull];
+  return { space: h.space * FUEL_TANKS.spaceShare, cost: Math.max(1, h.cost * FUEL_TANKS.costShare) };
 }
 
 export function designStats(e: Empire, spec: DesignSpec): DesignStats {
   const h = HULLS[spec.hull];
-  let used = 0;
-  let cost = h.cost;
+  const colony = spec.role === "colony";
+  let used = colony ? COLONY_POD.space : 0;
+  let cost = colony ? COLONY_POD.cost : h.cost;
   for (const slot of ["computer", "shield", "ecm", "armor"] as SystemSlot[]) {
     const id = spec[slot];
     if (!id) continue;
@@ -126,7 +141,7 @@ export function designStats(e: Empire, spec: DesignSpec): DesignStats {
     if (fx) weapons.push({ name: t.name, kind: fx.kind, count: w.count, min: fx.min, max: fx.max });
   }
   for (const id of spec.specials) {
-    const p = specialPart(e, id, spec.hull);
+    const p = id === FUEL_TANKS.id ? fuelTankPart(spec.hull) : specialPart(e, id, spec.hull);
     used += p.space; cost += p.cost;
   }
   const lvl = (id: string | null, stat: string) => (id ? statValue(tech(id), stat) : 0);
@@ -141,6 +156,7 @@ export function designStats(e: Empire, spec: DesignSpec): DesignStats {
     missileDefense: h.defense + lvl(spec.ecm, "ecm"),
     shield: lvl(spec.shield, "shield"),
     speed: shipSpeed(e),
+    extraRange: spec.specials.includes(FUEL_TANKS.id) ? FUEL_TANKS.range : 0,
     weapons,
   };
 }
@@ -164,6 +180,11 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
   const name = spec.name.trim();
   if (!name || name.length > 24) return "Give the design a name (up to 24 letters)";
   if (!HULLS[spec.hull]) return "Unknown hull";
+  if (spec.role !== undefined && spec.role !== "warship" && spec.role !== "colony") return "Unknown ship role";
+  if (spec.role === "colony") {
+    if (spec.hull !== COLONY_POD.hull) return "Colony ships use the Large hull";
+    if (spec.weapons.some((w) => w.count > 0)) return "Colony ships carry no weapons";
+  }
   if (designsOf(state, e.id).some((d) => d.name.toLowerCase() === name.toLowerCase())) return "You already have a design with that name";
   if (designsOf(state, e.id).filter((d) => d.empireId !== null).length >= MAX_DESIGNS) return `You can keep ${MAX_DESIGNS} designs; scrap one first`;
   const parts = partChoices(e);
@@ -178,7 +199,11 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
   }
   if (spec.specials.length > 3) return "Three specials at most";
   if (new Set(spec.specials).size !== spec.specials.length) return "Each special only once";
-  for (const id of spec.specials) if (!parts.specials.some((t) => t.id === id)) return "You don't know that special";
+  for (const id of spec.specials) {
+    if (id === FUEL_TANKS.id) { if (!canUseFuelTanks(e)) return "Learn a fuel cell tech to fit fuel tanks"; continue; }
+    if (spec.role === "colony") return "Colony ships can only add fuel tanks";
+    if (!parts.specials.some((t) => t.id === id)) return "You don't know that special";
+  }
   const st = designStats(e, spec);
   if (st.spaceUsed > st.space + 1e-9) return "Not enough room on this hull";
   return null;
@@ -190,17 +215,28 @@ export function addDesign(state: GameState, e: Empire, spec: DesignSpec): ShipDe
     id: `d${state.nextDesignId++}`,
     empireId: e.id,
     name: spec.name.trim(),
-    role: "warship",
+    role: spec.role ?? "warship",
     hull: spec.hull,
     computer: spec.computer, shield: spec.shield, ecm: spec.ecm, armor: spec.armor,
     weapons: spec.weapons.filter((w) => w.count > 0).map((w) => ({ ...w })),
     specials: [...spec.specials],
     cost: st.cost,
     space: Math.round(st.spaceUsed * 10) / 10,
-    extraRange: 0,
+    extraRange: st.extraRange,
   };
   state.designs[d.id] = d;
   return d;
+}
+
+/** True if this ship type can found colonies. */
+export function isColonyShip(state: GameState, id: string): boolean {
+  const d = BUILTIN_DESIGNS[id] ?? state.designs[id];
+  return d?.role === "colony";
+}
+
+/** Number of colony ships (any colony design) in a fleet's ship list. */
+export function colonyShipCount(state: GameState, ships: Record<string, number>): number {
+  return Object.entries(ships).reduce((n, [id, k]) => n + (k > 0 && isColonyShip(state, id) ? k : 0), 0);
 }
 
 /** Fraction of a design's cost refunded when it's scrapped along with its ships. */

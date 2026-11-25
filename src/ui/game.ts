@@ -11,13 +11,14 @@ import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/building
 import type { TreatyKind } from "../engine/types";
 import {
   applyCommand, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
-  popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, HULLS, HULL_SIZES, MAX_DESIGNS,
+  popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, colonyShipCount, HULLS, HULL_SIZES, MAX_DESIGNS,
   type DesignSpec, type HullSize,
   type Command, type EmpireView, type GameState,
 } from "../engine";
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
 import { applyCheat, type Cheat } from "../engine/cheats";
 import { fleetExtraRange } from "../engine/movement";
+import { COLONY_POD, FUEL_TANKS } from "../engine/data/ships";
 import { researchChoices, tech, techCost } from "../engine/tech";
 import { TECHS } from "../engine/data/techs";
 import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
@@ -34,6 +35,7 @@ function moodWord(n: number): string {
 }
 
 const SPECIAL_HELP: Record<string, string> = {
+  "fuel-tanks": "+3 light-years of fuel range for this ship.",
   "inertial-dampers": "+2 beam defense", "warp-dampener": "enemies -1 beam defense", "subspace-interdictor": "+1 attack",
   "stasis-field": "freezes the largest enemy group in round 1", "cloaking-field": "+2 beam and missile defense",
   "repulsor-beam": "+3 missile defense", "displacement-field": "25% of hits on it miss", "planet-cracker": "can destroy an undefended enemy planet",
@@ -142,6 +144,7 @@ export class GameScreen {
     this.setHint(null);
     play("turn");
     const processedTurn = this.state.turn;
+    const knownBefore = new Set(this.state.empires[PLAYER]!.contacts);
     // AI empires give their orders through the same command system, then the turn resolves.
     runAITurns(this.state);
     endTurn(this.state);
@@ -150,8 +153,38 @@ export class GameScreen {
     this.refresh();
     const mine = this.view.events.filter((e) => e.turn === processedTurn);
     this.playFor(mine);
-    if (mine.length) this.showReport(processedTurn, mine);
-    else this.showProposals();
+    const met = this.state.empires[PLAYER]!.contacts.filter((id) => !knownBefore.has(id));
+    const next = () => (mine.length ? this.showReport(processedTurn, mine) : this.showProposals());
+    if (met.length) this.showFirstContacts(met, next);
+    else next();
+  }
+
+  /** A proper meeting screen for each race met this turn: living portrait, their first words, Talk now or later. */
+  private showFirstContacts(ids: Id[], then: () => void): void {
+    const [id, ...rest] = ids;
+    if (id === undefined) { then(); return; }
+    const them = this.state.empires[id];
+    const me = this.state.empires[PLAYER]!;
+    if (!them) { this.showFirstContacts(rest, then); return; }
+    const r = race(them.raceId);
+    const goOn = () => this.showFirstContacts(rest, then);
+    let talking = false;
+    play("message");
+    this.modal((box, close) => {
+      box.innerHTML = `<div class="first-contact">${portraitHTML(them.raceId, 'class="fc-portrait"')}
+        <div class="dim" style="letter-spacing:2px;text-transform:uppercase;font-size:12px">First contact</div>
+        <h2 style="margin:4px 0;color:${them.color}">${esc(them.name)}</h2>
+        <div class="dim">${esc(r.name)} · ${esc(r.style)}</div>
+        <div class="quote" style="margin:10px 0">${esc(say(this.state.turn, them, "firstContact", me))}</div>
+        <div class="dim" style="font-size:13px">${esc(r.unique)}</div></div>`;
+      const row = el("div", { class: "row" });
+      const talk = el("button", { class: "primary" }, "Talk now");
+      const later = el("button", {}, rest.length ? "Later · next" : "Later");
+      talk.onclick = () => { talking = true; close(); this.showDiplomacy(id, goOn); };
+      later.onclick = () => close();
+      row.append(talk, later);
+      box.append(row);
+    }, () => { if (!talking) goOn(); }); // closing (or tapping outside) moves on; Talk moves on when the talk closes
   }
 
   private playFor(events: { kind: string }[]): void {
@@ -169,8 +202,10 @@ export class GameScreen {
     const startTurn = this.state.turn;
     const me = this.state.empires[PLAYER]!;
     let stopReason = "";
+    const knownAtStart = new Set(me.contacts);
     const step = (left: number) => {
       const t = this.state.turn;
+      const knownBefore = me.contacts.length;
       runAITurns(this.state, true);
       endTurn(this.state);
       autosave(this.state);
@@ -180,14 +215,17 @@ export class GameScreen {
       else if (evs.some((e) => e.kind === "invasion" && e.empireId === PLAYER && e.text.includes("captured"))) stopReason = "A planet changed hands.";
       else if (this.state.council.session || this.state.council.awaitingVerdict !== null) stopReason = "The Galactic Council is in session.";
       else if (!me.alive) stopReason = "Your empire has fallen.";
+      else if (me.contacts.length > knownBefore) stopReason = "You have met a new race.";
       this.refresh();
       if (left > 1 && !stopReason) setTimeout(() => step(left - 1), 30);
       else {
         this.busy = false;
         const all = this.state.events.filter((e) => e.turn >= startTurn && (e.empireId === PLAYER || e.empireId === null) && ["war", "invasion", "battle", "contact", "council", "culture", "colonized"].includes(e.kind));
         this.toast(stopReason || `Autopilot ran ${this.state.turn - startTurn} turns.`);
-        if (all.length) this.showReport(this.state.turn - 1, all.slice(-25));
-        else this.showProposals();
+        const met = me.contacts.filter((id) => !knownAtStart.has(id));
+        const next = () => (all.length ? this.showReport(this.state.turn - 1, all.slice(-25)) : this.showProposals());
+        if (met.length) this.showFirstContacts(met, next);
+        else next();
       }
     };
     step(turns);
@@ -432,7 +470,7 @@ export class GameScreen {
         };
         box.append(crack);
       }
-      if ((f.ships.colony ?? 0) > 0 && v.canSettle(starId)) {
+      if (colonyShipCount(this.state, f.ships) > 0 && v.canSettle(starId)) {
         const col = el("button", { class: "small primary" }, "Colonize");
         col.onclick = () => { if (this.cmd({ type: "colonize", fleetId: f.id })) this.toast(`Colony founded on ${v.stars[starId]!.name}!`); this.refresh(); };
         box.append(col);
@@ -752,7 +790,7 @@ export class GameScreen {
   }
 
   /** Talk to one empire: treaties, tech trades, gifts, demands and spies. */
-  private showDiplomacy(id: Id): void {
+  private showDiplomacy(id: Id, onClose?: () => void): void {
     this.modal((box, close) => {
       const draw = (reply = "") => {
         const v = makeView(this.state, PLAYER);
@@ -877,7 +915,7 @@ export class GameScreen {
         box.append(row);
       };
       draw();
-    });
+    }, onClose);
   }
 
   private chats = new Map<Id, ChatTurn[]>();
@@ -986,10 +1024,11 @@ export class GameScreen {
 
   // ---------- Modals ----------
 
-  private modal(build: (box: HTMLElement, close: () => void) => void): void {
+  private modal(build: (box: HTMLElement, close: () => void) => void, onClose?: () => void): void {
     const back = el("div", { class: "modal-back" });
     const box = el("div", { class: "modal" });
-    const close = () => back.remove();
+    let done = false;
+    const close = () => { back.remove(); if (!done) { done = true; onClose?.(); } };
     back.onclick = (e) => { if (e.target === back) close(); };
     back.append(box);
     build(box, close);
@@ -1252,8 +1291,8 @@ export class GameScreen {
             const st = designStats(e, d);
             const guns = st.weapons.map((w) => `${w.count}× ${w.name} (${w.min === w.max ? w.min : `${w.min}–${w.max}`})`).join(", ") || "unarmed";
             const count = this.state.fleets.filter((f) => f.empireId === PLAYER).reduce((n, f) => n + (f.ships[d.id] ?? 0), 0);
-            card.innerHTML = `<b>${esc(d.name)}</b> <span class="dim">· ${HULLS[d.hull].name} hull · ${d.cost} BC${count ? ` · ${count} built` : ""}</span>
-              <div class="dim">${esc(guns)}</div>
+            card.innerHTML = `<b>${esc(d.name)}</b> <span class="dim">· ${d.role === "colony" ? "Colony ship" : `${HULLS[d.hull].name} hull`} · ${d.cost} BC${count ? ` · ${count} built` : ""}</span>
+              <div class="dim">${d.role === "colony" ? `Settles new worlds${d.extraRange ? ` · +${d.extraRange} ly fuel range` : ""}` : esc(guns)}</div>
               <div class="dim">Hits ${st.hits} · Attack ${st.attack} · Defense ${st.beamDefense}/${st.missileDefense} · Shield ${st.shield}</div>`;
             const scrap = el("button", { class: "small" }, count ? `Scrap (and ${count} ships)` : "Scrap");
             scrap.onclick = () => {
@@ -1291,8 +1330,11 @@ export class GameScreen {
       small: ["Dart", "Wasp", "Lancer", "Kestrel", "Needle"], medium: ["Corsair", "Falchion", "Warden", "Talon", "Harrier"],
       large: ["Bastion", "Monarch", "Tempest", "Leviathan", "Paladin"], huge: ["Colossus", "Behemoth", "Sovereign", "Titan", "Dominion"],
     };
+    const COLONY_NAMES = ["Pathfinder", "Wayfarer", "Seedship", "Long Ark", "Horizon"];
+    const v0 = makeView(this.state, PLAYER).stats;
     const suggest = () => {
       const taken = new Set(designsOf(this.state, PLAYER).map((d) => d.name.toLowerCase()));
+      if (spec.role === "colony") return COLONY_NAMES.find((n) => !taken.has(n.toLowerCase())) ?? `Ark ${taken.size + 1}`;
       return NAMES[spec.hull].find((n) => !taken.has(n.toLowerCase())) ?? `${HULLS[spec.hull].name} ${taken.size + 1}`;
     };
     spec.name = suggest();
@@ -1309,6 +1351,29 @@ export class GameScreen {
         nameIn.onchange = () => draw();
         box.append(el("div", { class: "dim" }, "Name"), nameIn);
 
+        const roleSeg = el("div", { class: "seg", style: "margin:8px 0 0" });
+        for (const [r, label] of [["warship", "⚔ Warship"], ["colony", "🌱 Colony ship"]] as const) {
+          const b = el("button", { class: (spec.role ?? "warship") === r ? "on" : "" }, label);
+          b.onclick = () => {
+            if ((spec.role ?? "warship") === r) return;
+            const wasSuggested = Object.values(NAMES).flat().includes(spec.name) || COLONY_NAMES.includes(spec.name);
+            spec.role = r;
+            if (r === "colony") {
+              spec.hull = COLONY_POD.hull; spec.computer = null; spec.shield = null; spec.ecm = null; spec.armor = null;
+              spec.weapons = []; spec.specials = canUseFuelTanks(e) ? [FUEL_TANKS.id] : [];
+            } else {
+              spec.hull = "medium"; spec.computer = best(parts.computer); spec.shield = best(parts.shield); spec.armor = best(parts.armor);
+              spec.weapons = [{ techId: best(parts.weapons) ?? "laser", count: 0 }]; spec.specials = [];
+            }
+            if (wasSuggested || !spec.name.trim()) spec.name = suggest();
+            draw();
+          };
+          roleSeg.append(b);
+        }
+        box.append(roleSeg);
+        const colony = spec.role === "colony";
+        if (colony) box.append(el("p", { class: "dim", style: "margin:6px 0" }, `A Large hull built around a colony pod (${COLONY_POD.cost} BC, ${COLONY_POD.space} of ${HULLS.large.space} room). Use the spare room for fuel tanks or armor. No weapons.`));
+
         const hullSeg = el("div", { class: "seg", style: "margin:8px 0" });
         for (const h of HULL_SIZES) {
           const b = el("button", { class: spec.hull === h ? "on" : "" }, `${HULLS[h].name}<br><span class="dim">${HULLS[h].cost} BC · room ${HULLS[h].space}</span>`);
@@ -1320,7 +1385,7 @@ export class GameScreen {
           };
           hullSeg.append(b);
         }
-        box.append(hullSeg);
+        if (!colony) box.append(hullSeg);
 
         const pick = (label: string, list: { id: string; name: string }[], value: string | null, set: (v: string | null) => void, allowNone = true) => {
           const sel = el("select", { class: "tech-select" });
@@ -1340,8 +1405,8 @@ export class GameScreen {
         pick("Shield", parts.shield, spec.shield, (v) => (spec.shield = v));
         pick("Jammer (ECM)", parts.ecm, spec.ecm, (v) => (spec.ecm = v));
 
-        box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Weapons (up to 4 banks)"));
-        spec.weapons.forEach((w, i) => {
+        if (!colony) box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Weapons (up to 4 banks)"));
+        if (!colony) spec.weapons.forEach((w, i) => {
           const row = el("div", { class: "design-row" });
           const sel = el("select", { class: "tech-select" });
           for (const t of parts.weapons) {
@@ -1362,15 +1427,17 @@ export class GameScreen {
           }
           box.append(row);
         });
-        if (spec.weapons.length < 4 && parts.weapons.length) {
+        if (!colony && spec.weapons.length < 4 && parts.weapons.length) {
           const addW = el("button", { class: "small" }, "+ Weapon bank");
           addW.onclick = () => { spec.weapons.push({ techId: parts.weapons[0]!.id, count: 1 }); draw(); };
           box.append(addW);
         }
 
-        if (parts.specials.length) {
-          box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Specials (up to 3)"));
-          for (const t of parts.specials) {
+        const tankList = canUseFuelTanks(e) ? [{ id: FUEL_TANKS.id, name: FUEL_TANKS.name }] : [];
+        const specialList = [...tankList, ...(colony ? [] : parts.specials)];
+        if (specialList.length) {
+          box.append(el("div", { class: "dim", style: "margin-top:8px" }, colony ? "Extras" : "Specials (up to 3)"));
+          for (const t of specialList) {
             const on = spec.specials.includes(t.id);
             const b = el("button", { class: `small ${on ? "on" : ""}`, style: "margin:2px", title: SPECIAL_HELP[t.id] ?? "" }, `${on ? "✓ " : ""}${t.name}<br><span class="dim" style="font-size:11px">${SPECIAL_HELP[t.id] ?? ""}</span>`);
             b.onclick = () => {
@@ -1380,16 +1447,18 @@ export class GameScreen {
             box.append(b);
           }
         } else {
-          box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Specials: research Propulsion and Force Fields to unlock ship specials."));
+          box.append(el("div", { class: "dim", style: "margin-top:8px" }, colony
+            ? "Extras: learn a Fuel Cells tech (Propulsion) to fit Extended Fuel Tanks (+3 ly range)."
+            : "Specials: research Propulsion and Force Fields to unlock ship specials."));
         }
 
         const sum = el("div", { class: "tech-card" });
         const guns = st.weapons.map((w) => `${w.count}× ${w.name} ${w.min === w.max ? w.min : `${w.min}–${w.max}`} dmg`).join(", ") || "unarmed";
         sum.innerHTML = `<div>Room used <b>${fmt(st.spaceUsed)}</b> / ${st.space}</div>
           <div class="bar"><i style="width:${pct}%;${st.spaceUsed > st.space ? "background:#e05a5a" : ""}"></i></div>
-          <div style="margin-top:6px"><b>${fmt(st.cost)} BC</b> each · Hits ${st.hits} · Speed ${fmt(st.speed)} ly/turn</div>
-          <div class="dim">Attack ${st.attack} · Beam defense ${st.beamDefense} · Missile defense ${st.missileDefense} · Shield ${st.shield}</div>
-          <div class="dim">${esc(guns)}</div>
+          <div style="margin-top:6px"><b>${fmt(st.cost)} BC</b> each · Hits ${st.hits} · Speed ${fmt(st.speed)} ly/turn${st.extraRange ? ` · <span class="good">+${st.extraRange} ly range</span>` : ""}</div>
+          ${colony ? `<div class="dim">Reaches ${fmt(v0.fuelRange + st.extraRange)} ly from your colonies (standard colony ship: ${fmt(v0.fuelRange)} ly)</div>` : `<div class="dim">Attack ${st.attack} · Beam defense ${st.beamDefense} · Missile defense ${st.missileDefense} · Shield ${st.shield}</div>
+          <div class="dim">${esc(guns)}</div>`}
           ${err ? `<div style="color:#f0a0a0;margin-top:4px">${esc(err)}</div>` : ""}`;
         box.append(sum);
 
@@ -1413,7 +1482,7 @@ export class GameScreen {
       box.innerHTML = `<h2>Game menu</h2><p class="dim">Your game saves automatically after every turn on this device.</p>`;
       const row = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       const exp = el("button", {}, "Export save code (move to another device)");
-      const auto = el("div", { class: "row", style: "justify-content:flex-start;flex-wrap:wrap;gap:6px" }, "<span class='dim' style='width:100%'>Autopilot: the AI runs your empire, stopping for wars, council votes and the end of the game.</span>");
+      const auto = el("div", { class: "row", style: "justify-content:flex-start;flex-wrap:wrap;gap:6px" }, "<span class='dim' style='width:100%'>Autopilot: the AI runs your empire, stopping for new races, wars, council votes and the end of the game.</span>");
       for (const n of [5, 10, 25]) {
         const b = el("button", { class: "small" }, `▶ ${n} turns`);
         b.onclick = () => { close(); this.autopilot(n); };

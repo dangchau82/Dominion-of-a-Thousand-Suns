@@ -2,7 +2,7 @@
 
 import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
-import { shipDesign } from "./designs";
+import { colonyShipCount, shipDesign } from "./designs";
 import { resolveCombat } from "./combat";
 import { rollEvents } from "./events";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -152,7 +152,7 @@ function updateAlive(state: GameState): void {
   for (const e of state.empires) {
     if (!e.alive) continue;
     const hasColony = Object.values(state.colonies).some((c) => c.empireId === e.id);
-    const hasColonyShip = state.fleets.some((f) => f.empireId === e.id && (f.ships.colony ?? 0) > 0);
+    const hasColonyShip = state.fleets.some((f) => f.empireId === e.id && colonyShipCount(state, f.ships) > 0);
     if (!hasColony && !hasColonyShip) {
       e.alive = false;
       event(state, { empireId: null, kind: "info", text: `The ${e.name} have vanished from the galaxy.` });

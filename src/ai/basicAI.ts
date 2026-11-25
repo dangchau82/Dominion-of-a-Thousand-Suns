@@ -8,10 +8,10 @@
 // colony production -> scouts and colony ships -> war fleets and invasions.
 
 import type { Command } from "../engine/commands";
-import { designStats, partChoices, type DesignSpec } from "../engine/designs";
+import { canUseFuelTanks, designStats, partChoices, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
 import { fieldTier, researchChoices } from "../engine/tech";
-import { MAX_DESIGNS, type HullSize, type ShipDesign } from "../engine/data/ships";
+import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, type HullSize, type ShipDesign } from "../engine/data/ships";
 import { TECHS, type Tech } from "../engine/data/techs";
 
 const TECH_TIERS = new Map(TECHS.map((t) => [t.id, t.tier]));
@@ -30,6 +30,18 @@ function coin(view: EmpireView, salt: number): number {
 
 function isWarship(d: ShipDesign | undefined): boolean {
   return !!d && d.role === "warship" && d.weapons.length > 0;
+}
+
+/** Colony ship types in a fleet, longest range first. */
+function colonyIds(ctx: Ctx, ships: Record<string, number>): string[] {
+  return Object.keys(ships).filter((id) => (ships[id] ?? 0) > 0 && ctx.designs.get(id)?.role === "colony")
+    .sort((a, b) => (ctx.designs.get(b)!.extraRange - ctx.designs.get(a)!.extraRange) || (a < b ? -1 : 1));
+}
+
+/** Best colony ship to build: our own long-range design if we have one, otherwise the standard one. */
+function bestColonyDesign(ctx: Ctx): string {
+  const own = ctx.view.designs.filter((d) => d.role === "colony" && d.empireId !== null).sort((a, b) => b.extraRange - a.extraRange);
+  return own[0]?.id ?? "colony";
 }
 
 /** How seriously the AI plays at each difficulty. Same information and rules at every level. */
@@ -403,6 +415,16 @@ function designs(ctx: Ctx): void {
   const { view } = ctx;
   if (view.turn % 12 !== 3) return;
   const me = view.me;
+  const ownCount = view.designs.filter((d) => d.empireId !== null).length;
+  // A long-range colony ship, once fuel tanks are known. Never scraps a warship to make room.
+  if (canUseFuelTanks(me) && ownCount < MAX_DESIGNS && !view.designs.some((d) => d.role === "colony" && d.empireId !== null)) {
+    const taken = new Set(view.designs.map((d) => d.name.toLowerCase()));
+    const name = ["Pathfinder", "Wayfarer", "Seedship", "Long Ark"].find((n) => !taken.has(n.toLowerCase())) ?? `Ark ${me.id}`;
+    ctx.cmds.push({ type: "createDesign", spec: {
+      name, role: "colony", hull: COLONY_POD.hull, computer: null, shield: null, ecm: null, armor: null, weapons: [], specials: [FUEL_TANKS.id],
+    } });
+    return;
+  }
   const parts = partChoices(me);
   const beam = bestWeapon(parts.weapons, ["beam"]);
   const missile = bestWeapon(parts.weapons, ["missile", "torpedo"]);
@@ -485,7 +507,7 @@ function sliders(ship: number, defense: number, industry: number, ecology: numbe
 function production(ctx: Ctx, settleTargets: number): void {
   const { view, cmds } = ctx;
   const scouts = view.fleets.reduce((n, f) => n + (f.ships.scout ?? 0), 0);
-  const colonyShips = view.fleets.reduce((n, f) => n + (f.ships.colony ?? 0), 0);
+  const colonyShips = view.fleets.reduce((n, f) => n + colonyIds(ctx, f.ships).reduce((k, id) => k + (f.ships[id] ?? 0), 0), 0);
   const unexplored = view.stars.filter((s) => !view.knowledge[s.id]?.explored).length;
   const warship = view.designs.filter(isWarship).sort((a, b) => b.cost - a.cost)[0];
   const atWar = ctx.wars.length > 0;
@@ -507,7 +529,7 @@ function production(ctx: Ctx, settleTargets: number): void {
     if (c.isCapital) {
       want = scouts < 2 && unexplored > 0 ? "scout"
         : needShips && (atWar || colonyShips >= settleTargets) ? warship!.id
-        : settleTargets > colonyShips ? "colony"
+        : settleTargets > colonyShips ? bestColonyDesign(ctx)
         : needShips ? warship!.id : null;
       const ship = want === "scout" ? 10 : want ? (atWar ? 40 : 30) : 0;
       const eco = growing ? 10 : 0;
@@ -539,10 +561,11 @@ function expansion(ctx: Ctx): number {
   const { view, cmds, taken } = ctx;
   const hostileStars = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
   const settleable = view.stars.filter((s) => view.canSettle(s.id) && !hostileStars.has(s.id));
-  for (const f of view.fleets.filter((x) => idle(x) && (x.ships.colony ?? 0) > 0)) {
+  for (const f of view.fleets.filter((x) => idle(x) && colonyIds(ctx, x.ships).length > 0)) {
     if (view.canSettle(f.starId!)) { cmds.push({ type: "colonize", fleetId: f.id }); taken.add(f.starId!); continue; }
+    const pod = colonyIds(ctx, f.ships)[0]!;
     const best = settleable
-      .filter((s) => !taken.has(s.id) && view.reachable(s.id, { ...f, ships: { colony: 1 } }))
+      .filter((s) => !taken.has(s.id) && view.reachable(s.id, { ...f, ships: { [pod]: 1 } }))
       .map((s) => {
         const k = view.knowledge[s.id]!;
         const size = k.planet ? k.planet.size : 0;
@@ -550,7 +573,7 @@ function expansion(ctx: Ctx): number {
         return { s, score: (size * rich) / (view.turnsTo(f, s.id) + 2) };
       })
       .sort((a, b) => b.score - a.score)[0];
-    if (best) { cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: best.s.id, ships: { colony: 1 } }); taken.add(best.s.id); }
+    if (best) { cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: best.s.id, ships: { [pod]: 1 } }); taken.add(best.s.id); }
   }
   const unexplored = view.stars.filter((s) => !view.knowledge[s.id]?.explored);
   for (const f of view.fleets.filter((x) => idle(x) && (x.ships.scout ?? 0) > 0)) {

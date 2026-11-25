@@ -8,8 +8,9 @@ import { castVote, councilVerdict } from "./victory";
 import { resolveEvent } from "./events";
 import { canSettleStarless, fundMultiplier, stellarHabitat } from "./abilities";
 import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
-import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
+import { SCRAP_REFUND, addDesign, checkDesign, designsOf, isColonyShip, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
+import { BUILTIN_DESIGNS } from "./data/ships";
 import { empire, empireRace, newColony, shipCount, star } from "./game";
 import { exploreStar, isExplored } from "./knowledge";
 import { fleetExtraRange, inFuelRange } from "./movement";
@@ -326,14 +327,17 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       const f = state.fleets.find((x) => x.id === cmd.fleetId && x.empireId === empireId);
       if (!f) return fail("Not your fleet");
       if (f.starId === null) return fail("Fleet is in flight");
-      if ((f.ships.colony ?? 0) < 1) return fail("No colony ship in this fleet");
+      // Use the colony ship with the least range first, so the long-range ones stay free to go far.
+      const podId = Object.keys(f.ships).filter((id) => (f.ships[id] ?? 0) > 0 && isColonyShip(state, id))
+        .sort((a, b) => extraRangeOf(state, a) - extraRangeOf(state, b) || (a < b ? -1 : 1))[0];
+      if (!podId) return fail("No colony ship in this fleet");
       const s = star(state, f.starId);
       if (!isExplored(e, s.id)) exploreStar(state, e, s);
       if (!s.planet && canSettleStarless(e)) s.planet = stellarHabitat();
       if (!s.planet) return fail("No habitable planet here");
       if (state.colonies[s.id]) return fail("Planet already settled");
       if (!canColonize(s.planet, e, empireRace(e))) return fail("Need more Planetology to settle this climate");
-      f.ships.colony = (f.ships.colony ?? 0) - 1;
+      f.ships[podId] = (f.ships[podId] ?? 0) - 1;
       state.colonies[s.id] = newColony(s.id, empireId, 2, state.turn);
       state.fleets = state.fleets.filter((x) => shipCount(x) > 0);
       state.events.push({ turn: state.turn, empireId, kind: "colonized", text: `Founded a colony on ${s.name}.`, starId: s.id });
@@ -341,4 +345,8 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       return { ok: true };
     }
   }
+}
+
+function extraRangeOf(state: GameState, id: string): number {
+  return (BUILTIN_DESIGNS[id] ?? state.designs[id])?.extraRange ?? 0;
 }
