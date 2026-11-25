@@ -27,8 +27,8 @@ export interface Chronicle {
   events: ChronicleEvent[];
 }
 
-const KEY_KINDS = new Set(["contact", "war", "invasion", "colonized", "council", "culture", "diplomacy", "battle"]);
-const MAX_EVENTS = 4000;
+const KEY_KINDS = new Set(["contact", "war", "invasion", "colonized", "council", "culture", "diplomacy", "battle", "research", "spy"]);
+const MAX_EVENTS = 8000;
 
 /** Called at the end of every turn. Pure and deterministic. */
 export function recordChronicle(state: GameState): void {
@@ -67,6 +67,8 @@ export function chronicleText(state: GameState): string {
   out.push(`Dominion of a Thousand Suns · game log · turn ${state.turn}`);
   out.push(`Galaxy ${s.size}/${s.shape}, ${state.empires.length} empires, difficulty ${s.difficulty ?? "normal"}, seed ${s.seed}`);
   out.push(`Empires: ${state.empires.map((e) => `${e.id}=${e.name} (${e.raceId}${e.isPlayer ? ", player" : ""}${e.focus ? `, focus ${e.focus}` : ""})`).join("; ")}`);
+  const first = ch?.turns[0]?.t;
+  if (first !== undefined && first > 1) out.push(`(Recording started on turn ${first}: this game began before the log existed.)`);
   if (state.winner) out.push(`Winner: ${state.empires[state.winner.empireId]!.name} by ${state.winner.kind} on turn ${state.winner.turn}`);
   out.push("");
   out.push(`# Stats per turn: empire:${CHRONICLE_STATS.join("/")}`);

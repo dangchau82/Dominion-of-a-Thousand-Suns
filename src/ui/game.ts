@@ -194,6 +194,16 @@ export class GameScreen {
     return b;
   }
 
+  private downloadLog(): void {
+    const blob = new Blob([chronicleText(this.state)], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `thousand-suns-${this.state.empires[PLAYER]!.raceId}-turn-${this.state.turn}.txt`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    this.toast("Game log saved to your Downloads.");
+  }
+
   /** Your empire's story: a line graph of one stat over time and a timeline of key moments. */
   private showHistory(stat: (typeof CHRONICLE_STATS)[number] = "colonies"): void {
     const LABEL: Record<(typeof CHRONICLE_STATS)[number], string> = {
@@ -240,14 +250,7 @@ export class GameScreen {
       }
       const row = el("div", { class: "row" });
       const dl = el("button", { title: "A text file of every turn for every empire. Send it to the developer to help balance the game." }, "⬇ Download game log");
-      dl.onclick = () => {
-        const blob = new Blob([chronicleText(this.state)], { type: "text/plain" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `thousand-suns-log-turn-${this.state.turn}.txt`;
-        document.body.append(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-      };
+      dl.onclick = () => this.downloadLog();
       const ok = el("button", { class: "primary" }, "Close");
       ok.onclick = close;
       row.append(dl, ok);
@@ -892,7 +895,7 @@ export class GameScreen {
         <ul>
           <li><b>Conquest</b>: be the last empire standing.</li>
           <li><b>Galactic Council</b>: from turn 150, every 25 turns, the two biggest empires stand and need two thirds of all votes. ${v.council.defied ? "<span class='bad'>You defied the council; it no longer meets.</span>" : `Next session: turn ${v.council.nextTurn}.`}</li>
-          <li><b>Culture</b>: reach 100k culture.</li>
+          <li><b>Culture</b>: reach 95k culture.</li>
           <li><b>Technology</b>: reach tier 10 in all six fields, then build the Ascension Gate.</li>
         </ul>
         <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th></tr>${rows}</table>
@@ -1672,7 +1675,9 @@ export class GameScreen {
       if (SHOW_GEMINI) row.append(gem);
       const hist = el("button", {}, "📜 History: graphs and timeline (L)");
       hist.onclick = () => { close(); this.showHistory(); };
-      row.append(hist);
+      const log = el("button", { title: "Every turn for every empire, plus key events. Send this file to the developer." }, "⬇ Export game log (turn by turn)");
+      log.onclick = () => this.downloadLog();
+      row.append(hist, log);
       const mine = el("button", {}, "Your empire: culture, leaders, wonders");
       mine.onclick = () => { close(); this.showEmpire(); };
       row.append(mine);
