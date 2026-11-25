@@ -1,6 +1,6 @@
 // How the game is won: conquest, the Galactic Council, culture or technology.
 // The council works like the classic one: votes by population, the two
-// biggest empires stand, and a two-thirds majority wins the galaxy.
+// biggest empires stand, and a three-fifths (60%) majority wins the galaxy.
 
 import { declareWar } from "./combat";
 import { boughtVotes } from "./abilities";
@@ -9,7 +9,7 @@ import { FIELDS, type Empire, type GameState, type Id, type VictoryKind } from "
 
 export const COUNCIL_FIRST = 150;
 export const COUNCIL_EVERY = 25;
-export const VOTE_SHARE_TO_WIN = 2 / 3;
+export const VOTE_SHARE_TO_WIN = 0.6;
 export const POP_PER_VOTE = 25;
 export const CULTURE_VICTORY = 90000; // balance 2026-11-24: 100k -> tech won 14/18; 90k -> culture won 12/18
 /** Technology victory: master all six fields, then build this. */
@@ -95,7 +95,7 @@ export function resolveCouncil(state: GameState): void {
   const elected = (tally.get(a) ?? 0) >= need ? a : (tally.get(b) ?? 0) >= need ? b : null;
   ev(state, null, `Council vote: the ${state.empires[a]!.name} ${tally.get(a)}, the ${state.empires[b]!.name} ${tally.get(b)} (needed ${need}). ${lines.join("; ")}.`);
   if (elected === null) {
-    ev(state, null, "No one reached two thirds. The council will meet again.");
+    ev(state, null, "No one reached three fifths. The council will meet again.");
     return;
   }
   const player = state.empires.find((e) => e.isPlayer);

@@ -895,7 +895,7 @@ export class GameScreen {
       box.innerHTML = `<h2>Paths to victory</h2>
         <ul>
           <li><b>Conquest</b>: be the last empire standing.</li>
-          <li><b>Galactic Council</b>: from turn 150, every 25 turns, the two biggest empires stand and need two thirds of all votes. ${v.council.defied ? "<span class='bad'>You defied the council; it no longer meets.</span>" : `Next session: turn ${v.council.nextTurn}.`}</li>
+          <li><b>Galactic Council</b>: from turn 150, every 25 turns, the two biggest empires stand and need three fifths (60%) of all votes. ${v.council.defied ? "<span class='bad'>You defied the council; it no longer meets.</span>" : `Next session: turn ${v.council.nextTurn}.`}</li>
           <li><b>Culture</b>: reach 95k culture.</li>
           <li><b>Technology</b>: reach tier 10 in all six fields, then build the Ascension Gate.</li>
         </ul>
