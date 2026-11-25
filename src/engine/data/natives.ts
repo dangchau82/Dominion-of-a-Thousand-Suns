@@ -493,5 +493,73 @@ export const NATIVES: NativeDef[] = [
       ],
     },
   },
-  // The 8th people (shale-burrow-folk) was cut off in Gemini's answer; ask Gemini to resend it.
+  {
+    id: "shale-burrow-folk",
+    name: "the Shale-Burrow Folk",
+    climate: "minimal",
+    stage: 3,
+    description: "Subterranean tunnel-engineers breathing thin highland air through lime-scrubbers, running pneumatic transit tubes and early fission boilers beneath barren slate hills.",
+    contact: {
+      id: "shale-burrow-folk-contact",
+      title: "Echoes Under the Slate",
+      art: "contact",
+      trigger: "colony",
+      text: "Seismic sensors on {colony} reveal a sprawling network of pressurized slate caverns where the Shale-Burrow Folk already operate early atomic boilers.",
+      choices: [
+        {
+          label: "Uplift their subterranean guilds with fusion tech",
+          result: "Veteran tunnel-miners master zero-gravity boring rigs and swell our industrial workforce.",
+          effects: [
+            { kind: "population", amount: 4 },
+            { kind: "research", field: "weapons", amount: 310 },
+            { kind: "money", amount: -140 },
+          ],
+        },
+        {
+          label: "Leave the deep caverns to their guild-councils",
+          result: "Surface domes trade air-scrubbers for carved slate art, winning praise for peaceful restraint.",
+          effects: [
+            { kind: "culture", amount: 115 },
+            { kind: "relations", amount: 10 },
+          ],
+        },
+        {
+          label: "Commandeer their pressurized cavern complexes",
+          result: "Ready-made underground vaults expand our living space and foundries at a steep diplomatic cost.",
+          effects: [
+            { kind: "planetSize", amount: 5 },
+            { kind: "factories", amount: 8 },
+            { kind: "relations", amount: -16 },
+          ],
+        },
+      ],
+    },
+    aftermath: {
+      id: "shale-burrow-folk-aftermath",
+      title: "The Deep Vein Strike",
+      art: "crisis",
+      trigger: "colony",
+      text: "Thirty years after our uplift on {colony}, Shale-Burrow miners unearth a rich core-metal seam beneath the capital, demanding autonomous mineral royalties before cutting a single ton.",
+      choices: [
+        {
+          label: "Sign the cavern royalty charter",
+          result: "Ore hoists run day and night, flooding our shipyards with high-grade alloy.",
+          effects: [
+            { kind: "factories", amount: 9 },
+            { kind: "morale", amount: 3 },
+            { kind: "money", amount: -160 },
+          ],
+        },
+        {
+          label: "Nationalize the deep seam for imperial defense",
+          result: "Treasury reserves surge from state ore exports, though bitter miners sabotage surface vents.",
+          effects: [
+            { kind: "money", amount: 250 },
+            { kind: "morale", amount: -5 },
+            { kind: "factories", amount: -5 },
+          ],
+        },
+      ],
+    },
+  },
 ];

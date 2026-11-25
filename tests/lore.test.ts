@@ -262,7 +262,7 @@ import { NATIVES } from "../src/engine/data/natives";
 
 describe("native peoples (Gemini)", () => {
   it("each has uplift / leave / take, a two-choice aftermath, clean titles and effects in scale", () => {
-    expect(NATIVES.length).toBeGreaterThanOrEqual(7);
+    expect(NATIVES.length).toBe(8);
     for (const n of NATIVES) {
       expect(n.contact.choices.length).toBe(3);
       expect(n.aftermath.choices.length).toBe(2);
