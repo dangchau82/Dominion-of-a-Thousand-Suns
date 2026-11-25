@@ -306,3 +306,22 @@ describe("the Crusade crisis (Gemini)", () => {
     expect(CRUSADE.conversion).toMatch(/falls below/);
   });
 });
+
+import { CRITTER, CRITTER_CHAIN } from "../src/engine/data/critters";
+
+describe("invasive critters (Gemini)", () => {
+  it("6 comic events with small effects; events 1-4 can end the chain (choice 3)", () => {
+    expect(CRITTER.name).toBe("Tumble-Thrum");
+    expect(CRITTER_CHAIN.length).toBe(6);
+    for (const [i, e] of CRITTER_CHAIN.entries()) {
+      checkText(e);
+      expect(e.title).not.toMatch(/\{/);
+      if (i < 4) expect(e.choices.length).toBe(3);
+      for (const c of e.choices) for (const fx of c.effects) {
+        if (fx.kind === "money" || fx.kind === "culture") expect(Math.abs(fx.amount)).toBeLessThanOrEqual(160);
+        if (fx.kind === "population") expect(Math.abs(fx.amount)).toBeLessThanOrEqual(2);
+        if (fx.kind === "factories") expect(Math.abs(fx.amount)).toBeLessThanOrEqual(5);
+      }
+    }
+  });
+});
