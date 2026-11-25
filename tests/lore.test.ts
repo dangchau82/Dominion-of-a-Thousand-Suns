@@ -8,6 +8,8 @@ import { STORYLINES } from "../src/engine/data/storylines";
 import { STORYLINES_2 } from "../src/engine/data/storylines-2";
 import { STORYLINES_3 } from "../src/engine/data/storylines-3";
 import { STORYLINES_4 } from "../src/engine/data/storylines-4";
+import { NEW_DIALOGUE } from "../src/engine/data/dialogue2";
+import { RACES } from "../src/engine/data/races";
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
 import { GATE_EVENTS, GATE_TYPES, STANCES } from "../src/engine/data/gates";
 
@@ -382,6 +384,21 @@ describe("race storylines batches 2-4 (Gemini)", () => {
       expect(c.title).not.toMatch(/\{/);
       checkText(c);
       for (const ch of c.choices) for (const fx of ch.effects) expect(inScale(fx), `${c.id}: ${JSON.stringify(fx)}`).toBe(true);
+    }
+  });
+});
+
+describe("new rival voices (Gemini)", () => {
+  it("every race has 2 lines for each of the 6 new moments, with only known placeholders", () => {
+    expect(Object.keys(NEW_DIALOGUE).sort()).toEqual(RACES.map((r) => r.id).sort());
+    for (const [race, lines] of Object.entries(NEW_DIALOGUE)) {
+      for (const moment of ["battleWon", "battleLost", "betrayed", "councilWin", "prophecy", "begging"] as const) {
+        expect(lines[moment].length, `${race}.${moment}`).toBe(2);
+        for (const l of lines[moment]) {
+          for (const tag of l.match(/\{[a-z]+\}/g) ?? []) expect(["{leader}", "{empire}", "{star}"]).toContain(tag);
+          expect(l.split(/\s+/).length, l).toBeLessThanOrEqual(30);
+        }
+      }
     }
   });
 });
