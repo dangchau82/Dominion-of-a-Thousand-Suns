@@ -257,3 +257,20 @@ describe("superweapons and starbases (Gemini, balanced by Claude)", () => {
     }
   });
 });
+
+import { NATIVES } from "../src/engine/data/natives";
+
+describe("native peoples (Gemini)", () => {
+  it("each has uplift / leave / take, a two-choice aftermath, clean titles and effects in scale", () => {
+    expect(NATIVES.length).toBeGreaterThanOrEqual(7);
+    for (const n of NATIVES) {
+      expect(n.contact.choices.length).toBe(3);
+      expect(n.aftermath.choices.length).toBe(2);
+      for (const ev of [n.contact, n.aftermath]) {
+        checkText(ev);
+        expect(ev.title).not.toMatch(/\{/);
+        for (const c of ev.choices) for (const fx of c.effects) expect(inScale(fx), `${n.id} ${JSON.stringify(fx)}`).toBe(true);
+      }
+    }
+  });
+});

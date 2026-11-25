@@ -1,0 +1,367 @@
+diff --git a/src/ai/basicAI.ts b/src/ai/basicAI.ts
+index 627445d..92887b0 100644
+--- a/src/ai/basicAI.ts
++++ b/src/ai/basicAI.ts
+@@ -20,33 +20,33 @@ import type { AutopilotFocus, Fleet, Id, ResearchField, SliderSet } from "../eng
+ 
+ // ---------- helpers ----------
+ 
+-const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
++export const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+ 
+ /** A fixed "coin flip" from the turn and ids, so the AI varies without hidden randomness. */
+-function coin(view: EmpireView, salt: number): number {
++export function coin(view: EmpireView, salt: number): number {
+   const h = Math.sin((view.turn + 1) * 12.9898 + (view.me.id + 1) * 78.233 + salt * 37.719) * 43758.5453;
+   return h - Math.floor(h);
+ }
+ 
+-function isWarship(d: ShipDesign | undefined): boolean {
++export function isWarship(d: ShipDesign | undefined): boolean {
+   return !!d && d.role === "warship" && d.weapons.length > 0;
+ }
+ 
+ /** Colony ship types in a fleet, longest range first. */
+-function colonyIds(ctx: Ctx, ships: Record<string, number>): string[] {
++export function colonyIds(ctx: Ctx, ships: Record<string, number>): string[] {
+   return Object.keys(ships).filter((id) => (ships[id] ?? 0) > 0 && ctx.designs.get(id)?.role === "colony")
+     .sort((a, b) => (ctx.designs.get(b)!.extraRange - ctx.designs.get(a)!.extraRange) || (a < b ? -1 : 1));
+ }
+ 
+ /** Could a ship of this type reach the star from our colonies? */
+-function canReach(ctx: Ctx, starId: Id, shipId: string): boolean {
++export function canReach(ctx: Ctx, starId: Id, shipId: string): boolean {
+   const any = ctx.view.fleets[0];
+   const probe = { id: -1, empireId: ctx.view.me.id, x: 0, y: 0, starId: null, destStarId: null, ...(any ?? {}), ships: { [shipId]: 1 } } as Fleet;
+   return ctx.view.reachable(starId, probe);
+ }
+ 
+ /** Is growth blocked by fuel range or by which planets we can live on? Drives research. */
+-function boxedIn(ctx: Ctx): { range: boolean; hostility: boolean } {
++export function boxedIn(ctx: Ctx): { range: boolean; hostility: boolean } {
+   const { view } = ctx;
+   const pod = bestColonyDesign(ctx);
+   const free = view.stars.filter((s) => view.knowledge[s.id]?.ownerId == null);
+@@ -62,13 +62,13 @@ function boxedIn(ctx: Ctx): { range: boolean; hostility: boolean } {
+ }
+ 
+ /** Best colony ship to build: our own long-range design if we have one, otherwise the standard one. */
+-function bestColonyDesign(ctx: Ctx): string {
++export function bestColonyDesign(ctx: Ctx): string {
+   const own = ctx.view.designs.filter((d) => d.role === "colony" && d.empireId !== null).sort((a, b) => b.extraRange - a.extraRange);
+   return own[0]?.id ?? "colony";
+ }
+ 
+ /** Autopilot focus: how the AI bends its race's usual habits. "balanced" leaves them alone. */
+-interface FocusKnobs {
++export interface FocusKnobs {
+   aggression?: number; curiosity?: number;
+   fleet: number; settlePop: number; spies: number;
+   research: Partial<Record<ResearchField, number>>;
+@@ -83,13 +83,13 @@ const FOCUS: Record<AutopilotFocus, FocusKnobs> = {
+ };
+ 
+ /** How seriously the AI plays at each difficulty. Same information and rules at every level. */
+-const LEVEL = {
++export const LEVEL = {
+   relaxed: { fleet: 0.5, edge: 0.6, firstWar: 110, warMood: 0.4, troops: 2.2 },
+   normal: { fleet: 1, edge: 0, firstWar: 50, warMood: 1, troops: 1.7 },
+   hard: { fleet: 1.35, edge: -0.25, firstWar: 35, warMood: 1.6, troops: 1.5 },
+ };
+ 
+-interface Ctx {
++export interface Ctx {
+   /** An empire close to winning that everyone should stop (never us). */
+   threat: Id | null;
+   level: (typeof LEVEL)["normal"];
+@@ -108,7 +108,7 @@ interface Ctx {
+   starById: Map<Id, PublicStar>;
+ }
+ 
+-function warPower(ctx: Ctx, f: Fleet): number {
++export function warPower(ctx: Ctx, f: Fleet): number {
+   let p = 0;
+   for (const [id, n] of Object.entries(f.ships)) {
+     const d = ctx.designs.get(id);
+@@ -117,31 +117,31 @@ function warPower(ctx: Ctx, f: Fleet): number {
+   return p;
+ }
+ 
+-function idle(f: Fleet): boolean {
++export function idle(f: Fleet): boolean {
+   return f.starId !== null && f.destStarId === null;
+ }
+ 
+-function enemyColonies(ctx: Ctx, empireId: Id) {
++export function enemyColonies(ctx: Ctx, empireId: Id) {
+   return Object.entries(ctx.view.knowledge)
+     .filter(([, k]) => k.ownerId === empireId && k.planet)
+     .map(([id, k]) => ({ star: ctx.starById.get(Number(id))!, pop: k.population ?? 10, lastSeen: k.lastSeen }));
+ }
+ 
+-function knownPop(ctx: Ctx, empireId: Id): number {
++export function knownPop(ctx: Ctx, empireId: Id): number {
+   return enemyColonies(ctx, empireId).reduce((a, c) => a + c.pop, 0);
+ }
+ 
+-function myPop(ctx: Ctx): number {
++export function myPop(ctx: Ctx): number {
+   return ctx.view.colonies.reduce((a, c) => a + c.population, 0);
+ }
+ 
+-function nearestColony(ctx: Ctx, p: { x: number; y: number }): ColonyInfo | undefined {
++export function nearestColony(ctx: Ctx, p: { x: number; y: number }): ColonyInfo | undefined {
+   return [...ctx.view.colonies].sort((a, b) => dist(ctx.starById.get(a.starId)!, p) - dist(ctx.starById.get(b.starId)!, p))[0];
+ }
+ 
+ // ---------- diplomacy ----------
+ 
+-function diplomacy(ctx: Ctx): void {
++export function diplomacy(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   const mine = myPop(ctx);
+   for (const c of view.contacts) {
+@@ -194,10 +194,10 @@ function diplomacy(ctx: Ctx): void {
+ 
+ // ---------- treaties, trades and spies ----------
+ 
+-const tierOf = (id: string) => Number(TECH_TIERS.get(id) ?? 1);
++export const tierOf = (id: string) => Number(TECH_TIERS.get(id) ?? 1);
+ 
+ /** Answers to proposals addressed to us. Also used for instant replies to the player. */
+-function answers(ctx: Ctx): void {
++export function answers(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   const mine = myPop(ctx);
+   for (const p of view.proposals.filter((x) => x.to === view.me.id)) {
+@@ -223,7 +223,7 @@ function answers(ctx: Ctx): void {
+   }
+ }
+ 
+-function deals(ctx: Ctx): void {
++export function deals(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   if ((view.turn + view.me.id * 3) % 8 !== 0) return;
+   const mine = myPop(ctx);
+@@ -255,11 +255,11 @@ function deals(ctx: Ctx): void {
+   }
+ }
+ 
+-function propose(to: Id, proposal: ProposalInput): Command {
++export function propose(to: Id, proposal: ProposalInput): Command {
+   return { type: "propose", to, proposal };
+ }
+ 
+-function espionage(ctx: Ctx): void {
++export function espionage(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   if ((view.turn + view.me.id) % 10 !== 2) return;
+   cmds.push({ type: "setSecurity", percent: 2 + Math.round(ctx.aggression * 2) + (ctx.wars.length ? 2 : 0) + (ctx.focus.spies ? 2 : 0) });
+@@ -288,7 +288,7 @@ const BUILD_PRIORITY: Record<string, (ctx: Ctx, c: ColonyInfo) => number> = {
+   "planetary-fortress": (x) => (x.wars.length ? 7 : 0.5),
+ };
+ 
+-function civilization(ctx: Ctx): void {
++export function civilization(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   for (const c of view.colonies) {
+     const options = view.buildable(c.starId);
+@@ -335,7 +335,7 @@ function civilization(ctx: Ctx): void {
+ 
+ // ---------- random events ----------
+ 
+-function randomEvents(ctx: Ctx): void {
++export function randomEvents(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   for (const ev of view.pendingEvents) {
+     let best = 0;
+@@ -365,7 +365,7 @@ function randomEvents(ctx: Ctx): void {
+ 
+ // ---------- the Galactic Council ----------
+ 
+-function council(ctx: Ctx): void {
++export function council(ctx: Ctx): void {
+   const s = ctx.view.council.session;
+   const me = ctx.view.me.id;
+   if (!s || s.myVote !== undefined || s.weight[me] === undefined) return;
+@@ -380,7 +380,7 @@ function council(ctx: Ctx): void {
+ 
+ // ---------- research ----------
+ 
+-function research(ctx: Ctx): void {
++export function research(ctx: Ctx): void {
+   const { view } = ctx;
+   if (view.turn % 5 !== 1) return;
+   const a = ctx.aggression;
+@@ -409,7 +409,7 @@ function research(ctx: Ctx): void {
+ }
+ 
+ /** Pick the most useful project in each field instead of simply the cheapest. */
+-function researchProjects(ctx: Ctx): void {
++export function researchProjects(ctx: Ctx): void {
+   const { view } = ctx;
+   if ((view.turn + view.me.id) % 5 !== 0) return;
+   const war = ctx.wars.length > 0;
+@@ -475,7 +475,7 @@ function bestWeapon(list: Tech[], kinds: string[]): Tech | null {
+ 
+ const DESIGN_NAMES = ["Vanguard", "Sentinel", "Striker", "Warden", "Reaver", "Lancer", "Bulwark", "Corsair", "Harbinger", "Paragon", "Tempest", "Monarch"];
+ 
+-function designs(ctx: Ctx): void {
++export function designs(ctx: Ctx): void {
+   const { view } = ctx;
+   if (view.turn % 12 !== 3) return;
+   const me = view.me;
+@@ -564,11 +564,11 @@ function designs(ctx: Ctx): void {
+ 
+ // ---------- production ----------
+ 
+-function sliders(ship: number, defense: number, industry: number, ecology: number, research: number): SliderSet {
++export function sliders(ship: number, defense: number, industry: number, ecology: number, research: number): SliderSet {
+   return { ship, defense, industry, ecology, research };
+ }
+ 
+-function production(ctx: Ctx, settleTargets: number): void {
++export function production(ctx: Ctx, settleTargets: number): void {
+   const { view, cmds } = ctx;
+   const scouts = view.fleets.reduce((n, f) => n + (f.ships.scout ?? 0), 0);
+   const colonyShips = view.fleets.reduce((n, f) => n + colonyIds(ctx, f.ships).reduce((k, id) => k + (f.ships[id] ?? 0), 0), 0);
+@@ -638,7 +638,7 @@ function production(ctx: Ctx, settleTargets: number): void {
+ 
+ // ---------- scouts and colony ships ----------
+ 
+-function expansion(ctx: Ctx): number {
++export function expansion(ctx: Ctx): number {
+   const { view, cmds, taken } = ctx;
+   const hostileStars = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
+   const settleable = view.stars.filter((s) => view.canSettle(s.id) && !hostileStars.has(s.id));
+@@ -663,7 +663,7 @@ function expansion(ctx: Ctx): number {
+ }
+ 
+ /** Send each idle scout to the nearest unexplored star nobody else is heading for. */
+-function scouting(ctx: Ctx): void {
++export function scouting(ctx: Ctx): void {
+   const { view, cmds, taken } = ctx;
+   const unexplored = view.stars.filter((s) => !view.knowledge[s.id]?.explored);
+   for (const f of view.fleets.filter((x) => idle(x) && (x.ships.scout ?? 0) > 0)) {
+@@ -687,7 +687,7 @@ export function autoScoutOrders(view: EmpireView): Command[] {
+ 
+ // ---------- war ----------
+ 
+-function military(ctx: Ctx): void {
++export function military(ctx: Ctx): void {
+   const { view, cmds } = ctx;
+   const warFleets = view.fleets.filter((f) => idle(f) && warPower(ctx, f) > 0);
+   const transportsIdle = view.fleets.filter((f) => idle(f) && (f.ships.transport ?? 0) > 0);
+@@ -799,7 +799,7 @@ export function basicAIAnswers(view: EmpireView): Command[] {
+ }
+ 
+ /** Who is about to win? Victory progress is public, so every AI can see it. */
+-function findThreat(view: EmpireView): Id | null {
++export function findThreat(view: EmpireView): Id | null {
+   if (view.difficulty === "relaxed") return null;
+   const live = view.standings.filter((s) => s.alive);
+   const totalVotes = live.reduce((a, s) => a + s.votes, 0);
+@@ -817,7 +817,7 @@ function findThreat(view: EmpireView): Id | null {
+   return worst && view.contacts.some((c) => c.id === worst!.id && c.alive) ? worst.id : null;
+ }
+ 
+-function makeCtx(view: EmpireView): Ctx {
++export function makeCtx(view: EmpireView): Ctx {
+   const p = view.race.personality;
+   const focus = FOCUS[view.me.focus ?? "balanced"] ?? FOCUS.balanced;
+   return {
+diff --git a/src/ai/index.ts b/src/ai/index.ts
+index 31e5665..cf14504 100644
+--- a/src/ai/index.ts
++++ b/src/ai/index.ts
+@@ -1,18 +1,28 @@
+ // Runs every AI empire's turn. Each AI gets only its own EmpireView and
+ // can only act through applyCommand, exactly like the player.
++// Which AI runs an empire: its own choice (Empire.ai, e.g. the player's autopilot setting),
++// otherwise the difficulty ("master" difficulty -> Master AI, anything else -> basic AI).
+ 
+-import { applyCommand } from "../engine/commands";
+-import type { GameState } from "../engine/types";
+-import { makeView } from "../engine/view";
++import { applyCommand, type Command } from "../engine/commands";
++import type { AiBrain, Empire, GameState } from "../engine/types";
++import { makeView, type EmpireView } from "../engine/view";
+ import { autoScoutOrders, basicAIAnswers, basicAITurn } from "./basicAI";
++import { masterAIAnswers, masterAITurn } from "./masterAI";
+ export { autoScoutOrders };
+ 
++export function brainOf(state: GameState, e: Empire): AiBrain {
++  return e.ai ?? (state.settings.difficulty === "master" ? "master" : "basic");
++}
++
++const TURN: Record<AiBrain, (v: EmpireView) => Command[]> = { basic: basicAITurn, master: masterAITurn };
++const ANSWERS: Record<AiBrain, (v: EmpireView) => Command[]> = { basic: basicAIAnswers, master: masterAIAnswers };
++
+ export function runAITurns(state: GameState, includePlayer = false): void {
+   const asleep = (state.cheats?.rivalsAsleepUntil ?? 0) > state.turn;
+   for (const e of state.empires) {
+     if (asleep && !e.isPlayer) continue; // player's "sleep rivals" cheat
+     if (!e.alive || (e.isPlayer && !includePlayer)) continue;
+-    for (const cmd of basicAITurn(makeView(state, e.id))) applyCommand(state, e.id, cmd);
++    for (const cmd of TURN[brainOf(state, e)](makeView(state, e.id))) applyCommand(state, e.id, cmd);
+   }
+ }
+ 
+@@ -22,6 +32,6 @@ export function aiAnswerProposals(state: GameState): void {
+   for (const id of waiting) {
+     const e = state.empires[id];
+     if (!e || e.isPlayer || !e.alive) continue;
+-    for (const cmd of basicAIAnswers(makeView(state, id))) applyCommand(state, id, cmd);
++    for (const cmd of ANSWERS[brainOf(state, e)](makeView(state, id))) applyCommand(state, id, cmd);
+   }
+ }
+diff --git a/src/engine/commands.ts b/src/engine/commands.ts
+index cbd9cf4..fddcb99 100644
+--- a/src/engine/commands.ts
++++ b/src/engine/commands.ts
+@@ -36,6 +36,7 @@ export type Command =
+   | { type: "setSecurity"; percent: number }
+   | { type: "setFocus"; focus: AutopilotFocus }
+   | { type: "setAutoExplore"; on: boolean }
++  | { type: "setAutopilotAI"; ai: "basic" | "master" }
+   | { type: "setBuilding"; starId: Id; buildingId: string | null }
+   | { type: "buyBuilding"; starId: Id }
+   | { type: "hireLeader" }
+@@ -249,6 +250,11 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
+       e.focus = cmd.focus;
+       return { ok: true };
+     }
++    case "setAutopilotAI": {
++      if (cmd.ai !== "basic" && cmd.ai !== "master") return fail("Unknown AI");
++      e.ai = cmd.ai;
++      return { ok: true };
++    }
+     case "setAutoExplore": {
+       e.autoExplore = !!cmd.on;
+       return { ok: true };
+diff --git a/src/engine/types.ts b/src/engine/types.ts
+index 29d24ca..4c19aea 100644
+--- a/src/engine/types.ts
++++ b/src/engine/types.ts
+@@ -138,6 +138,8 @@ export interface Empire {
+   focus?: AutopilotFocus;
+   /** Player option: idle scouts explore on their own each turn. */
+   autoExplore?: boolean;
++  /** Which AI runs this empire (rivals, or the player's autopilot). Unset = from difficulty. */
++  ai?: AiBrain;
+ }
+ 
+ export interface Leader {
+@@ -246,7 +248,11 @@ export interface GameSettings {
+   difficulty?: Difficulty;
+ }
+ 
+-export type Difficulty = "relaxed" | "normal" | "hard";
++/** "master": rivals are run by the Master AI (src/ai/masterAI.ts). Still no bonuses of any kind. */
++export type Difficulty = "relaxed" | "normal" | "hard" | "master";
++
++/** Which AI runs an empire. Unset = decided by difficulty ("master" difficulty -> master, else basic). */
++export type AiBrain = "basic" | "master";
+ 
+ export interface GameEvent {
+   turn: number;
