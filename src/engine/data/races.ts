@@ -65,7 +65,7 @@ export const RACES: readonly Race[] = [
     spying: 2, research: 1.1, travel: "phase", unique: "Keep 60% of a conquered world's people.",
     personality: p(0.5, 0.2, 0.5, 0.7, 0.5) },
   { ...base, id: "thraal", name: "Thraal", style: "Lithovores", color: "#9a8f80", homeClimate: "barren",
-    colonizeBonus: 12, ignoresEnvironment: true, growth: 0.6, travel: "lanes",
+    colonizeBonus: 10, ignoresEnvironment: true, growth: 0.6, travel: "lanes", // balance 2026-11-24: bonus 12 -> 10
     unique: "Settle any planet type from the start, but grow slowly.",
     personality: p(0.3, 0.8, 0.3, 0.3, 0.4) },
   { ...base, id: "seraphine", name: "Seraphine", style: "Pilots", color: "#f2e6c2", homeClimate: "steppe",
@@ -93,7 +93,7 @@ export const RACES: readonly Race[] = [
     growth: 1.2, travel: "lanes", unique: "Grow 50% faster around white, yellow and blue stars.",
     personality: p(0.2, 0.8, 0.3, 0.5, 0.7) },
   { ...base, id: "quorai", name: "Quorai", style: "Energy beings", color: "#f5c542", homeClimate: "radiated",
-    ignoresEnvironment: true, colonizeBonus: 12, growth: 0.7, research: 1.15, travel: "phase",
+    ignoresEnvironment: true, colonizeBonus: 8, growth: 0.6, travel: "phase", // balance 2026-11-24: was bonus 12, growth 0.7, research 1.15 (won 6 of 18 test games)
     unique: "Live inside stars: can settle stars that have no habitable planet.",
     personality: p(0.4, 0.5, 0.2, 0.9, 0.4) },
   { ...base, id: "raxxan", name: "Raxxan Reavers", style: "Scavengers", color: "#c45a2a", homeClimate: "minimal",
@@ -103,7 +103,7 @@ export const RACES: readonly Race[] = [
     growth: 2, ground: 1, travel: "warp", unique: "Population grows twice as fast; extra ground troops from numbers.",
     personality: p(0.7, 0.4, 0.6, 0.3, 0.5) },
   { ...base, id: "tarkhan", name: "Tarkhan Hunt", style: "Gunners", color: "#e06a8a", homeClimate: "arid",
-    shipAttack: 3, shipDefense: -1, travel: "warp", unique: "Deadly gunners: more accurate, +1 damage per hit, and they always fire first.",
+    shipAttack: 3, production: 1.15, ground: 1, travel: "warp", // balance 2026-11-24: +15% production, +1 ground, no defense penalty (averaged 10 colonies) unique: "Deadly gunners: more accurate, +1 damage per hit, and they always fire first.",
     personality: p(0.7, 0.9, 0.3, 0.4, 0.8) },
 ];
 

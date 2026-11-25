@@ -636,6 +636,15 @@ function expansion(ctx: Ctx): number {
       .sort((a, b) => b.score - a.score)[0];
     if (best) { cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: best.s.id, ships: { [pod]: 1 } }); taken.add(best.s.id); }
   }
+  scouting(ctx);
+  // Only count worlds a new colony ship could actually reach, so we don't build ships that just sit at home.
+  const pod = bestColonyDesign(ctx);
+  return settleable.filter((s) => !taken.has(s.id) && canReach(ctx, s.id, pod)).length;
+}
+
+/** Send each idle scout to the nearest unexplored star nobody else is heading for. */
+function scouting(ctx: Ctx): void {
+  const { view, cmds, taken } = ctx;
   const unexplored = view.stars.filter((s) => !view.knowledge[s.id]?.explored);
   for (const f of view.fleets.filter((x) => idle(x) && (x.ships.scout ?? 0) > 0)) {
     const count = f.ships.scout ?? 0;
@@ -647,9 +656,13 @@ function expansion(ctx: Ctx): number {
       taken.add(options[i]!.id);
     }
   }
-  // Only count worlds a new colony ship could actually reach, so we don't build ships that just sit at home.
-  const pod = bestColonyDesign(ctx);
-  return settleable.filter((s) => !taken.has(s.id) && canReach(ctx, s.id, pod)).length;
+}
+
+/** The player's "auto-explore" switch: the same scouting orders the AI gives itself, nothing else. */
+export function autoScoutOrders(view: EmpireView): Command[] {
+  const ctx = makeCtx(view);
+  scouting(ctx);
+  return ctx.cmds;
 }
 
 // ---------- war ----------

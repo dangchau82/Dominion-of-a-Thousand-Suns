@@ -3,6 +3,7 @@
 import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
 import { colonyShipCount, shipDesign } from "./designs";
+import { recordChronicle } from "./chronicle";
 import { resolveCombat } from "./combat";
 import { rollEvents } from "./events";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -189,5 +190,6 @@ export function endTurn(state: GameState): void {
   resolveCouncil(state);
   checkVictory(state);
   convene(state);
+  recordChronicle(state);
   state.turn++;
 }

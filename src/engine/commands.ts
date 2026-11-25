@@ -35,6 +35,7 @@ export type Command =
   | { type: "setSpies"; targetId: Id; alloc: number; mission: SpyMission }
   | { type: "setSecurity"; percent: number }
   | { type: "setFocus"; focus: AutopilotFocus }
+  | { type: "setAutoExplore"; on: boolean }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -244,6 +245,10 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "setFocus": {
       if (!(AUTOPILOT_FOCI as readonly string[]).includes(cmd.focus)) return fail("Unknown focus");
       e.focus = cmd.focus;
+      return { ok: true };
+    }
+    case "setAutoExplore": {
+      e.autoExplore = !!cmd.on;
       return { ok: true };
     }
     case "setSecurity": {

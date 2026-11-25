@@ -136,6 +136,8 @@ export interface Empire {
   recentEvents?: string[];
   /** What the AI concentrates on when it runs this empire (rivals, or the player's autopilot). */
   focus?: AutopilotFocus;
+  /** Player option: idle scouts explore on their own each turn. */
+  autoExplore?: boolean;
 }
 
 export interface Leader {
@@ -286,6 +288,8 @@ export interface GameState {
   nextProposalId: number;
   /** Events from the most recent turn. */
   events: GameEvent[];
+  /** Turn-by-turn record of the game (see chronicle.ts). Older saves start without one. */
+  chronicle?: import("./chronicle").Chronicle;
   /** Set once the player uses the cheat menu; shown in the save list. */
   cheated?: boolean;
   /** Player cheat switches. */

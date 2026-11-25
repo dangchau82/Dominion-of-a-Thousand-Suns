@@ -4,7 +4,8 @@
 import { applyCommand } from "../engine/commands";
 import type { GameState } from "../engine/types";
 import { makeView } from "../engine/view";
-import { basicAIAnswers, basicAITurn } from "./basicAI";
+import { autoScoutOrders, basicAIAnswers, basicAITurn } from "./basicAI";
+export { autoScoutOrders };
 
 export function runAITurns(state: GameState, includePlayer = false): void {
   const asleep = (state.cheats?.rivalsAsleepUntil ?? 0) > state.turn;

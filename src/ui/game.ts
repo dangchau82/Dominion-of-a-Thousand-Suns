@@ -1,7 +1,7 @@
 // The in-game screen: star map, top bar, star/colony/fleet panel, research,
 // End Turn with the "next up" bar, turn reports and the game menu.
 
-import { aiAnswerProposals, runAITurns } from "../ai";
+import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
 import { DEFAULT_MODEL, geminiChat, geminiKey, geminiModel, saveGemini, type ChatTurn } from "./gemini";
@@ -10,7 +10,7 @@ import type { EventEffect } from "../engine/data/events";
 import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/buildings";
 import { AUTOPILOT_FOCI, type AutopilotFocus, type TreatyKind } from "../engine/types";
 import {
-  applyCommand, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
+  applyCommand, chronicleText, CHRONICLE_STATS, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
   popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, colonyShipCount, HULLS, HULL_SIZES, MAX_DESIGNS,
   type DesignSpec, type HullSize,
   type Command, type EmpireView, type GameState,
@@ -102,7 +102,30 @@ export class GameScreen {
     this.map.centerOn(home.x, home.y, Math.min(46, Math.max(26, Math.min(window.innerWidth, window.innerHeight) / 22)));
     this.refresh();
     if (state.turn === 1) this.showWelcome();
+    window.addEventListener("keydown", this.onKey);
   }
+
+  /** PC keyboard shortcuts. Ignored while typing in a box. */
+  private onKey = (ev: KeyboardEvent): void => {
+    const tag = (ev.target as HTMLElement | null)?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const modalOpen = !!this.root.querySelector(".modal-back");
+    if (ev.key === "Escape") {
+      if (this.moving) { this.moving = null; this.setHint(null); this.refresh(); }
+      else if (modalOpen) (this.root.querySelectorAll(".modal-back") as NodeListOf<HTMLElement>).forEach((m) => m.remove());
+      else this.select(null);
+      return;
+    }
+    if (modalOpen || this.busy) return;
+    const k = ev.key.toLowerCase();
+    const go: Record<string, () => void> = {
+      enter: () => this.endTurn(), r: () => this.showResearch(), f: () => this.showFleets(), s: () => this.showDesigns(),
+      d: () => this.showEmpires(), e: () => this.showEmpire(), c: () => this.showVictory(), m: () => this.showMenu(), l: () => this.showHistory(),
+      h: () => { const cap = this.state.empires[PLAYER]!.capitalStarId; const st = this.state.stars[cap]!; this.map.centerOn(st.x, st.y); this.select(cap); },
+    };
+    const fn = go[k];
+    if (fn) { ev.preventDefault(); fn(); }
+  };
 
   // ---------- Core loop ----------
 
@@ -147,6 +170,8 @@ export class GameScreen {
     play("turn");
     const processedTurn = this.state.turn;
     const knownBefore = new Set(this.state.empires[PLAYER]!.contacts);
+    // Auto-explore: idle scouts get the same orders the AI would give its own.
+    if (this.state.empires[PLAYER]!.autoExplore) for (const c of autoScoutOrders(makeView(this.state, PLAYER))) applyCommand(this.state, PLAYER, c);
     // AI empires give their orders through the same command system, then the turn resolves.
     runAITurns(this.state);
     endTurn(this.state);
@@ -159,6 +184,75 @@ export class GameScreen {
     const next = () => (mine.length ? this.showReport(processedTurn, mine) : this.showProposals());
     if (met.length) this.showFirstContacts(met, next);
     else next();
+  }
+
+  private autoExploreToggle(): HTMLElement {
+    const on = !!this.state.empires[PLAYER]!.autoExplore;
+    const b = el("button", { class: `small ${on ? "on primary" : ""}`, style: "margin:4px 0 8px", title: "Idle scouts fly to the nearest unexplored star by themselves at the end of each turn." },
+      on ? "🧭 Auto-explore: ON (scouts explore by themselves)" : "🧭 Auto-explore: off (tap to let scouts explore by themselves)");
+    b.onclick = () => { this.cmd({ type: "setAutoExplore", on: !on }); autosave(this.state); this.refresh(); b.replaceWith(this.autoExploreToggle()); };
+    return b;
+  }
+
+  /** Your empire's story: a line graph of one stat over time and a timeline of key moments. */
+  private showHistory(stat: (typeof CHRONICLE_STATS)[number] = "colonies"): void {
+    const LABEL: Record<(typeof CHRONICLE_STATS)[number], string> = {
+      colonies: "🪐 Colonies", population: "👥 Population", factories: "🏭 Factories", techs: "🔬 Techs",
+      fleet: "🚀 Fleet", treasury: "💰 Treasury", culture: "🎭 Culture", wars: "⚔️ Wars",
+    };
+    const ch = this.state.chronicle;
+    const idx = CHRONICLE_STATS.indexOf(stat);
+    this.modal((box, close) => {
+      box.innerHTML = `<h2>📜 History</h2>`;
+      if (!ch || !ch.turns.length) {
+        box.append(el("p", { class: "dim" }, "Nothing recorded yet. The story starts when you end your first turn."));
+      } else {
+        const seg = el("div", { class: "seg", style: "margin-bottom:8px" });
+        for (const s of CHRONICLE_STATS) {
+          const b = el("button", { class: s === stat ? "on" : "" }, LABEL[s]);
+          b.onclick = () => { close(); this.showHistory(s); };
+          seg.append(b);
+        }
+        box.append(seg);
+        const pts = ch.turns.map((x) => ({ t: x.t, v: x.e[PLAYER]?.[idx] ?? 0 }));
+        const W = 600, H = 200, pad = 30;
+        const maxT = Math.max(...pts.map((p) => p.t)), minT = Math.min(...pts.map((p) => p.t));
+        const maxV = Math.max(1, ...pts.map((p) => p.v));
+        const X = (tt: number) => pad + ((tt - minT) / Math.max(1, maxT - minT)) * (W - pad - 8);
+        const Y = (v: number) => H - pad + 8 - (v / maxV) * (H - pad - 8);
+        const path = pts.map((p, i) => `${i ? "L" : "M"}${X(p.t).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ");
+        const me = this.state.empires[PLAYER]!;
+        box.append(el("div", { class: "history-chart" }, `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${LABEL[stat]} over time">
+          <line x1="${pad}" y1="${H - pad + 8}" x2="${W - 8}" y2="${H - pad + 8}" stroke="#2c3b60"/>
+          <line x1="${pad}" y1="8" x2="${pad}" y2="${H - pad + 8}" stroke="#2c3b60"/>
+          <text x="${pad - 4}" y="14" text-anchor="end" font-size="11" fill="#8a95b5">${fmt(maxV, 0)}</text>
+          <text x="${pad - 4}" y="${H - pad + 8}" text-anchor="end" font-size="11" fill="#8a95b5">0</text>
+          <text x="${pad}" y="${H - 6}" font-size="11" fill="#8a95b5">turn ${minT}</text>
+          <text x="${W - 8}" y="${H - 6}" text-anchor="end" font-size="11" fill="#8a95b5">turn ${maxT}</text>
+          <path d="${path}" fill="none" stroke="${me.color}" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+        </svg>`));
+        const last = pts[pts.length - 1]!;
+        box.append(el("p", { class: "dim", style: "margin:4px 0 10px" }, `${LABEL[stat]} now: <b>${fmt(last.v, 0)}</b> · best: ${fmt(maxV, 0)}`));
+        const mine = ch.events.filter((ev) => ev.empireId === PLAYER || ev.empireId === null).slice(-60).reverse();
+        const list = el("div", { class: "history-list" });
+        list.innerHTML = mine.length ? mine.map((ev) => `<div><span class="gold-text">T${ev.t}</span> ${esc(ev.text)}</div>`).join("") : `<div class="dim">No big moments yet.</div>`;
+        box.append(el("div", { class: "dim", style: "margin-top:4px" }, "Key moments (newest first)"), list);
+      }
+      const row = el("div", { class: "row" });
+      const dl = el("button", { title: "A text file of every turn for every empire. Send it to the developer to help balance the game." }, "⬇ Download game log");
+      dl.onclick = () => {
+        const blob = new Blob([chronicleText(this.state)], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `thousand-suns-log-turn-${this.state.turn}.txt`;
+        document.body.append(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      };
+      const ok = el("button", { class: "primary" }, "Close");
+      ok.onclick = close;
+      row.append(dl, ok);
+      box.append(row);
+    });
   }
 
   /** A proper meeting screen for each race met this turn: living portrait, their first words, Talk now or later. */
@@ -260,13 +354,14 @@ export class GameScreen {
     };
     const waiting = v.proposals.filter((p) => p.to === PLAYER).length;
     if (waiting) add("📨", "Messages", "Offers and demands waiting for your answer", () => this.showMessages(), waiting);
-    add("🔬", "Research", "Research: fields, projects and tech", () => this.showResearch());
-    add("🚀", "Fleets", "All your fleets", () => this.showFleets());
-    add("🛠️", "Ships", "Ship designs and the designer", () => this.showDesigns());
-    add("🤝", "Diplomacy", "Other empires: talk, trade, treaties, spies, war and peace", () => this.showEmpires(), v.contacts.filter((o) => o.offersPeace).length);
-    add("🏛️", "Empire", "Your culture, leaders and wonders", () => this.showEmpire());
-    add("⚖️", "Council", "Victory paths and the Galactic Council", () => (v.council.session ? this.showCouncil() : this.showVictory()), v.council.session ? 1 : 0);
-    add("☰", "Menu", "Autopilot, sound, saves and settings", () => this.showMenu());
+    add("🔬", "Research", "Research: fields, projects and tech (R)", () => this.showResearch());
+    add("🚀", "Fleets", "All your fleets (F)", () => this.showFleets());
+    add("🛠️", "Ships", "Ship designs and the designer (S)", () => this.showDesigns());
+    add("🤝", "Diplomacy", "Other empires: talk, trade, treaties, spies, war and peace (D)", () => this.showEmpires(), v.contacts.filter((o) => o.offersPeace).length);
+    add("🏛️", "Empire", "Your culture, leaders and wonders (E)", () => this.showEmpire());
+    add("📜", "History", "Graphs of your empire and a timeline of key moments (L)", () => this.showHistory());
+    add("⚖️", "Council", "Victory paths and the Galactic Council (C)", () => (v.council.session ? this.showCouncil() : this.showVictory()), v.council.session ? 1 : 0);
+    add("☰", "Menu", "Autopilot, sound, saves and settings (M)", () => this.showMenu());
     this.top.append(nav);
   }
 
@@ -280,7 +375,7 @@ export class GameScreen {
         .join("");
       this.endbar.append(box);
     }
-    const btn = el("button", { class: "gold" }, "End Turn ▶");
+    const btn = el("button", { class: "gold", title: "End the turn (Enter). Shortcuts: R research, F fleets, S ships, D diplomacy, E empire, C council, H home, Esc close" }, "End Turn ▶");
     btn.onclick = () => this.endTurn();
     this.endbar.append(btn);
   }
@@ -373,6 +468,7 @@ export class GameScreen {
     }
     if (tab === "ships") {
       p.append(el("h2", { style: "margin:4px 0 6px" }, esc(s.name)));
+      if (fleetsHere.some((f) => f.starId === s.id && (f.ships.scout ?? 0) > 0)) p.append(this.autoExploreToggle());
       p.append(this.fleetsBlock(s.id));
       this.panel = p;
       this.root.append(p);
@@ -1211,6 +1307,7 @@ export class GameScreen {
     const v = this.view;
     this.modal((box, close) => {
       box.innerHTML = "<h2>Your fleets</h2>";
+      box.append(this.autoExploreToggle());
       if (!v.fleets.length) box.append(el("p", { class: "dim" }, "No fleets."));
       for (const f of v.fleets) {
         const where = f.starId !== null ? `at ${v.stars[f.starId]!.name}` : `heading to ${v.stars[f.destStarId!]!.name} (${v.turnsTo(f, f.destStarId!)} turns)`;
@@ -1572,6 +1669,9 @@ export class GameScreen {
       gem.onclick = () => { close(); this.showGeminiSettings(); };
       row.append(vic, snd, tips);
       if (SHOW_GEMINI) row.append(gem);
+      const hist = el("button", {}, "📜 History: graphs and timeline (L)");
+      hist.onclick = () => { close(); this.showHistory(); };
+      row.append(hist);
       const mine = el("button", {}, "Your empire: culture, leaders, wonders");
       mine.onclick = () => { close(); this.showEmpire(); };
       row.append(mine);
@@ -1615,7 +1715,7 @@ export class GameScreen {
       const help = el("button", {}, "How to play");
       help.onclick = () => { close(); this.showWelcome(); };
       const quit = el("button", {}, "Main menu");
-      quit.onclick = () => { close(); this.map.destroy(); this.onQuit(); };
+      quit.onclick = () => { close(); window.removeEventListener("keydown", this.onKey); this.map.destroy(); this.onQuit(); };
       const cheats = el("button", {}, "🛠️ Cheat menu");
       cheats.onclick = () => { close(); this.showCheats(); };
       const back = el("button", { class: "primary" }, "Back to game");
