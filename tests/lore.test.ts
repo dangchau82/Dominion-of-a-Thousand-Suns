@@ -113,3 +113,25 @@ describe("leader traits (Gemini)", () => {
     }
   });
 });
+
+import { EXPEDITIONS } from "../src/engine/data/expeditions";
+import { MINOR_RACES } from "../src/engine/data/minorRaces";
+import { PROPHECIES } from "../src/engine/data/prophecies";
+
+describe("Gemini pack 2: prophecies, minor races, expeditions", () => {
+  it("prophecies: 3 per threat, only their own placeholders", () => {
+    for (const t of ["invasion", "plague", "supernova", "elderAwakening", "goldenAge", "betrayal"]) expect(PROPHECIES.filter((p) => p.threat === t).length).toBe(3);
+    for (const p of PROPHECIES) for (const tag of p.text.match(/\{\w+\}/g) ?? []) expect(["{starColor}", "{direction}", "{turns}"]).toContain(tag);
+  });
+  it("minor races: 12, small gifts, names don't clash with the lore", () => {
+    expect(MINOR_RACES.length).toBe(12);
+    for (const m of MINOR_RACES) expect(m.name).not.toMatch(/Lattice|Vesper|Cinder/);
+  });
+  it("expeditions: chances 0.3-0.9, rewards in scale", () => {
+    expect(EXPEDITIONS.length).toBe(12);
+    for (const e of EXPEDITIONS) for (const c of e.choices) {
+      expect(c.chance).toBeGreaterThanOrEqual(0.3); expect(c.chance).toBeLessThanOrEqual(0.9);
+      for (const fx of [...c.success.effects, ...c.failure.effects]) expect(inScale(fx), `${e.id} ${JSON.stringify(fx)}`).toBe(true);
+    }
+  });
+});
