@@ -185,3 +185,23 @@ describe("money sinks (Gemini)", () => {
     expect(rush.aiSummary).toMatch(/never the Ascension Gate/);
   });
 });
+
+import { CRISES } from "../src/engine/data/crises";
+
+describe("branching crises (Gemini)", () => {
+  it("6 crises; every choice leads to a real next stage; effects in scale", () => {
+    expect(CRISES.length).toBe(6);
+    for (const c of CRISES) {
+      for (const s of c.stages) {
+        expect(s.title).not.toMatch(/\{/);
+        for (const ch of s.choices) {
+          if (s.stage === 3) expect(ch.nextPath).toBe("end");
+          else expect(c.stages.some((n) => n.stage === s.stage + 1 && n.path === ch.nextPath), `${c.id} ${s.path} -> ${ch.nextPath}`).toBe(true);
+          for (const fx of ch.effects) if (fx.kind !== "secedeColony" && fx.kind !== "planetSize") expect(inScale(fx), `${c.id} ${JSON.stringify(fx)}`).toBe(true);
+        }
+      }
+      // every stage path is reachable
+      for (const s of c.stages.filter((x) => x.stage > 1)) expect(c.stages.some((p) => p.stage === s.stage - 1 && p.choices.some((ch) => ch.nextPath === s.path)), `${c.id} unreachable ${s.path}`).toBe(true);
+    }
+  });
+});
