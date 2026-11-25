@@ -8,6 +8,7 @@
 import { HULLS, type ShipDesign } from "./data/ships";
 import { tech } from "./tech";
 import { empireBonus, transferWonders } from "./civ";
+import { afterBattle, afterCapture, capturedPopulation, damageBonus } from "./abilities";
 import { say } from "./dialogue";
 import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
 import { shipDesign } from "./designs";
@@ -50,6 +51,18 @@ interface Unit {
   guns: Gun[];
   small: boolean;
   invulnerable: boolean;
+  /** Extra damage per hit (Tarkhan). */
+  bonusDamage: number;
+  /** Fires before everyone else (Tarkhan first strike). */
+  first: boolean;
+  /** Chance an incoming hit misses anyway (displacement field). */
+  dodge: number;
+  /** Has a stasis field: freezes one enemy group in the first round. */
+  stasis: boolean;
+  /** Slows enemy evasion (warp dampener). */
+  dampener: boolean;
+  /** Frozen this round. */
+  frozen: boolean;
 }
 
 function guns(d: ShipDesign): Gun[] {
@@ -72,14 +85,17 @@ function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count
   const h = HULLS[d.hull];
   const armor = levelOf(d.armor, "armor");
   const maxHp = d.role === "warship" ? h.hits * (1 + 0.5 * Math.max(0, armor - 1)) : d.role === "transport" ? 1 : h.hits;
+  const sp = (id: string) => d.specials.includes(id);
   return {
     side, empireId: e.id, key: d.id, name: d.name, count, start: count, hp: maxHp, maxHp,
-    attack: levelOf(d.computer, "computer") + r.shipAttack + (d.role === "warship" ? empireBonus(e).attack : 0),
-    beamDef: h.defense + r.shipDefense,
-    missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm"),
+    attack: levelOf(d.computer, "computer") + r.shipAttack + (d.role === "warship" ? empireBonus(e).attack : 0) + (sp("subspace-interdictor") ? 1 : 0),
+    beamDef: h.defense + r.shipDefense + (sp("inertial-dampers") ? 2 : 0) + (sp("cloaking-field") ? 2 : 0),
+    missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm") + (sp("cloaking-field") ? 2 : 0) + (sp("repulsor-beam") ? 3 : 0),
     shield: levelOf(d.shield, "shield"),
     guns: guns(d), small: d.hull === "small",
     invulnerable: !!(e.isPlayer && state.cheats?.godMode),
+    bonusDamage: damageBonus(e), first: damageBonus(e) > 0, dodge: sp("displacement-field") ? 0.25 : 0,
+    stasis: sp("stasis-field"), dampener: sp("warp-dampener"), frozen: false,
   };
 }
 
@@ -94,6 +110,7 @@ function planetUnit(state: GameState, side: 0 | 1, e: Empire, c: Colony): Unit |
     hp: BASE_HP, maxHp: BASE_HP, attack: ts.computer, beamDef: 0, missileDef: 0, shield: ts.planetShield,
     guns: [{ kind: "missile", min: best, max: best, count: 2 }], small: false,
     invulnerable: !!(e.isPlayer && state.cheats?.godMode),
+    bonusDamage: 0, first: false, dodge: 0, stasis: false, dampener: false, frozen: false,
   };
 }
 
@@ -123,16 +140,29 @@ function pickTarget(rng: R.RngState, enemies: Unit[]): Unit | null {
 function fight(state: GameState, units: Unit[]): number {
   const rng = state.rng;
   let rounds = 0;
+  // Warp dampeners slow the other side, making them easier to hit.
+  for (const sd of [0, 1] as const) {
+    if (units.some((u) => u.side === sd && u.dampener)) for (const u of units) if (u.side !== sd) u.beamDef = Math.max(0, u.beamDef - 1);
+  }
   for (let round = 1; round <= MAX_ROUNDS; round++) {
     const sideArmed = [0, 1].map((sd) => units.some((u) => u.side === sd && armed(u)));
     const sideAlive = [0, 1].map((sd) => units.some((u) => u.side === sd && u.count > 0));
     if (!sideAlive[0] || !sideAlive[1] || (!sideArmed[0] && !sideArmed[1])) break;
     rounds = round;
-    // Best computers fire first; small ships before big ones on ties.
+    // Stasis fields freeze the biggest enemy group for the first round.
+    for (const u of units) u.frozen = false;
+    if (round === 1) {
+      for (const sd of [0, 1] as const) {
+        if (!units.some((u) => u.side === sd && u.stasis && u.count > 0)) continue;
+        const target = units.filter((u) => u.side !== sd && u.count > 0 && u.key !== "planet").sort((a, b) => b.count - a.count)[0];
+        if (target) target.frozen = true;
+      }
+    }
+    // First strikers, then best computers; small ships before big ones on ties.
     const order = units.filter((u) => u.count > 0)
-      .sort((a, b) => b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
+      .sort((a, b) => Number(b.first) - Number(a.first) || b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
     for (const u of order) {
-      if (u.count <= 0) continue;
+      if (u.count <= 0 || u.frozen) continue;
       for (const g of u.guns) {
         if (g.kind === "bomb") continue;
         if ((g.kind === "missile" || g.kind === "torpedo") && u.key !== "planet" && round > MISSILE_ROUNDS) continue;
@@ -141,7 +171,8 @@ function fight(state: GameState, units: Unit[]): number {
           const target = pickTarget(rng, units.filter((x) => x.side !== u.side));
           if (!target) break;
           if (!R.chance(rng, hitChance(g, u, target))) continue;
-          const raw = R.int(rng, g.min, g.max);
+          if (target.dodge > 0 && R.chance(rng, target.dodge)) continue;
+          const raw = R.int(rng, g.min, g.max) + u.bonusDamage;
           // Torpedoes punch through half of the shield.
           const dmg = raw - (g.kind === "torpedo" ? Math.floor(target.shield / 2) : target.shield);
           if (dmg <= 0 || target.invulnerable) continue;
@@ -205,6 +236,13 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
 
   const rounds = fight(state, units);
   applyLosses(state, here, units);
+  // Race abilities after the battle (Ashkari spoils, Raxxan salvage).
+  const lossValue = (sd: 0 | 1) => units.filter((u) => u.side === sd && u.key !== "planet")
+    .reduce((acc, u) => acc + (u.start - u.count) * shipDesign(state, u.key).cost, 0);
+  for (const [me, them, theirSide] of [[a, b, 1], [b, a, 0]] as const) {
+    const note = afterBattle(state, me, them, lossValue(theirSide));
+    if (note) state.events.push({ turn: state.turn, empireId: me.id, kind: "battle", starId: s.id, text: note });
+  }
   const planet = units.find((u) => u.key === "planet");
   if (colony && planet) colony.missileBases = planet.count;
 
@@ -274,7 +312,7 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
   if (att > 0) {
     const old = c;
     const cap = s.planet ? s.planet.size + s.planet.terraform + techStats(attacker).terraform : att;
-    const captured = newColony(s.id, attacker.id, Math.min(att, cap), old.foundedTurn);
+    const captured = newColony(s.id, attacker.id, Math.min(capturedPopulation(attacker, att, old.population), cap), old.foundedTurn);
     captured.factories = old.factories;
     captured.buildings = [...old.buildings];
     transferWonders(state, s.id, attacker);
@@ -282,6 +320,8 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
     const text = `The ${attacker.name} captured ${s.name} with ${plural(att, "surviving troop")}.`;
     state.events.push({ turn: state.turn, empireId: attacker.id, kind: "invasion", starId: s.id, text });
     state.events.push({ turn: state.turn, empireId: owner.id, kind: "invasion", starId: s.id, text });
+    const note = afterCapture(state, attacker, owner);
+    if (note) state.events.push({ turn: state.turn, empireId: attacker.id, kind: "invasion", starId: s.id, text: note });
     if (owner.capitalStarId === s.id) moveCapital(state, owner);
   } else {
     c.population = Math.max(0.5, def);
@@ -336,6 +376,26 @@ export function resolveCombat(state: GameState): void {
     }
     state.fleets = state.fleets.filter((f) => shipCount(f) > 0);
   }
+}
+
+/** Planet Cracker: destroy an undefended enemy world outright. Every empire is horrified. */
+export function crackPlanet(state: GameState, e: Empire, f: Fleet): string | null {
+  if (f.empireId !== e.id || f.starId === null) return "The fleet must be in orbit";
+  const hasCracker = Object.entries(f.ships).some(([id, n]) => n > 0 && shipDesign(state, id).specials.includes("planet-cracker"));
+  if (!hasCracker) return "No ship here carries a Planet Cracker";
+  const s = state.stars[f.starId]!;
+  const c = state.colonies[s.id];
+  if (!c || c.empireId === e.id) return "No enemy colony here";
+  const owner = state.empires[c.empireId]!;
+  if (!atWar(e, owner)) return "You are not at war with them";
+  if (c.missileBases > 0) return "Destroy its missile bases first";
+  delete state.colonies[s.id];
+  transferWonders(state, s.id, null);
+  s.planet = null;
+  if (owner.capitalStarId === s.id) moveCapital(state, owner);
+  for (const o of state.empires) if (o.id !== e.id && o.alive) adjustRelation(o, e, -40);
+  state.events.push({ turn: state.turn, empireId: null, kind: "battle", starId: s.id, text: `The ${e.name} cracked the planet ${s.name} into rubble! The galaxy is horrified.` });
+  return null;
 }
 
 export function declareWar(state: GameState, a: Empire, b: Empire): void {

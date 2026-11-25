@@ -6,6 +6,7 @@ import { designsOf, shipDesign } from "./designs";
 import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
 import { buildable, buyCost } from "./civ";
 import { techVictoryProgress, votesOf } from "./victory";
+import { canSettleStarless } from "./abilities";
 import { GOLDEN_AGE_AT } from "./data/buildings";
 import type { ShipDesign } from "./data/ships";
 import {
@@ -81,7 +82,7 @@ export interface EmpireView {
   winner: Winner | null;
   keepPlaying: boolean;
   /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
-  standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean }[];
+  standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean }[];
   /** Culture needed for the next golden age, or null after the last. */
   nextGoldenAge: number | null;
   /** Ship designs this empire can build (built-ins first). */
@@ -166,6 +167,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),
       techFields: techVictoryProgress(o), alive: o.alive,
+      buildingAscension: Object.values(state.colonies).some((c) => c.empireId === o.id && c.buildQueue === "w-ascension"),
     })),
     me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
     stars: state.stars.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, color: s.color, nebula: s.nebula })),
@@ -187,6 +189,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     reachable: (starId, fleet) => inFuelRange(state, e, state.stars[starId]!, fleetExtraRange(state, fleet)),
     canSettle: (starId) => {
       const k = e.knowledge[starId];
+      if (k?.explored && !k.planet && k.ownerId === null && canSettleStarless(e) && !state.colonies[starId]) return true;
       if (!k?.explored || !k.planet) return false;
       if (k.ownerId !== null) return false;
       return canColonize(k.planet, e, r);

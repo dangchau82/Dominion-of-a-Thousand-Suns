@@ -70,7 +70,7 @@ function showSetup(root: HTMLElement, start: (g: GameState) => void): void {
           r.ground ? `Ground troops +${r.ground}` : "", r.spying ? `Spying +${r.spying}` : "", r.diplomacy ? `Diplomacy ${r.diplomacy > 0 ? "+" : ""}${r.diplomacy}` : "",
           `Home: ${r.homeClimate}`, `Travel: ${r.travel}`,
         ].filter(Boolean).join(" · ")}</div>
-        <div class="dim" style="margin-top:4px;font-size:12px">Spying, full diplomacy and unique abilities switch on in later stages.</div>
+
       </div>
       <div class="opts">
         <div class="opt"><label>Galaxy size</label><div class="seg" data-k="size">${(["small", "medium", "large", "huge"] as const).map((s) => `<button data-v="${s}" class="${opts.size === s ? "on" : ""}">${s}</button>`).join("")}</div></div>

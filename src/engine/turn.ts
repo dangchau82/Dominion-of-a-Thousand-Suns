@@ -4,6 +4,7 @@ import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
 import { shipDesign } from "./designs";
 import { resolveCombat } from "./combat";
+import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
 import { applyTreaties, processEspionage, researchPactBonus, spendingShare, updateRelations } from "./diplomacy";
@@ -60,8 +61,9 @@ function processColony(state: GameState, c: Colony): number {
     const t = shipDesign(state, c.buildTemplate);
     c.shipProgress += b.ship;
     let built = 0;
-    while (c.shipProgress >= t.cost) {
-      c.shipProgress -= t.cost;
+    const unit = shipCost(e, t);
+    while (c.shipProgress >= unit) {
+      c.shipProgress -= unit;
       built++;
     }
     if (built > 0) {
@@ -110,7 +112,7 @@ function processColony(state: GameState, c: Colony): number {
   // A conquered world may hold more people than its new owner's tech supports.
   if (c.population > cap) c.population = cap;
   const wasFull = c.population >= cap - 1e-9;
-  c.population += popGrowth(c.population, s.planet, r, e);
+  c.population = Math.min(cap, c.population + popGrowth(c.population, s.planet, r, e) * growthMultiplier(e, s));
   const space = Math.max(0, cap - c.population);
   const pc = popCost(e);
   const bought = Math.min(space, b.ecology / pc);

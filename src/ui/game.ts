@@ -29,6 +29,12 @@ function moodWord(n: number): string {
   return n >= 60 ? "devoted" : n >= 30 ? "friendly" : n >= 10 ? "warm" : n > -10 ? "neutral" : n > -30 ? "wary" : n > -60 ? "hostile" : "hateful";
 }
 
+const SPECIAL_HELP: Record<string, string> = {
+  "inertial-dampers": "+2 beam defense", "warp-dampener": "enemies -1 beam defense", "subspace-interdictor": "+1 attack",
+  "stasis-field": "freezes the largest enemy group in round 1", "cloaking-field": "+2 beam and missile defense",
+  "repulsor-beam": "+3 missile defense", "displacement-field": "25% of hits on it miss", "planet-cracker": "can destroy an undefended enemy planet",
+};
+
 const PLAYER = 0;
 const SLIDER_NAMES: Record<Slider, string> = {
   ship: "Ships", defense: "Defense", industry: "Industry", ecology: "Ecology", research: "Research",
@@ -209,7 +215,7 @@ export class GameScreen {
         <p class="dim">Unexplored. Send a scout to find out what's here.</p>`));
     } else if (!k.planet) {
       p.append(el("div", {}, `<h2>${esc(s.name)}</h2><div class="chips"><span class="chip">${s.color} star</span></div>
-        <p class="dim">No habitable planet. Only asteroids and gas here (later technology may change that).</p>`));
+        <p class="dim">No habitable planet. Only asteroids and gas here.${v.me.raceId === "quorai" ? " <span class='good'>Your people can live inside the star itself: send a colony ship.</span>" : ""}</p>`));
     } else {
       const pl = k.planet;
       const c = v.colonies.find((x) => x.starId === s.id);
@@ -336,6 +342,17 @@ export class GameScreen {
         const all = el("button", { class: "small" }, "Send all");
         all.onclick = () => this.startMove(f, { ...f.ships });
         box.append(all);
+      }
+      const cracker = Object.entries(f.ships).some(([id, n]) => n > 0 && this.tpl(id).specials.includes("planet-cracker"));
+      const enemyHere = v.knowledge[starId]?.ownerId;
+      if (cracker && enemyHere !== null && enemyHere !== undefined && enemyHere !== PLAYER && v.contacts.find((o) => o.id === enemyHere)?.warSince != null) {
+        const crack = el("button", { class: "small" }, "☄ Crack planet");
+        crack.onclick = () => {
+          if (!confirm("Destroy this planet forever? Every empire will be horrified.")) return;
+          if (this.cmd({ type: "crackPlanet", fleetId: f.id })) this.toast("The planet is rubble.");
+          this.refresh();
+        };
+        box.append(crack);
       }
       if ((f.ships.colony ?? 0) > 0 && v.canSettle(starId)) {
         const col = el("button", { class: "small primary" }, "Colonize");
@@ -1151,7 +1168,7 @@ export class GameScreen {
           box.append(el("div", { class: "dim", style: "margin-top:8px" }, "Specials (up to 3)"));
           for (const t of parts.specials) {
             const on = spec.specials.includes(t.id);
-            const b = el("button", { class: `small ${on ? "on" : ""}`, style: "margin:2px" }, `${on ? "✓ " : ""}${t.name}`);
+            const b = el("button", { class: `small ${on ? "on" : ""}`, style: "margin:2px", title: SPECIAL_HELP[t.id] ?? "" }, `${on ? "✓ " : ""}${t.name}<br><span class="dim" style="font-size:11px">${SPECIAL_HELP[t.id] ?? ""}</span>`);
             b.onclick = () => {
               spec.specials = on ? spec.specials.filter((x) => x !== t.id) : [...spec.specials, t.id];
               draw();

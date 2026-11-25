@@ -6,6 +6,9 @@ import {
   type BuildingDef, type BuildingEffects, type EmpireBonus, type LeaderKind,
 } from "./data/buildings";
 import * as R from "./rng";
+import { buildingCost, is, LARVAE_EVERY } from "./abilities";
+import { canColonize, distance } from "./formulas";
+import { empireRace, newColony } from "./game";
 import { fieldTier } from "./tech";
 import { FIELDS, type Colony, type Empire, type GameState, type Id, type Leader } from "./types";
 
@@ -61,6 +64,11 @@ export function buyCost(c: Colony): number {
   return Math.ceil(Math.max(0, building(c.buildQueue).cost - c.buildProgress) * 2);
 }
 
+/** What this empire pays for a building (Velari build wonders cheaper). */
+export function costFor(e: Empire, id: string): number {
+  return buildingCost(e, building(id));
+}
+
 function finish(state: GameState, e: Empire, c: Colony, b: BuildingDef): void {
   const s = state.stars[c.starId]!;
   c.buildings.push(b.id);
@@ -87,8 +95,9 @@ export function progressBuilding(state: GameState, e: Empire, c: Colony, bc: num
     return bc;
   }
   c.buildProgress += bc;
-  if (c.buildProgress >= b.cost) {
-    const extra = c.buildProgress - b.cost;
+  const cost = buildingCost(e, b);
+  if (c.buildProgress >= cost) {
+    const extra = c.buildProgress - cost;
     c.buildProgress = 0;
     c.buildQueue = null;
     finish(state, e, c, b);
@@ -116,6 +125,8 @@ export function processCivilization(state: GameState): void {
     }
     e.goldenAge = state.turn < e.goldenAgeUntil;
 
+    if (is(e, "kethrak") && state.turn % LARVAE_EVERY === 0) hatchLarvae(state, e);
+
     // Leaders: pay salaries; anyone unpaid leaves.
     for (const l of [...e.leaders]) {
       e.treasury -= l.salary;
@@ -132,6 +143,21 @@ export function processCivilization(state: GameState): void {
         text: `${e.leaderOffer.name} offers to serve as ${LEADER_KINDS[e.leaderOffer.kind].title} (level ${e.leaderOffer.level}, boosts ${LEADER_KINDS[e.leaderOffer.kind].text}). Hire for ${e.leaderOffer.cost} BC in the Empire screen.` });
     }
   }
+}
+
+/** Kethrak larvae settle the best empty known world within 3 light-years of a hive colony. */
+function hatchLarvae(state: GameState, e: Empire): void {
+  const mine = Object.values(state.colonies).filter((c) => c.empireId === e.id).map((c) => state.stars[c.starId]!);
+  let best: { id: number; size: number } | null = null;
+  for (const s of state.stars) {
+    if (state.colonies[s.id] || !s.planet || !e.knowledge[s.id]?.explored) continue;
+    if (!canColonize(s.planet, e, empireRace(e))) continue;
+    if (!mine.some((m) => distance(m.x, m.y, s.x, s.y) <= 3)) continue;
+    if (!best || s.planet.size > best.size) best = { id: s.id, size: s.planet.size };
+  }
+  if (!best) return;
+  state.colonies[best.id] = newColony(best.id, e.id, 1, state.turn);
+  state.events.push({ turn: state.turn, empireId: e.id, kind: "colonized", text: `Hive larvae drifted to ${state.stars[best.id]!.name} and founded a colony.`, starId: best.id });
 }
 
 function newLeader(state: GameState): Leader {

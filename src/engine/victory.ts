@@ -3,6 +3,7 @@
 // biggest empires stand, and a two-thirds majority wins the galaxy.
 
 import { declareWar } from "./combat";
+import { boughtVotes } from "./abilities";
 import { fieldTier } from "./tech";
 import { FIELDS, type Empire, type GameState, type Id, type VictoryKind } from "./types";
 
@@ -26,7 +27,7 @@ export function population(state: GameState, e: Empire): number {
 export function votesOf(state: GameState, e: Empire): number {
   if (!e.alive) return 0;
   const base = Math.max(1, Math.round(population(state, e) / POP_PER_VOTE));
-  return e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base;
+  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base);
 }
 
 export function techVictoryProgress(e: Empire): number {

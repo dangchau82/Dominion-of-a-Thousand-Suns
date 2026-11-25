@@ -5,6 +5,7 @@
 import { race } from "./data/races";
 import { say } from "./dialogue";
 import { empireBonus } from "./civ";
+import { tradeMultiplier } from "./abilities";
 import { colonyProduction, distance } from "./formulas";
 import { empireRace } from "./game";
 import * as R from "./rng";
@@ -248,7 +249,7 @@ export function applyTreaties(state: GameState): void {
       const b = state.empires[Number(bid)]!;
       if (!b.alive) continue;
       const ramp = Math.min(1, (state.turn - t.trade) / 10);
-      a.treasury += 0.02 * Math.min(prod.get(a.id)!, prod.get(b.id)!) * ramp * (1 + empireBonus(a).trade);
+      a.treasury += 0.02 * Math.min(prod.get(a.id)!, prod.get(b.id)!) * ramp * (1 + empireBonus(a).trade) * tradeMultiplier(a);
     }
   }
   // Proposals last until the end of the turn after they were made.

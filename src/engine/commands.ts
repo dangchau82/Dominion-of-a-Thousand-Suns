@@ -2,9 +2,10 @@
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
 import { researchChoices } from "./tech";
-import { atWar, declareWar, offerPeace } from "./combat";
+import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
 import { castVote, councilVerdict } from "./victory";
+import { canSettleStarless, fundMultiplier, stellarHabitat } from "./abilities";
 import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
 import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
@@ -37,6 +38,7 @@ export type Command =
   | { type: "councilVote"; candidateId: Id | null }
   | { type: "councilVerdict"; accept: boolean }
   | { type: "keepPlaying" }
+  | { type: "crackPlanet"; fleetId: Id }
   | { type: "fundShips"; starId: Id; bc: number }
   | { type: "dismissLeader"; leaderId: number }
   | { type: "offerPeace"; targetId: Id }
@@ -197,11 +199,17 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if (!c || !c.buildTemplate) return fail("This shipyard isn't building anything");
       if (!(cmd.bc > 0) || cmd.bc > e.treasury) return fail("Not enough BC");
       e.treasury -= cmd.bc;
-      c.shipProgress += cmd.bc;
+      c.shipProgress += cmd.bc * fundMultiplier(e);
       return { ok: true };
     }
     case "councilVote": {
       const err = castVote(state, e, cmd.candidateId);
+      return err ? fail(err) : { ok: true };
+    }
+    case "crackPlanet": {
+      const f = state.fleets.find((x) => x.id === cmd.fleetId);
+      if (!f) return fail("No such fleet");
+      const err = crackPlanet(state, e, f);
       return err ? fail(err) : { ok: true };
     }
     case "keepPlaying": {
@@ -313,6 +321,7 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if ((f.ships.colony ?? 0) < 1) return fail("No colony ship in this fleet");
       const s = star(state, f.starId);
       if (!isExplored(e, s.id)) exploreStar(state, e, s);
+      if (!s.planet && canSettleStarless(e)) s.planet = stellarHabitat();
       if (!s.planet) return fail("No habitable planet here");
       if (state.colonies[s.id]) return fail("Planet already settled");
       if (!canColonize(s.planet, e, empireRace(e))) return fail("Need more Planetology to settle this climate");

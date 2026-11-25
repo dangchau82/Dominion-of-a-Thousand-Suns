@@ -10,6 +10,7 @@
 import type { Command } from "../engine/commands";
 import { designStats, partChoices, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
+import { fieldTier, researchChoices } from "../engine/tech";
 import { MAX_DESIGNS, type HullSize, type ShipDesign } from "../engine/data/ships";
 import { TECHS, type Tech } from "../engine/data/techs";
 
@@ -39,6 +40,8 @@ const LEVEL = {
 };
 
 interface Ctx {
+  /** An empire close to winning that everyone should stop (never us). */
+  threat: Id | null;
   level: (typeof LEVEL)["normal"];
   view: EmpireView;
   cmds: Command[];
@@ -94,8 +97,17 @@ function diplomacy(ctx: Ctx): void {
     if (c.warSince !== null) {
       const length = view.turn - c.warSince;
       const losing = theirs > mine * 1.2;
+      if (c.id === ctx.threat) continue;
       if (c.offersPeace && (length >= 10 + Math.round(ctx.aggression * 20) || losing)) cmds.push({ type: "offerPeace", targetId: c.id });
       else if (!c.weOfferedPeace && length >= 15 && (losing || coin(view, c.id) < 0.05 * (1 - ctx.aggression))) cmds.push({ type: "offerPeace", targetId: c.id });
+    }
+  }
+  // Stop a runaway leader: war on them, and rally others.
+  if (ctx.threat !== null) {
+    const t = view.contacts.find((c) => c.id === ctx.threat)!;
+    if (t.warSince === null && !t.treaties.includes("alliance")) {
+      const others = view.contacts.filter((c) => c.id !== t.id && c.alive).length;
+      if (mine >= knownPop(ctx, t.id) * 0.25 || others >= 2) { cmds.push({ type: "declareWar", targetId: t.id }); return; }
     }
   }
   // Start at most one war at a time, and only once established.
@@ -144,7 +156,7 @@ function answers(ctx: Ctx): void {
       case "tribute": ok = theirs > mine * 1.5 && ctx.aggression < 0.6 && (!p.bc || p.bc <= view.me.treasury * 0.5); break;
       case "joinWar": {
         const target = p.targetId !== undefined ? knownPop(ctx, p.targetId) : 0;
-        ok = (rel >= 35 || c.treaties.includes("alliance")) && mine >= target * 0.8;
+        ok = p.targetId === ctx.threat || ((rel >= 35 || c.treaties.includes("alliance")) && mine >= target * 0.8);
         break;
       }
     }
@@ -177,9 +189,9 @@ function deals(ctx: Ctx): void {
         ask({ kind: "tribute", wantTech: [...c.theirTechs].sort((a, b) => tierOf(b) - tierOf(a))[0]! });
       }
     }
-    // Ask friends to join our wars.
+    // Ask friends to join our wars; ask everyone to stop a runaway leader.
     for (const w of ctx.wars) {
-      if (c.id !== w.id && c.warSince === null && (rel >= 35 || c.treaties.includes("alliance"))) ask({ kind: "joinWar", targetId: w.id });
+      if (c.id !== w.id && c.warSince === null && (rel >= 35 || c.treaties.includes("alliance") || w.id === ctx.threat)) ask({ kind: "joinWar", targetId: w.id });
     }
   }
 }
@@ -260,7 +272,7 @@ function council(ctx: Ctx): void {
   if (s.candidates.includes(me)) { ctx.cmds.push({ type: "councilVote", candidateId: me }); return; }
   const feel = (id: Id) => ctx.view.contacts.find((c) => c.id === id)?.ourFeeling ?? -5;
   const [a, b] = s.candidates;
-  const best = feel(a) >= feel(b) ? a : b;
+  const best = a === ctx.threat ? b : b === ctx.threat ? a : feel(a) >= feel(b) ? a : b;
   // Abstain rather than crown someone we dislike; warlike races hate handing over the galaxy.
   const ally = ctx.view.contacts.find((c) => c.id === best)?.treaties.includes("alliance");
   ctx.cmds.push({ type: "councilVote", candidateId: ally || feel(best) >= 40 + ctx.aggression * 20 ? best : null });
@@ -283,7 +295,47 @@ function research(ctx: Ctx): void {
     propulsion: 18 + early * 10,
     weapons: 6 + a * 15 + war * 15,
   };
+  // Late game: pour research into the fields still short of the top tier (the road to the Ascension Gate).
+  const tiers = Object.fromEntries((Object.keys(alloc) as ResearchField[]).map((f) => [f, fieldTier(view.me.research, f)])) as Record<ResearchField, number>;
+  if (Object.values(tiers).filter((t) => t >= 8).length >= 3) {
+    for (const f of Object.keys(alloc) as ResearchField[]) alloc[f] = tiers[f] >= 10 ? 1 : 5 + (10 - tiers[f]) * 4;
+  }
   cmds(ctx).push({ type: "setResearch", alloc });
+}
+
+/** Pick the most useful project in each field instead of simply the cheapest. */
+function researchProjects(ctx: Ctx): void {
+  const { view } = ctx;
+  if ((view.turn + view.me.id) % 5 !== 0) return;
+  const war = ctx.wars.length > 0;
+  const worth = (t: Tech): number => {
+    let v = 0;
+    for (const fx of t.effects) {
+      switch (fx.stat) {
+        case "hostility": v += 6; break;
+        case "terraform": v += fx.value / 3; break;
+        case "robotControls": v += 6; break;
+        case "productivity": v += fx.value * 30; break;
+        case "factoryCost": v += 3; break;
+        case "range": v += view.turn < 120 ? 5 : 2; break;
+        case "speed": v += 3; break;
+        case "research": v += fx.value * 30 * (1 + ctx.curiosity); break;
+        case "growth": v += 3; break;
+        case "popCost": v += 2; break;
+        case "weapon": v += (fx.min + fx.max) / 4 * (war ? 2 : 1) * (1 + ctx.aggression); break;
+        case "shield": case "armor": case "computer": case "ecm": v += fx.value * (war ? 1.5 : 0.8); break;
+        case "planetShield": v += war ? 3 : 1; break;
+        default: v += 1;
+      }
+    }
+    return v / Math.pow(t.tier, 1.5);
+  };
+  for (const f of ["computers", "construction", "forceFields", "planetology", "propulsion", "weapons"] as ResearchField[]) {
+    const options = researchChoices(view.me.research, f);
+    if (options.length < 2) continue;
+    const best = [...options].sort((a, b) => worth(b) - worth(a))[0]!;
+    if (best.id !== view.me.research.current[f]) ctx.cmds.push({ type: "setResearchProject", field: f, techId: best.id });
+  }
 }
 
 function cmds(ctx: Ctx): Command[] {
@@ -339,6 +391,16 @@ function designs(ctx: Ctx): void {
   };
   const st0 = designStats(me, spec);
   if (st0.spaceUsed > st0.space * 0.6) { spec.ecm = null; spec.shield = null; }
+  // Defensive specials first, while they leave plenty of room for guns.
+  for (const id of ["displacement-field", "inertial-dampers", "cloaking-field", "stasis-field", "repulsor-beam"]) {
+    if (spec.specials.length >= 2 || !parts.specials.some((t) => t.id === id)) continue;
+    const trial = { ...spec, specials: [...spec.specials, id] };
+    if (designStats(me, trial).spaceUsed <= designStats(me, trial).space * 0.45) spec.specials = trial.specials;
+  }
+  if (ctx.aggression > 0.6 && ctx.honor < 0.5 && hull !== "medium" && parts.specials.some((t) => t.id === "planet-cracker") && spec.specials.length < 3) {
+    spec.specials = [...spec.specials, "planet-cracker"];
+    if (designStats(me, spec).spaceUsed > designStats(me, spec).space * 0.6) spec.specials.pop();
+  }
   const banks: { id: string; share: number }[] = [];
   if (beam) banks.push({ id: beam.id, share: missile ? 0.55 : 1 });
   if (missile) banks.push({ id: missile.id, share: beam ? 0.3 : 0.85 });
@@ -493,9 +555,24 @@ function military(ctx: Ctx): void {
     }
   }
 
+  // Retreat from fights we would lose (seen enemy ships far outnumber ours here).
+  const shipsOf = (f: Fleet) => Object.entries(f.ships).reduce((a, [id, n]) => a + (isWarship(ctx.designs.get(id)) ? n : 0), 0);
+  const retreating = new Set<Id>();
+  if (ctx.level !== LEVEL.relaxed) {
+    for (const f of warFleets) {
+      if (myStars.has(f.starId!)) continue;
+      const mineHere = view.fleets.filter((x) => x.starId === f.starId).reduce((a, x) => a + shipsOf(x), 0);
+      const theirs = view.seenFleets.filter((sf) => sf.starId === f.starId && ctx.wars.some((w) => w.id === sf.empireId)).reduce((a, sf) => a + sf.ships, 0);
+      if (theirs > mineHere * 1.6 + 2) {
+        const home = nearestColony(ctx, f);
+        if (home && view.reachable(home.starId, f)) { cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: home.starId }); retreating.add(f.id); }
+      }
+    }
+  }
+
   // Defend: send idle warships to a colony where an enemy fleet is.
   const attacked = view.colonies.filter((c) => view.seenFleets.some((sf) => sf.starId === c.starId && ctx.wars.some((w) => w.id === sf.empireId)));
-  const used = new Set<Id>();
+  const used = new Set<Id>(retreating);
   for (const c of attacked) {
     const s = ctx.starById.get(c.starId)!;
     for (const f of warFleets.filter((x) => !used.has(x.id)).sort((a, b) => dist(a, s) - dist(b, s)).slice(0, 2)) {
@@ -515,12 +592,21 @@ function military(ctx: Ctx): void {
     .map((t) => {
       const home = nearestColony(ctx, t.star);
       const d = home ? dist(ctx.starById.get(home.starId)!, t.star) : 99;
-      return { ...t, d, score: t.pop + d * 3 };
+      const isThreat = enemyColonies(ctx, ctx.threat ?? -1).some((x) => x.star.id === t.star.id);
+      return { ...t, d, score: t.pop + d * 3 - (isThreat ? 60 : 0) };
     })
     .filter((t) => t.d <= 12)
     .sort((a, b) => a.score - b.score);
   const target = targets[0];
   if (!target) return;
+
+  // Ruthless races crack undefended enemy worlds they can't easily take.
+  if (ctx.honor < 0.4 && ctx.aggression > 0.6) {
+    for (const f of view.fleets.filter((x) => idle(x) && Object.keys(x.ships).some((id) => (x.ships[id] ?? 0) > 0 && ctx.designs.get(id)?.specials.includes("planet-cracker")))) {
+      const owner = view.knowledge[f.starId!]?.ownerId;
+      if (owner !== null && owner !== undefined && ctx.wars.some((w) => w.id === owner) && (view.knowledge[f.starId!]?.population ?? 0) > 30) cmds.push({ type: "crackPlanet", fleetId: f.id });
+    }
+  }
 
   // Our warships already at the target: bring troops.
   const atTarget = view.fleets.filter((f) => f.starId === target.star.id && warPower(ctx, f) > 0);
@@ -544,7 +630,8 @@ function military(ctx: Ctx): void {
   // Mass the rest of the idle warships, then strike when strong enough.
   const free = warFleets.filter((f) => !used.has(f.id) && f.starId !== target.star.id);
   const total = free.reduce((a, f) => a + warPower(ctx, f), 0);
-  const threshold = 250 + target.pop * 8 + enemyThere * 40;
+  const nearby = view.seenFleets.filter((sf) => ctx.wars.some((w) => w.id === sf.empireId) && dist(sf, target.star) <= 3).reduce((a, sf) => a + sf.ships, 0);
+  const threshold = 250 + target.pop * 8 + (enemyThere + nearby) * 40 * (ctx.level === LEVEL.hard ? 1.2 : 1);
   if (total >= threshold || strengthThere > 0) {
     for (const f of free) if (view.reachable(target.star.id, f)) cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: target.star.id });
   } else {
@@ -562,9 +649,28 @@ export function basicAIAnswers(view: EmpireView): Command[] {
   return ctx.cmds;
 }
 
+/** Who is about to win? Victory progress is public, so every AI can see it. */
+function findThreat(view: EmpireView): Id | null {
+  if (view.difficulty === "relaxed") return null;
+  const live = view.standings.filter((s) => s.alive);
+  const totalVotes = live.reduce((a, s) => a + s.votes, 0);
+  let worst: { id: Id; score: number } | null = null;
+  for (const s of live) {
+    if (s.id === view.me.id) continue;
+    let score = 0;
+    if (s.buildingAscension) score = Math.max(score, 1);
+    score = Math.max(score, s.culture / 100000 - 0.15, s.techFields / 6 - 0.2);
+    if (view.turn >= 140 && totalVotes > 0) score = Math.max(score, (s.votes / totalVotes) * 1.6 - 0.25);
+    if (score >= 0.6 && (!worst || score > worst.score)) worst = { id: s.id, score };
+  }
+  // Don't gang up on someone we can't even reach.
+  return worst && view.contacts.some((c) => c.id === worst!.id && c.alive) ? worst.id : null;
+}
+
 function makeCtx(view: EmpireView): Ctx {
   const p = view.race.personality;
   return {
+    threat: findThreat(view),
     level: LEVEL[view.difficulty] ?? LEVEL.normal,
     view,
     cmds: [],
@@ -586,6 +692,7 @@ export function basicAITurn(view: EmpireView): Command[] {
   deals(ctx);
   espionage(ctx);
   research(ctx);
+  researchProjects(ctx);
   designs(ctx);
   civilization(ctx);
   const openTargets = expansion(ctx);

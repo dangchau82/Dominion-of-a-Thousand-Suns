@@ -6,13 +6,14 @@ import { CLIMATES, HOSTILE_FROM, MINERAL_MOD } from "./data/planets";
 import type { Race } from "./data/races";
 import { techStats } from "./tech";
 import { empireBonus } from "./civ";
+import { capacityMultiplier, popCostMultiplier } from "./abilities";
 import type { Climate, Colony, Empire, Environment, Planet, ResearchField } from "./types";
 
 // ---------- Planets ----------
 
 /** Population a planet holds; an owner's terraforming techs add to every planet they own. */
 export function planetCapacity(p: Planet, owner?: Empire): number {
-  return p.size + p.terraform + (owner ? techStats(owner).terraform : 0);
+  return (p.size + p.terraform + (owner ? techStats(owner).terraform : 0)) * capacityMultiplier(p, owner);
 }
 
 /** A race's own home climate is never hostile to it. */
@@ -55,7 +56,7 @@ export function popGrowth(pop: number, planet: Planet, race: Race, owner?: Empir
 /** BC to buy one unit of population through the ecology slider (cloning techs lower it). */
 export const POP_COST = 20;
 export function popCost(e: Empire): number {
-  return Math.max(5, POP_COST + techStats(e).popCost);
+  return Math.max(3, (POP_COST + techStats(e).popCost) * popCostMultiplier(e));
 }
 
 // ---------- Production ----------
