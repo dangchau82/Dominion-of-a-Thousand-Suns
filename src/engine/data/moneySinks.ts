@@ -1,146 +1,177 @@
-// Late-game money sinks for treasuries of 2,000 to 20,000 BC. Written by Gemini (2026-11-25), checked by Claude; rules built by Claude.
+// Treasury money sinks for mid- and late-game BC surpluses.
+// Written by Gemini (2026-11-25, second version), checked by Claude; rules built by Claude.
+import type { EventEffect } from "./events";
 
-export type MoneySinkCategory =
-  | "military"
-  | "science"
-  | "diplomacy"
-  | "minorRaces"
-  | "industry"
-  | "finance";
+export interface MoneySinkCost {
+  base: number;
+  perTurn: number;
+  perColony: number;
+  perMinorWorld?: number;
+}
 
-export interface BourseOutcome {
-  id: "boom" | "dividend" | "correction" | "default";
-  label: string;
-  probability: number;
-  payoutMultiplier: number;
-  bonusCulture: number;
-  bonusMorale: number;
+export interface MoneySinkOutcome {
+  chance: number;
+  result: string;
+  effects: EventEffect[];
+  special?: {
+    kind: "spawnMercenaries" | "crashResearch" | "councilVoteShare" | "minorLoyalty" | "wonderRush" | "exchangeBond";
+    value: number;
+    durationTurns?: number;
+  };
 }
 
 export interface MoneySinkDef {
   id: string;
   name: string;
-  category: MoneySinkCategory;
-  description: string;
-  /** Scaling cost formula: Math.round((baseCost + colonyFactor * colonies) * (1 + turn / turnDivisor)). */
-  baseCost: number;
-  colonyFactor: number;
-  turnDivisor: number;
+  formulaText: string;
+  cost: MoneySinkCost;
   cooldownTurns: number;
-  /** Active duration in turns (0 = instant, 1 = next council session, 10-15 = timed effect). */
-  durationTurns: number;
-  /** Benefit parameters read by the engine. */
-  benefitKind:
-    | "spawnMercenaryFleet"
-    | "convertToResearch"
-    | "buyCouncilVotes"
-    | "buyMinorRaceLoyalty"
-    | "rushWonderProduction"
-    | "bourseInvestment";
-  benefitValue: number;
-  secondaryValue: number;
-  /** Only populated for galactic-venture-exchange. */
-  outcomes?: BourseOutcome[];
-  aiSummary: string;
+  /** Measurable AI trigger condition using only EmpireView fields. */
+  aiRule: string;
+  description: string;
+  outcomes: MoneySinkOutcome[];
 }
 
 export const MONEY_SINKS: MoneySinkDef[] = [
   {
-    id: "mercenary-armada",
-    name: "Free-Company Battle Group",
-    category: "military",
-    description: "Hire an autonomous mercenary warship squadron that deploys immediately at your capital for 15 turns.",
-    baseCost: 450,
-    colonyFactor: 60,
-    turnDivisor: 120,
-    cooldownTurns: 10,
-    durationTurns: 15,
-    benefitKind: "spawnMercenaryFleet",
-    benefitValue: 3, // base medium warships spawned (+1 per 50 turns elapsed)
-    secondaryValue: 15, // upkeep BC per turn for 15 turns
-    aiSummary: "Bought when at war with inferior local fleet strength and treasury exceeds 1.4x cost.",
+    id: "mercenary-contract",
+    name: "Privateer Armada Charter",
+    formulaText: "Math.round(450 + turn * 6 + colonies * 35)",
+    cost: { base: 450, perTurn: 6, perColony: 35 },
+    cooldownTurns: 12,
+    aiRule: "wars.length > 0 && fleetPower < wantPower && treasury >= cost + 300",
+    description: "Hire an independent strike squadron (3 medium warships and 1 large cruiser scaled to your tech tier, +1 attack) at your capital. Carries a 15% risk that captains pocket part of the fee and raid an outlying colony.",
+    outcomes: [
+      {
+        // EV at T=100, C=10 (cost 1,400 BC): 0.85 * (+150) + 0.15 * (-1,865) = -152.2 BC
+        chance: 0.85,
+        result: "Four veteran privateer hulls dock at {colony} under your banner, ready for immediate deployment.",
+        effects: [],
+        special: { kind: "spawnMercenaries", value: 4 },
+      },
+      {
+        chance: 0.15,
+        result: "Rogue captains skim 30% of the retainer and loot border depots on {colony} before vanishing into deep space.",
+        effects: [
+          { kind: "money", amount: -420 },
+          { kind: "population", amount: -1 },
+          { kind: "factories", amount: -2 },
+        ],
+      },
+    ],
   },
   {
     id: "emergency-research-grant",
-    name: "Crash Symposium Grant",
-    category: "science",
-    description: "Funnel treasury reserves into active laboratories, converting BC into research at an inefficient 2.5:1 rate.",
-    baseCost: 400,
-    colonyFactor: 50,
-    turnDivisor: 100,
-    cooldownTurns: 5,
-    durationTurns: 0,
-    benefitKind: "convertToResearch",
-    benefitValue: 0.4, // grants Math.round(cost * 0.40) RP in active field
-    secondaryValue: 0,
-    aiSummary: "Bought by science or boxed-in empires (or Ascension Gate contenders) with over 2,500 BC.",
+    name: "Crash-Program Institute",
+    formulaText: "Math.round(400 + turn * 4 + colonies * 25)",
+    cost: { base: 400, perTurn: 4, perColony: 25 },
+    cooldownTurns: 8,
+    aiRule: "(boxedIn.range || boxedIn.hostility || techVictoryProgress >= 4) && treasury > 1500 + turn * 6",
+    description: "Convert surplus treasury directly into immediate research points in your lowest-tier field at a steep 0.45 RP per BC rate.",
+    outcomes: [
+      {
+        // EV at T=100, C=10 (cost 1,050 BC): +473 RP (+473 BC eq.) - 1,050 BC = -577.0 BC
+        chance: 1,
+        result: "Emergency laboratories work around the clock, converting treasury reserves into immediate theoretical breakthroughs.",
+        effects: [],
+        special: { kind: "crashResearch", value: 0.45 },
+      },
+    ],
   },
   {
-    id: "council-lobbying-bloc",
-    name: "Council Envoy Retainer",
-    category: "diplomacy",
-    description: "Bankroll neutral delegate blocs to secure +4 extra Galactic Council votes for the upcoming vote.",
-    baseCost: 500,
-    colonyFactor: 80,
-    turnDivisor: 150,
-    cooldownTurns: 8,
-    durationTurns: 1,
-    benefitKind: "buyCouncilVotes",
-    benefitValue: 4, // +4 council votes for next vote (max 2 stacks)
-    secondaryValue: 5, // +5 relations with minor delegations
-    aiSummary: "Bought within 5 turns of a Council vote when +4 votes can swing an election or defeat a sanction.",
+    id: "council-lobbying",
+    name: "Delegate Syndicate Retainer",
+    formulaText: "Math.round(600 + turn * 5 + colonies * 40)",
+    cost: { base: 600, perTurn: 5, perColony: 40 },
+    cooldownTurns: 15,
+    aiRule: "council.nextTurn - turn <= 10 && isCouncilContender && treasury >= cost + 400",
+    description: "Retain off-world syndicates to secure +4% bonus Galactic Council vote share for the next session and improve ties with two wary rivals, at a 20% risk of a diplomatic leak.",
+    outcomes: [
+      {
+        // EV at T=100, C=10 (cost 1,600 BC): 0.80 * (-1,300) + 0.20 * (-1,840) = -1,408.0 BC
+        chance: 0.8,
+        result: "Discreet envoys lock in swing delegates across the sector ahead of the upcoming council vote.",
+        effects: [{ kind: "relations", amount: 6 }],
+        special: { kind: "councilVoteShare", value: 0.04, durationTurns: 15 },
+      },
+      {
+        chance: 0.2,
+        result: "A leaked ledger exposes your slush fund to the galaxy, alienating rivals and cutting your swing bloc in half.",
+        effects: [{ kind: "relations", amount: -12 }],
+        special: { kind: "councilVoteShare", value: 0.02, durationTurns: 15 },
+      },
+    ],
   },
   {
     id: "minor-race-patronage",
-    name: "Sovereign Protectorate Charter",
-    category: "minorRaces",
-    description: "Endow trade guarantees on a neutral minor race to gain +35 loyalty and block rival bribes for 15 turns.",
-    baseCost: 350,
-    colonyFactor: 45,
-    turnDivisor: 120,
-    cooldownTurns: 6,
-    durationTurns: 15,
-    benefitKind: "buyMinorRaceLoyalty",
-    benefitValue: 35, // +35 loyalty/relations with target minor race
-    secondaryValue: 15, // turns rival bribery is locked out
-    aiSummary: "Bought by diplomatic or vote-hungry AIs to lock in recurring minor-race gifts and votes.",
-  },
-  {
-    id: "wonder-rush-consortium",
-    name: "Guildwright Megaproject Rush",
-    category: "industry",
-    description: "Contract interstellar engineering guilds to inject immediate production progress into an active Galactic Wonder (not the Ascension Gate).",
-    baseCost: 600,
-    colonyFactor: 70,
-    turnDivisor: 100,
-    cooldownTurns: 8,
-    durationTurns: 0,
-    benefitKind: "rushWonderProduction",
-    // Claude: 0.65 -> 0.45 (buying a building costs 2 BC per point, so 0.5 is the ceiling); never the Ascension Gate, which cannot be bought.
-    benefitValue: 0.45, // adds Math.round(cost * 0.45) production to active wonder
-    secondaryValue: 0,
-    aiSummary: "Bought whenever building a unique Galactic Wonder (never the Ascension Gate) with excess cash.",
-  },
-  {
-    id: "galactic-venture-exchange",
-    name: "Astral Bourse Syndicate",
-    category: "finance",
-    description: "Invest a block of treasury into merchant syndicates that mature in 10 turns with risky returns.",
-    baseCost: 500,
-    colonyFactor: 60,
-    turnDivisor: 120,
-    cooldownTurns: 10,
-    durationTurns: 10,
-    benefitKind: "bourseInvestment",
-    benefitValue: 10, // matures after 10 turns
-    secondaryValue: 0,
-    // Claude: payouts lowered so the average return is about 97%: a gamble that drains hoards, not a money machine (was 115%).
+    name: "Sovereign Patronage Endowment",
+    formulaText: "Math.round(350 + turn * 3 + minorWorlds * 150)",
+    cost: { base: 350, perTurn: 3, perColony: 0, perMinorWorld: 150 },
+    cooldownTurns: 15,
+    aiRule: "hasUnalliedMinorWithLoyaltyAtLeast30 && treasury > 1000 + turn * 5",
+    description: "Endow infrastructure and trade credits for a minor enclave, granting +45 loyalty (securing their +10 RP/turn or +3% council vote gift) unless conquered by a rival.",
     outcomes: [
-      { id: "boom", label: "Hyper-Lane Boom", probability: 0.25, payoutMultiplier: 1.5, bonusCulture: 40, bonusMorale: 0 },
-      { id: "dividend", label: "Steady Guild Dividend", probability: 0.45, payoutMultiplier: 1.05, bonusCulture: 0, bonusMorale: 0 },
-      { id: "correction", label: "Tariff Contraction", probability: 0.2, payoutMultiplier: 0.6, bonusCulture: 0, bonusMorale: 0 },
-      { id: "default", label: "Syndicate Insolvency", probability: 0.1, payoutMultiplier: 0, bonusCulture: 0, bonusMorale: -2 },
+      {
+        // EV at T=100, minorWorlds=2 (cost 950 BC): 0.85 * (-600) + 0.15 * (-900) = -645.0 BC
+        chance: 0.85,
+        result: "Enclave elders ratify a permanent patronage charter, pledging their scholars and delegates to your cause.",
+        effects: [{ kind: "relations", amount: 10 }],
+        special: { kind: "minorLoyalty", value: 45, durationTurns: 25 },
+      },
+      {
+        chance: 0.15,
+        result: "Border raiders disrupt the enclave shortly after payment, limiting your return to a single diplomatic tribute.",
+        effects: [{ kind: "money", amount: 50 }],
+      },
     ],
-    aiSummary: "Bought during peacetime by wealthy empires (treasury > 2.5x cost) to compound reserves.",
+  },
+  {
+    id: "wonder-rush-grant",
+    name: "Imperial Monument Bonds",
+    formulaText: "Math.round(500 + turn * 4 + colonies * 20)",
+    cost: { base: 500, perTurn: 4, perColony: 20 },
+    cooldownTurns: 6,
+    aiRule: "hasActiveWonderBuild && wonder !== 'w-ascension' && treasury >= cost + 500",
+    description: "Issue high-yield state bonds to rush an active Galactic Wonder (never the Ascension Gate, which cannot be bought), converting BC into immediate wonder production at a 0.45 production-per-BC rate.",
+    outcomes: [
+      {
+        // EV at T=100, C=10 (cost 1,100 BC): 0.90 * (495 - 1,100) + 0.10 * (-1,100) = -654.5 BC
+        chance: 1,
+        result: "Thousands of private haulers and engineers converge on {colony}, accelerating wonder assembly.",
+        effects: [],
+        special: { kind: "wonderRush", value: 0.45 },
+      },
+    ],
+  },
+  {
+    id: "interstellar-exchange",
+    name: "Freeport Venture Syndicate",
+    formulaText: "Math.round(500 + turn * 5 + colonies * 30)",
+    cost: { base: 500, perTurn: 5, perColony: 30 },
+    cooldownTurns: 10,
+    aiRule: "wars.length === 0 && treasury > 1800 + turn * 8",
+    description: "Invest treasury in a 10-turn interstellar trade bond. Matures with a boom (45% for 1.30x payout + 40 culture), a small loss after fees (35% for 0.95x), or a market crash (20% for 0.30x). On average it loses a little: a gamble, not a money machine.",
+    outcomes: [
+      {
+        // Claude: Gemini's payouts (1.65 / 1.20 / 0.45) returned 125% on average, a money machine, the opposite of a sink.
+        // Now 0.45*1.30 + 0.35*0.95 + 0.20*0.30 = 0.98: about 2% lost on average.
+        chance: 0.45,
+        result: "Freeport trade volumes surge across the sector, returning 130% of your principal plus cultural prestige.",
+        effects: [{ kind: "culture", amount: 40 }],
+        special: { kind: "exchangeBond", value: 1.3, durationTurns: 10 },
+      },
+      {
+        chance: 0.35,
+        result: "Steady convoy tariffs return most of your bond, 95% after broker fees.",
+        effects: [],
+        special: { kind: "exchangeBond", value: 0.95, durationTurns: 10 },
+      },
+      {
+        chance: 0.2,
+        result: "Frontier piracy and guild defaults trigger a crash, wiping out 70% of your invested principal.",
+        effects: [{ kind: "morale", amount: -2 }],
+        special: { kind: "exchangeBond", value: 0.3, durationTurns: 10 },
+      },
+    ],
   },
 ];

@@ -175,14 +175,13 @@ describe("Gemini pack 3: living ships", () => {
 import { MONEY_SINKS } from "../src/engine/data/moneySinks";
 
 describe("money sinks (Gemini)", () => {
-  it("the investment drains money on average, and nothing rushes the Ascension Gate", () => {
-    const bourse = MONEY_SINKS.find((m) => m.benefitKind === "bourseInvestment")!;
-    const outcomes = bourse.outcomes!;
-    expect(outcomes.reduce((a, o) => a + o.probability, 0)).toBeCloseTo(1);
-    expect(outcomes.reduce((a, o) => a + o.probability * o.payoutMultiplier, 0)).toBeLessThan(1);
-    const rush = MONEY_SINKS.find((m) => m.benefitKind === "rushWonderProduction")!;
-    expect(rush.benefitValue).toBeLessThanOrEqual(0.5);
-    expect(rush.aiSummary).toMatch(/never the Ascension Gate/);
+  it("every sink drains money on average, chances add up, and nothing rushes the Ascension Gate", () => {
+    for (const m of MONEY_SINKS) expect(m.outcomes.reduce((a, o) => a + o.chance, 0), m.id).toBeCloseTo(1);
+    const bond = MONEY_SINKS.find((m) => m.id === "interstellar-exchange")!;
+    expect(bond.outcomes.reduce((a, o) => a + o.chance * (o.special?.value ?? 0), 0)).toBeLessThan(1);
+    const rush = MONEY_SINKS.find((m) => m.id === "wonder-rush-grant")!;
+    expect(rush.outcomes[0]!.special!.value).toBeLessThanOrEqual(0.5);
+    expect(rush.aiRule).toMatch(/w-ascension/);
   });
 });
 
