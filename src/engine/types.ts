@@ -152,6 +152,10 @@ export interface Empire {
   autoExplore?: boolean;
   /** Last turn this empire warned another empire about nearby colonies. */
   borderWarned?: Record<Id, number>;
+  /** Goodwill received from each giver's gifts in the current 10-turn window (see giveGift). */
+  giftWarmth?: Record<Id, { since: number; used: number }>;
+  /** Which AI runs this empire (rivals, or the player's autopilot). Unset = from difficulty. */
+  ai?: AiBrain;
   /** Rebel empires: the empire they broke away from in a civil war. */
   rebelOf?: Id;
 }
@@ -265,7 +269,11 @@ export interface GameSettings {
   difficulty?: Difficulty;
 }
 
-export type Difficulty = "relaxed" | "normal" | "hard";
+/** "master": rivals are run by the Master AI (src/ai/masterAI.ts). Still no bonuses of any kind. */
+export type Difficulty = "relaxed" | "normal" | "hard" | "master";
+
+/** Which AI runs an empire. Unset = decided by difficulty ("master" difficulty -> master, else basic). */
+export type AiBrain = "basic" | "master";
 
 export interface GameEvent {
   turn: number;

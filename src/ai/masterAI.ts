@@ -5,20 +5,20 @@
 //   - no wars of choice (peace keeps friends, and friends are council votes);
 //   - culture buildings and the helpful wonders first; never paints a target on itself with the Gate;
 //   - never sits on a hoard: rushes buildings every turn;
-//   - wins the Galactic Council by making friends (gifts) just before the vote.
+//   - courts the Galactic Council: steady gifts to the voters it needs, from 40 turns before the first session.
 
 import type { Command } from "../engine/commands";
 import { costFor } from "../engine/civ";
 import { VOTE_SHARE_TO_WIN } from "../engine/victory";
+import { GIFT_WARMTH_CAP, GIFT_WINDOW } from "../engine/diplomacy";
 import type { Id } from "../engine/types";
 import type { ColonyInfo, EmpireView } from "../engine/view";
 import { basicAIAnswers, basicAITurn } from "./basicAI";
 
 /** A rival voter crowns us at 40-60 feeling (warlike races need more); aim just above the top. */
 const FRIEND = 62;
-/** One gift warms relations by BC/10, at most 20. */
-const GIFT_BC = 200;
-const GIFT_WARMTH = 20;
+/** Start courting council voters this many turns before the first council (turn 150). */
+const COUNCIL_COURTING_FROM = 110;
 
 const WONDER_SCORE: Record<string, number> = {
   "w-chorus": 12, "w-embassy": 11, "w-archive": 8, "w-forge": 8, "w-garden": 7, "w-whisper": 2, "w-beacon": 2, "w-academy": 2,
@@ -73,42 +73,33 @@ export function masterAITurn(view: EmpireView): Command[] {
       && !out.some((x) => x.type === "offerPeace" && x.targetId === c.id)) out.push({ type: "offerPeace", targetId: c.id });
   }
 
-  // 3. The council: vote for ourselves, never crown anyone else, and win friends before the vote.
+  // 3. The council: vote for ourselves, never crown anyone else, and court voters well before the vote.
+  // Gifts earn at most GIFT_WARMTH_CAP goodwill per giver every GIFT_WINDOW turns, so friendship is built
+  // over time: once per window, gift the voters we still need (cheapest gap first).
   const session = view.council.session;
   const reserve = 100 + view.turn * 0.5 + (atWar ? 200 : 0);
   if (session && session.myVote === undefined && session.weight[me.id] !== undefined) {
     out.push({ type: "councilVote", candidateId: session.candidates.includes(me.id) ? me.id : null });
   }
   const standing = [...view.standings].filter((s) => s.alive).sort((a, b) => b.votes - a.votes);
-  const votingNow = !!session && session.candidates.includes(me.id);
-  const votingSoon = !session && view.turn >= 100 && view.council.nextTurn - view.turn <= 1 && standing.slice(0, 2).some((s) => s.id === me.id);
-  if (votingNow || votingSoon) {
-    const weight = (id: Id) => (session ? session.weight[id] ?? 0 : standing.find((s) => s.id === id)?.votes ?? 0);
-    const total = session ? Object.values(session.weight).reduce((a, b) => a + b, 0) : standing.reduce((a, s) => a + s.votes, 0);
-    let have = weight(me.id);
+  const contender = standing.slice(0, 2).some((s) => s.id === me.id);
+  if (contender && view.turn >= COUNCIL_COURTING_FROM && view.turn % GIFT_WINDOW === me.id % GIFT_WINDOW) {
+    const total = standing.reduce((a, s) => a + s.votes, 0);
+    let have = standing.find((s) => s.id === me.id)?.votes ?? 0;
     const need = Math.ceil(total * VOTE_SHARE_TO_WIN);
-    // Rivals vote in seat order: seats before ours have voted by the time we move on voting day,
-    // so they get their gifts the turn before; later seats on the day itself.
     const voters = view.contacts
-      .filter((c) => c.alive && c.warSince === null && weight(c.id) > 0)
-      .map((c) => {
-        const gifts = c.treaties.includes("alliance") ? 0 : Math.max(0, Math.ceil((FRIEND - c.attitude) / GIFT_WARMTH));
-        return { c, gifts, w: weight(c.id), reachable: votingNow ? c.id > me.id || gifts === 0 : true };
-      })
-      .filter((v) => v.reachable)
-      .sort((a, b) => a.gifts / a.w - b.gifts / b.w);
-    // Buy the cheapest set of friends that carries the vote; if it can't be carried, keep the money.
-    const plan: typeof voters = [];
-    let cost = 0;
+      .filter((c) => c.alive && c.warSince === null)
+      .map((c) => ({ c, gap: c.treaties.includes("alliance") ? 0 : Math.max(0, FRIEND - c.attitude), w: standing.find((s) => s.id === c.id)?.votes ?? 0 }))
+      .filter((v) => v.w > 0)
+      .sort((a, b) => a.gap / a.w - b.gap / b.w || a.c.id - b.c.id);
     for (const v of voters) {
       if (have >= need) break;
-      plan.push(v); cost += v.gifts * GIFT_BC; have += v.w;
-    }
-    if (have >= need && cost <= treasury - 50) {
-      for (const v of plan) {
-        if (votingSoon && v.c.id > me.id) continue; // their gift goes on voting day
-        for (let i = 0; i < v.gifts; i++) { out.push({ type: "gift", to: v.c.id, bc: GIFT_BC }); treasury -= GIFT_BC; }
-      }
+      have += v.w;
+      if (v.gap <= 0) continue;
+      const bc = Math.min(GIFT_WARMTH_CAP, v.gap) * 10;
+      if (bc > treasury - reserve) break;
+      out.push({ type: "gift", to: v.c.id, bc });
+      treasury -= bc;
     }
   }
 

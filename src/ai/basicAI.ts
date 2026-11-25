@@ -87,6 +87,8 @@ const LEVEL = {
   relaxed: { fleet: 0.5, edge: 0.6, firstWar: 110, warMood: 0.4, troops: 2.2 },
   normal: { fleet: 1, edge: 0, firstWar: 50, warMood: 1, troops: 1.7 },
   hard: { fleet: 1.35, edge: -0.25, firstWar: 35, warMood: 1.6, troops: 1.5 },
+  // Master difficulty: the Master AI plays on top of the basic AI with hard-level fleets (it filters out wars of choice itself).
+  master: { fleet: 1.35, edge: -0.25, firstWar: 35, warMood: 1.6, troops: 1.5 },
 };
 
 interface Ctx {

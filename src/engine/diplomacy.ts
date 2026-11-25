@@ -196,6 +196,10 @@ function checkProposalStillValid(state: GameState, from: Empire, to: Empire, p: 
 }
 
 /** Gifts arrive at once and warm relations. */
+/** Goodwill one empire can earn from another's gifts per window (stops buying council votes on voting day). */
+export const GIFT_WARMTH_CAP = 20;
+export const GIFT_WINDOW = 10;
+
 export function giveGift(state: GameState, from: Empire, to: Empire, bc: number, techId?: string): string | null {
   if (!from.contacts.includes(to.id) || !to.alive) return "You haven't met them";
   if (bc < 0 || bc > from.treasury) return "Not enough BC";
@@ -204,8 +208,13 @@ export function giveGift(state: GameState, from: Empire, to: Empire, bc: number,
   from.treasury -= bc;
   to.treasury += bc;
   if (techId) learn(to.research, techId);
-  const warmth = Math.min(20, bc / 10 + (techId ? tech(techId).tier * 3 : 0));
-  adjustRelation(to, from, warmth);
+  // Gifts can't buy love in bulk: at most GIFT_WARMTH_CAP goodwill from one giver per GIFT_WINDOW turns.
+  const log = (to.giftWarmth ??= {});
+  const w = log[from.id] && state.turn - log[from.id]!.since < GIFT_WINDOW ? log[from.id]! : { since: state.turn, used: 0 };
+  const warmth = Math.min(GIFT_WARMTH_CAP - w.used, bc / 10 + (techId ? tech(techId).tier * 3 : 0));
+  w.used += Math.max(0, warmth);
+  log[from.id] = w;
+  if (warmth > 0) adjustRelation(to, from, warmth);
   event(state, to.id, "diplomacy", `The ${from.name} sent a gift: ${[bc > 0 ? `${Math.round(bc)} BC` : "", techId ? tech(techId).name : ""].filter(Boolean).join(" and ")}.`);
   if (!from.isPlayer && from.atWar[to.id] !== undefined) {
     event(state, to.id, "diplomacy", say(state.turn, from, "surrender", to));

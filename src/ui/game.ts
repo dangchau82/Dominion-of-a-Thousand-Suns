@@ -1680,6 +1680,14 @@ export class GameScreen {
         focusSeg.append(b);
       }
       auto.append(el("span", { class: "dim", style: "width:100%;margin-top:4px" }, `Focus: ${FOCUS_HELP[cur]}`), focusSeg);
+      const brain = this.state.empires[PLAYER]!.ai ?? "basic";
+      const brainSeg = el("div", { class: "seg", style: "width:100%" });
+      for (const [b, label] of [["basic", "Standard autopilot"], ["master", "Master autopilot"]] as const) {
+        const btn = el("button", { class: b === brain ? "on" : "" }, label);
+        btn.onclick = () => { this.cmd({ type: "setAutopilotAI", ai: b }); autosave(this.state); close(); this.showMenu(); };
+        brainSeg.append(btn);
+      }
+      auto.append(el("span", { class: "dim", style: "width:100%;margin-top:4px" }, brain === "master" ? "Master autopilot: peace-minded, courts the council, rushes culture and spends its gold." : "Standard autopilot: plays like the rival AIs."), brainSeg);
       for (const n of [5, 10, 25]) {
         const b = el("button", { class: "small" }, `▶ ${n} turns`);
         b.onclick = () => { close(); this.autopilot(n); };

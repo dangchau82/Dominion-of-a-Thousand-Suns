@@ -142,3 +142,11 @@ Danny's must-have "civil war with spy options" and the idea "occupation and resi
 | **kept** (penalty 25%, weariness after 30 turns) | 25 | 18 | 6 | 5 | T330 | 7 |
 - Quorai unchanged (9 of 22 games) — unrest is not the Quorai fix.
 - Tools: `tools/unrest-probe.test.ts` (counts revolts, civil wars, unrest levels); `tools/vitest.tools.config.ts` runs any tool test (`TOOL=tools/x.test.ts`).
+
+## 2026-11-25 15:50 Master AI wired in; council votes can no longer be bought on voting day
+- **Gift cap:** one empire's gifts earn another empire's goodwill at most +20 per 10 turns (`GIFT_WARMTH_CAP`, `GIFT_WINDOW` in diplomacy.ts; stored in `Empire.giftWarmth`). Extra gold still arrives but buys no more love. Basic-AI balance unchanged (54 games, seeds 3000+: identical results).
+- **Master AI** now courts voters steadily instead: from turn 110, once every 10 turns, if it is in the top two for votes, it gifts the cheapest voters it still needs.
+- **Wired in:** difficulty `"master"` (new-game menu: "Rivals play the Master AI"), `Empire.ai` + `setAutopilotAI` command, autopilot menu "Standard / Master autopilot" for the player, router in `src/ai/index.ts` (`brainOf`). The old `master-ai-groundwork.patch` is superseded. No save bump (optional field).
+- **Tournament after the gift cap** (1 master vs 5 basic, medium, seeds 8000+): **13/18 wins** (7 council, 6 culture); control (basic AI in the same seat) 0/18. Note: seat 0 under a basic AI has won only 1 of 24 tournament games (expected ~4); worth checking whether seat 0 starts worse.
+- **All-master games** (18, seeds 3000+): culture 13, council 3, no winner 2, median end T343, 12 different races won; Quorai not dominant.
+- Tests: `tests/masterAI.test.ts` (wiring, legal orders, never the Gate, gift cap, determinism). Balance tester takes `DIFF=master`.

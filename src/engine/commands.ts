@@ -36,6 +36,7 @@ export type Command =
   | { type: "setSecurity"; percent: number }
   | { type: "setFocus"; focus: AutopilotFocus }
   | { type: "setAutoExplore"; on: boolean }
+  | { type: "setAutopilotAI"; ai: "basic" | "master" }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -247,6 +248,11 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "setFocus": {
       if (!(AUTOPILOT_FOCI as readonly string[]).includes(cmd.focus)) return fail("Unknown focus");
       e.focus = cmd.focus;
+      return { ok: true };
+    }
+    case "setAutopilotAI": {
+      if (cmd.ai !== "basic" && cmd.ai !== "master") return fail("Unknown AI");
+      e.ai = cmd.ai;
       return { ok: true };
     }
     case "setAutoExplore": {
