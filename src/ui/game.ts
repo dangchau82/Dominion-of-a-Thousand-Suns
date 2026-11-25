@@ -21,7 +21,7 @@ import { fleetExtraRange } from "../engine/movement";
 import { researchChoices, tech, techCost } from "../engine/tech";
 import { TECHS } from "../engine/data/techs";
 import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
-import { art, setImageLoadedHandler } from "./assets";
+import { art, portraitHTML, setImageLoadedHandler } from "./assets";
 import { StarMap } from "./map";
 import { autosave } from "./storage";
 
@@ -730,7 +730,7 @@ export class GameScreen {
         for (const p of list) {
           const o = v.contacts.find((x) => x.id === p.from);
           const card = el("div", { class: "tech-card empire-card" });
-          card.innerHTML = `<img src="${art.portrait(o?.raceId ?? "humans")}" alt=""><div><b style="color:${o?.color ?? "#fff"}">${esc(o?.name ?? "?")}</b>
+          card.innerHTML = `${portraitHTML(o?.raceId ?? "humans")}<div><b style="color:${o?.color ?? "#fff"}">${esc(o?.name ?? "?")}</b>
             ${p.says ? `<div class="quote">${esc(p.says)}</div>` : ""}<div>${esc(p.text)}</div></div>`;
           const row = el("div", { class: "row", style: "justify-content:flex-start" });
           const yes = el("button", { class: "small primary" }, "Accept");
@@ -760,7 +760,7 @@ export class GameScreen {
         if (!o) { close(); return; }
         const them = this.state.empires[id]!;
         const greet = reply || say(v.turn, them, o.warSince !== null ? "threaten" : "greeting", this.state.empires[PLAYER]!);
-        box.innerHTML = `<div class="empire-card"><img src="${art.portrait(o.raceId)}" alt=""><div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
+        box.innerHTML = `<div class="empire-card big">${portraitHTML(o.raceId)}<div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
           <div class="dim">${race(o.raceId).name} · ${moodWord(o.attitude)} toward you (${o.attitude > 0 ? "+" : ""}${o.attitude})</div></div></div>
           <div class="quote" style="margin:8px 0">${esc(greet)}</div>`;
         const ask = (proposal: Record<string, unknown>) => {
@@ -892,7 +892,7 @@ export class GameScreen {
       const draw = (status = "") => {
         const v = makeView(this.state, PLAYER);
         const o = v.contacts.find((x) => x.id === id)!;
-        box.innerHTML = `<div class="empire-card"><img src="${art.portrait(o.raceId)}" alt=""><div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
+        box.innerHTML = `<div class="empire-card big">${portraitHTML(o.raceId)}<div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
           <div class="dim">${esc(r.name)} · ${moodWord(o.attitude)} toward you · chat is for fun and can't change the game</div></div></div>`;
         if (!geminiKey()) {
           box.append(el("p", {}, "To talk freely with alien leaders, add your own Gemini API key in ☰ → Gemini link. It stays on this device."));
@@ -999,7 +999,7 @@ export class GameScreen {
   private showWelcome(): void {
     const r = race(this.state.empires[PLAYER]!.raceId);
     this.modal((box, close) => {
-      box.innerHTML = `<img class="event-pic" src="${art.portrait(r.id)}" style="aspect-ratio:1;max-height:220px;object-position:top" alt="">
+      box.innerHTML = `${portraitHTML(r.id, 'class="event-pic" style="aspect-ratio:1;max-height:220px;object-fit:cover;object-position:top"')}
         <h2>Leader of the ${esc(r.name)}</h2>
         <p>You start with one homeworld, two scouts and a colony ship. ${this.state.empires.length - 1} rival races start exactly the same way.</p>
         <ul>

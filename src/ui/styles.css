@@ -46,7 +46,7 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 .setup .inner { max-width: 980px; margin: 0 auto; }
 .races { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 10px 0 18px; }
 .race-card { background: var(--panel-2); border: 2px solid transparent; border-radius: 12px; overflow: hidden; cursor: pointer; }
-.race-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.race-card img, .race-card video { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
 .race-card .rc-body { padding: 6px 8px 8px; }
 .race-card .rc-name { font-weight: 650; }
 .race-card .rc-style { font-size: 12px; color: var(--dim); }
@@ -130,7 +130,11 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 .design-row > span { min-width: 92px; }
 .design-row select { flex: 1; min-width: 0; }
 .empire-card { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: start; }
-.empire-card img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
+.empire-card img, .empire-card video { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
+.empire-card.big { grid-template-columns: 128px 1fr; align-items: center; }
+.empire-card.big img, .empire-card.big video { width: 128px; height: 128px; border-radius: 10px; box-shadow: 0 0 18px rgba(120,160,255,0.25); }
+video.living { background: #050814; pointer-events: none; }
+@media (max-width: 600px) { .empire-card.big { grid-template-columns: 96px 1fr; } .empire-card.big img, .empire-card.big video { width: 96px; height: 96px; } }
 .empire-card .row { grid-column: 1 / -1; }
 .quote { font-style: italic; opacity: 0.85; }
 .standings { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }

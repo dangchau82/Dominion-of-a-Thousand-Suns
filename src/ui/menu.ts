@@ -2,7 +2,7 @@
 
 import { newGame, RACES, type GameSettings, type GameState } from "../engine";
 import type { Difficulty, GalaxyShape, GalaxySize } from "../engine/types";
-import { art } from "./assets";
+import { art, portraitHTML } from "./assets";
 import { clearAutosave, hasAutosave, loadAutosave } from "./storage";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -58,7 +58,7 @@ function showSetup(root: HTMLElement, start: (g: GameState) => void): void {
     inner.innerHTML = `<h1>Choose your race</h1>
       <div class="races">${RACES.map((x) => `
         <div class="race-card ${x.id === opts.raceId ? "sel" : ""}" data-race="${x.id}">
-          <img src="${art.portrait(x.id)}" alt="" loading="lazy">
+          ${x.id === opts.raceId ? portraitHTML(x.id) : `<img src="${art.portrait(x.id)}" alt="" loading="lazy">`}
           <div class="rc-body"><div class="rc-name">${esc(x.name)}</div><div class="rc-style">${esc(x.style)}</div></div>
         </div>`).join("")}</div>
       <div class="race-detail"><h2>${esc(r.name)} <span class="dim">· ${esc(r.style)}</span></h2>
