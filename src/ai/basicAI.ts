@@ -616,7 +616,7 @@ function production(ctx: Ctx, settleTargets: number): void {
       if (!buildsColony(c)) colonyPlanned++;
       s = sliders(35, def, 0, growing ? 10 : 0, 0);
       s.research = 100 - s.ship - s.defense - s.ecology;
-    } else if (big && factoriesFull && needShips && warship) {
+    } else if ((big || rich) && factoriesFull && needShips && warship) {
       want = warship.id;
       s = sliders(atWar ? 50 : 30, def, 0, growing ? 10 : 0, 0);
       s.research = 100 - s.ship - s.defense - s.ecology;

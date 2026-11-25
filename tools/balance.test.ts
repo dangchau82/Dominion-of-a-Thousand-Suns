@@ -9,10 +9,11 @@ it("balance", () => {
   const ids = RACES.map((r) => r.id);
   const rows: any[] = [];
   const t0 = Date.now();
-  for (let g = 0; g < 18; g++) {
+  const GAMES = Number(process.env.GAMES ?? 18), SIZE = process.env.SIZE ?? "large", RIVALS = Number(process.env.RIVALS ?? 7), OUT = process.env.OUT ?? "/tmp/balance.json";
+  for (let g = 0; g < GAMES; g++) {
     // rotate who is in each game so every race appears equally
     const race = ids[g % ids.length]!;
-    const s = newGame({ seed: 1000 + g, size: "large", shape: "ellipse", rivals: 7, playerRaceId: race, playerName: "P", difficulty: "normal" } as never);
+    const s = newGame({ seed: 1000 + g, size: SIZE, shape: "ellipse", rivals: RIVALS, playerRaceId: race, playerName: "P", difficulty: "normal" } as never);
     // Nobody is "the player" here, so a game only ends with a real win (or turn 400).
     for (const e of s.empires) e.isPlayer = false;
     let t = 0;
@@ -25,5 +26,5 @@ it("balance", () => {
       maxBases: Math.max(0, ...Object.values(s.colonies).map((c) => c.missileBases)), treasury: s.empires.map((e) => Math.round(e.treasury)), final: s.empires.map((e) => ({ race: e.raceId, cols: Object.values(s.colonies).filter((c) => c.empireId === e.id).length, alive: e.alive, techs: e.research.known.length })) });
     console.log(`game ${g}: ${t} turns, winner ${rows.at(-1).winner} by ${rows.at(-1).how} (${((Date.now() - t0) / 1000) | 0}s)`);
   }
-  writeFileSync("/tmp/balance.json", JSON.stringify(rows));
+  writeFileSync(OUT, JSON.stringify(rows));
 }, 3_000_000);

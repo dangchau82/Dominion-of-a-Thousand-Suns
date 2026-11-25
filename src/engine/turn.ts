@@ -22,6 +22,11 @@ import { FIELDS, type Colony, type Empire, type GameEvent, type GameState, type 
 /** Share of unused BC that goes to the treasury instead of being lost. */
 export const LEFTOVER_TO_TREASURY = 0.5;
 
+/** Running a big empire costs money: upkeep grows faster than the colony count, so hoards and runaway sprawl are checked. */
+export function imperialUpkeep(colonies: number): number {
+  return colonies <= 6 ? 0 : 0.3 * Math.pow(colonies - 6, 1.25);
+}
+
 function event(state: GameState, ev: Omit<GameEvent, "turn">): void {
   state.events.push({ turn: state.turn, ...ev });
 }
@@ -184,6 +189,13 @@ export function endTurn(state: GameState): void {
   }
   for (const e of state.empires) {
     if (e.alive) processResearch(state, e, researchByEmpire.get(e.id) ?? 0);
+  }
+
+  // Imperial upkeep (never pushes the treasury below zero).
+  const colonyCount = new Map<number, number>();
+  for (const c of colonies) colonyCount.set(c.empireId, (colonyCount.get(c.empireId) ?? 0) + 1);
+  for (const e of state.empires) {
+    if (e.alive) e.treasury = Math.max(0, e.treasury - imperialUpkeep(colonyCount.get(e.id) ?? 0));
   }
 
   processCivilization(state);

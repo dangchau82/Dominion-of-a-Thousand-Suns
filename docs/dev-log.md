@@ -60,3 +60,15 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 - Test 'relaxed fewer wars' now sums 3 seeds (single seed was chaotic).
 - Two full playthroughs as Ashkari (warlike autopilot, no cheats, own view only): ELIMINATED around T266-277. At ~T244 every empire declared war on me within 2 turns. Likely cause (UNVERIFIED): autopilot builds the Ascension Gate, which makes everyone treat me as a runaway leader (findThreat, buildingAscension => score 1). Needs: a defence plan before the Gate, or the Gate only when strong.
 - Results for rivals are only for balance work (PEEK=1 in tools/play.test.ts); normal play prints own empire only.
+
+### Balance round (medium maps, 5 rivals, 18 AI-only games each, tools/balance.test.ts GAMES/SIZE/RIVALS/OUT)
+| change | tech | culture | council | no winner by T400 | median final treasury |
+|---|---|---|---|---|---|
+| baseline (Gate 65k) | 6 | 5 | 4 | 3 | 2071 |
+| + imperial upkeep (0.3*(colonies-6)^1.25 BC/turn) | 6 | 6 | 5 | 1 | 2449 |
+| + rich empires build ships at every colony | 8 | 5 | 3 | 2 | 1940 |
+| Gate 130k | 0 | 9 | 3 | 6 | 1567 |
+| **Gate 100k (kept)** | 4 | 7 | 3 | 4 | 1677 |
+- Quorai wins fell from 4 to 2; winners now spread over 8 races.
+- Still open: hoards (~1700 median), 4 of 18 games unfinished at T400, conquest wins ~0.
+- Test fix: war-count test counted events only after the last turn (events are trimmed each turn).
