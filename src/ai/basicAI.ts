@@ -38,6 +38,29 @@ function colonyIds(ctx: Ctx, ships: Record<string, number>): string[] {
     .sort((a, b) => (ctx.designs.get(b)!.extraRange - ctx.designs.get(a)!.extraRange) || (a < b ? -1 : 1));
 }
 
+/** Could a ship of this type reach the star from our colonies? */
+function canReach(ctx: Ctx, starId: Id, shipId: string): boolean {
+  const any = ctx.view.fleets[0];
+  const probe = { id: -1, empireId: ctx.view.me.id, x: 0, y: 0, starId: null, destStarId: null, ...(any ?? {}), ships: { [shipId]: 1 } } as Fleet;
+  return ctx.view.reachable(starId, probe);
+}
+
+/** Is growth blocked by fuel range or by which planets we can live on? Drives research. */
+function boxedIn(ctx: Ctx): { range: boolean; hostility: boolean } {
+  const { view } = ctx;
+  const pod = bestColonyDesign(ctx);
+  const free = view.stars.filter((s) => view.knowledge[s.id]?.ownerId == null);
+  const settle = free.filter((s) => view.canSettle(s.id));
+  const settleReach = settle.filter((s) => canReach(ctx, s.id, pod)).length;
+  const unexplored = view.stars.filter((s) => !view.knowledge[s.id]?.explored);
+  const unexploredReach = unexplored.filter((s) => canReach(ctx, s.id, "scout")).length;
+  const harshReach = free.filter((s) => view.knowledge[s.id]?.explored && view.knowledge[s.id]?.planet && !view.canSettle(s.id) && canReach(ctx, s.id, pod)).length;
+  return {
+    range: settleReach < 2 && (settle.length > settleReach || (unexplored.length > 0 && unexploredReach === 0)),
+    hostility: settleReach < 2 && harshReach >= 1,
+  };
+}
+
 /** Best colony ship to build: our own long-range design if we have one, otherwise the standard one. */
 function bestColonyDesign(ctx: Ctx): string {
   const own = ctx.view.designs.filter((d) => d.role === "colony" && d.empireId !== null).sort((a, b) => b.extraRange - a.extraRange);
@@ -324,7 +347,7 @@ function council(ctx: Ctx): void {
 
 function research(ctx: Ctx): void {
   const { view } = ctx;
-  if (view.turn % 10 !== 1) return;
+  if (view.turn % 5 !== 1) return;
   const a = ctx.aggression;
   const cu = ctx.curiosity;
   const war = ctx.wars.length > 0 ? 1 : 0;
@@ -337,6 +360,10 @@ function research(ctx: Ctx): void {
     propulsion: 18 + early * 10,
     weapons: 6 + a * 15 + war * 15,
   };
+  // Boxed in: push the fields that open up new worlds.
+  const boxed = boxedIn(ctx);
+  if (boxed.range) alloc.propulsion += 35;
+  if (boxed.hostility) alloc.planetology += 35;
   // Late game: pour research into the fields still short of the top tier (the road to the Ascension Gate).
   const tiers = Object.fromEntries((Object.keys(alloc) as ResearchField[]).map((f) => [f, fieldTier(view.me.research, f)])) as Record<ResearchField, number>;
   if (Object.values(tiers).filter((t) => t >= 8).length >= 3) {
@@ -350,16 +377,17 @@ function researchProjects(ctx: Ctx): void {
   const { view } = ctx;
   if ((view.turn + view.me.id) % 5 !== 0) return;
   const war = ctx.wars.length > 0;
+  const boxed = boxedIn(ctx);
   const worth = (t: Tech): number => {
     let v = 0;
     for (const fx of t.effects) {
       switch (fx.stat) {
-        case "hostility": v += 6; break;
+        case "hostility": v += boxed.hostility ? 20 : 6; break;
         case "terraform": v += fx.value / 3; break;
         case "robotControls": v += 6; break;
         case "productivity": v += fx.value * 30; break;
         case "factoryCost": v += 3; break;
-        case "range": v += view.turn < 120 ? 5 : 2; break;
+        case "range": v += boxed.range ? 20 : view.turn < 120 ? 5 : 2; break;
         case "speed": v += 3; break;
         case "research": v += fx.value * 30 * (1 + ctx.curiosity); break;
         case "growth": v += 3; break;
@@ -519,7 +547,12 @@ function production(ctx: Ctx, settleTargets: number): void {
   const threatened = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
   const enemyNear = (c: ColonyInfo) => view.seenFleets.some((f) => ctx.wars.some((w) => w.id === f.empireId) && dist(f, ctx.starById.get(c.starId)!) < 6);
 
-  for (const c of view.colonies) {
+  // Colony ships already being built anywhere count toward the worlds we want to settle.
+  let colonyPlanned = colonyShips + view.colonies.filter((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "colony").length;
+  const pod = bestColonyDesign(ctx);
+  const buildsColony = (c: ColonyInfo) => !!c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "colony";
+  const colonies = [...view.colonies].sort((a, b) => Number(b.isCapital) - Number(a.isCapital));
+  for (const c of colonies) {
     const growing = c.population < c.capacity - 1;
     const factoriesFull = c.factories >= c.maxFactories - 0.5;
     const big = c.population >= 30;
@@ -529,12 +562,19 @@ function production(ctx: Ctx, settleTargets: number): void {
     if (c.isCapital) {
       want = scouts < 2 && unexplored > 0 ? "scout"
         : needShips && (atWar || colonyShips >= settleTargets) ? warship!.id
-        : settleTargets > colonyShips ? bestColonyDesign(ctx)
+        : settleTargets > colonyShips ? pod
         : needShips ? warship!.id : null;
+      if (want === pod && !buildsColony(c)) colonyPlanned++;
       const ship = want === "scout" ? 10 : want ? (atWar ? 40 : 30) : 0;
       const eco = growing ? 10 : 0;
       const res = 100 - ship - def - eco - (factoriesFull ? 0 : 30);
       s = sliders(ship, def, factoriesFull ? 0 : 30, eco, Math.max(0, res));
+    } else if (!atWar && c.population >= 25 && factoriesFull && settleTargets > colonyPlanned - (buildsColony(c) ? 1 : 0)) {
+      // A well-built colony helps the capital spread out.
+      want = pod;
+      if (!buildsColony(c)) colonyPlanned++;
+      s = sliders(35, def, 0, growing ? 10 : 0, 0);
+      s.research = 100 - s.ship - s.defense - s.ecology;
     } else if (big && factoriesFull && needShips && warship) {
       want = warship.id;
       s = sliders(atWar ? 50 : 30, def, 0, growing ? 10 : 0, 0);
@@ -586,7 +626,9 @@ function expansion(ctx: Ctx): number {
       taken.add(options[i]!.id);
     }
   }
-  return settleable.filter((s) => !taken.has(s.id)).length;
+  // Only count worlds a new colony ship could actually reach, so we don't build ships that just sit at home.
+  const pod = bestColonyDesign(ctx);
+  return settleable.filter((s) => !taken.has(s.id) && canReach(ctx, s.id, pod)).length;
 }
 
 // ---------- war ----------
