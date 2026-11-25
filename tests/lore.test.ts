@@ -289,3 +289,20 @@ describe("protected worlds (Gemini)", () => {
     for (const s of DECREE.stages) expect(s.punishment).toMatch(/pays?|fine|reparations|peace/);
   });
 });
+
+import { CRUSADE, CRUSADE_CHAIN } from "../src/engine/data/crusade";
+
+describe("the Crusade crisis (Gemini)", () => {
+  it("10 linked events; three branches after the choice; all in scale", () => {
+    expect(CRUSADE_CHAIN.length).toBe(10);
+    const ids = new Set(CRUSADE_CHAIN.map((e) => e.id));
+    for (const e of CRUSADE_CHAIN) {
+      if (e.requires) expect(ids.has(e.requires), e.id).toBe(true);
+      checkText(e);
+      expect(e.title).not.toMatch(/\{/);
+      for (const c of e.choices) for (const fx of c.effects) expect(inScale(fx), `${e.id} ${JSON.stringify(fx)}`).toBe(true);
+    }
+    expect(new Set(CRUSADE_CHAIN.filter((e) => e.branch).map((e) => e.branch))).toEqual(new Set(["order", "chaos", "neutral"]));
+    expect(CRUSADE.conversion).toMatch(/falls below/);
+  });
+});
