@@ -4,6 +4,7 @@
 import {
   CLIMATES, PLANET_ODDS, PLANET_ORDER, POOR_ODDS, RICH_ODDS, STAR_NAMES, STAR_ODDS, STAR_ORDER,
 } from "./data/planets";
+import { MORE_STAR_NAMES } from "./data/starNamesExtra";
 import type { Race } from "./data/races";
 import { canColonizeClimate } from "./formulas";
 import * as R from "./rng";
@@ -131,8 +132,12 @@ export function bridgeStars(rng: RngState, stars: Star[]): void {
   const spare = R.shuffle(rng, STAR_NAMES.filter((n) => !used.has(n)));
   for (let i = before; i < pts.length; i++) {
     const pt = pts[i]!;
+    // The old "X Minor" fallback drew from the RNG; keep drawing so seeds don't change.
+    const fallback = spare.length ? null : R.pick(rng, STAR_NAMES);
+    const name = spare.pop() ?? MORE_STAR_NAMES.find((n) => !used.has(n)) ?? `${fallback} Minor`;
+    used.add(name);
     const star: Star = {
-      id: stars.length, name: spare.pop() ?? `${R.pick(rng, STAR_NAMES)} Minor`, x: pt.x, y: pt.y,
+      id: stars.length, name, x: pt.x, y: pt.y,
       color: STAR_ORDER[R.pickCumulative(rng, STAR_ODDS)] ?? "red", planet: null, nebula: false,
     };
     star.planet = rollPlanet(rng, star);
@@ -174,14 +179,22 @@ function rollPlanet(rng: RngState, star: Star): Planet | null {
   return makePlanet(rng, star, kind);
 }
 
+/** The n-th extra name for a galaxy, starting at a point fixed by its shuffled classic names. */
+function extraName(names: readonly string[], n: number): string {
+  let h = 0;
+  for (const c of names[0] ?? "") h = (h * 31 + c.charCodeAt(0)) % 100003;
+  return MORE_STAR_NAMES[(h + n) % MORE_STAR_NAMES.length]!;
+}
+
 export function generateStars(rng: RngState, size: GalaxySize, shape: GalaxyShape): Star[] {
   const [lo, hi] = STAR_COUNT[size];
   const pts = placeStars(rng, shape, R.int(rng, lo, hi));
   connectStars(pts);
   const names = R.shuffle(rng, [...STAR_NAMES]);
   return pts.map((pt, i) => {
-    const base = names[i % names.length] as string;
-    const name = i < names.length ? base : `${base} ${["II", "III", "IV", "V", "VI"][Math.floor(i / names.length) - 1] ?? i}`;
+    // Past the classic names, take extra names in a seed-dependent order without touching the RNG,
+    // so every existing seed still makes exactly the same galaxy.
+    const name = i < names.length ? names[i] as string : extraName(names, i - names.length);
     const star: Star = {
       id: i, name, x: pt.x, y: pt.y,
       color: STAR_ORDER[R.pickCumulative(rng, STAR_ODDS)] ?? "red",

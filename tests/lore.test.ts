@@ -81,3 +81,18 @@ describe("Gemini events and lore", () => {
     }
   });
 });
+
+import { STAR_NAMES } from "../src/engine/data/planets";
+import { MORE_STAR_NAMES } from "../src/engine/data/starNamesExtra";
+import { newGame as makeGame } from "../src/engine";
+
+describe("extra star names (Gemini)", () => {
+  it("are new, unique, and give big maps real names", () => {
+    expect(new Set(MORE_STAR_NAMES).size).toBe(MORE_STAR_NAMES.length);
+    for (const n of MORE_STAR_NAMES) expect(STAR_NAMES).not.toContain(n);
+    const g = makeGame({ seed: 2, size: "huge", shape: "spiral", rivals: 12, playerRaceId: "humans", playerName: "A" });
+    const names = g.stars.map((s) => s.name);
+    expect(new Set(names).size).toBe(names.length);
+    expect(names.filter((n) => / (II|III|IV|V|VI)$| Minor$/.test(n)).length).toBe(0);
+  });
+});
