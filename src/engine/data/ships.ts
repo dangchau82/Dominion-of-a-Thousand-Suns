@@ -78,6 +78,16 @@ export const MAX_DESIGNS = 6;
 
 /** Cost in BC of one missile base (planetary defense). */
 export const MISSILE_BASE_COST = 50;
+/** Each base after the first costs 15% more than the base price (so defenses can't grow without limit). */
+export const MISSILE_BASE_STEP = 0.15;
+/** Most bases a colony can keep: a flat 10 plus one per 10 population. */
+export function maxMissileBases(population: number): number {
+  return 10 + Math.floor(population / 10);
+}
+/** Price of the next missile base for a colony that already has `have`. */
+export function missileBaseCost(have: number): number {
+  return MISSILE_BASE_COST * (1 + MISSILE_BASE_STEP * have);
+}
 /** Starting fleet for every empire (same for player and AI). */
 export const STARTING_FLEET: Record<string, number> = { scout: 2, colony: 1 };
 

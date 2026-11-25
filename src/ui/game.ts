@@ -18,7 +18,7 @@ import {
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
 import { applyCheat, type Cheat } from "../engine/cheats";
 import { fleetExtraRange } from "../engine/movement";
-import { COLONY_POD, FUEL_TANKS } from "../engine/data/ships";
+import { COLONY_POD, FUEL_TANKS, maxMissileBases, missileBaseCost } from "../engine/data/ships";
 import { researchChoices, tech, techCost } from "../engine/tech";
 import { TECHS } from "../engine/data/techs";
 import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
@@ -513,13 +513,14 @@ export class GameScreen {
     const growth = s.planet ? popGrowth(c.population, s.planet, v.race, v.me) : 0;
     wrap.innerHTML = `<div class="chips"><span class="chip">👥 ${fmt(c.population)} / ${c.capacity}</span>
       <span class="chip">🏭 ${fmt(c.factories, 0)} / ${fmt(c.maxFactories, 0)} factories</span>
-      <span class="chip">⚙️ ${fmt(b.production)} BC/turn</span>${c.missileBases ? `<span class="chip">🛡️ ${c.missileBases} bases</span>` : ""}</div>`;
+      <span class="chip">⚙️ ${fmt(b.production)} BC/turn</span>${c.missileBases ? `<span class="chip">🛡️ ${c.missileBases}/${maxMissileBases(c.population)} bases</span>` : ""}</div>`;
 
     const note: Record<Slider, string> = {
       ship: c.buildTemplate
         ? b.ship > 0 ? `${this.tpl(c.buildTemplate).name} in ${Math.max(1, Math.ceil((this.tpl(c.buildTemplate).cost - c.shipProgress) / b.ship))} turn(s)` : `Building ${this.tpl(c.buildTemplate).name}: add spending`
         : "Nothing chosen to build",
-      defense: b.defense > 0 ? `Next missile base in ${Math.max(1, Math.ceil((50 - c.defenseProgress) / b.defense))} turn(s)` : "",
+      defense: c.missileBases >= maxMissileBases(c.population) ? `${c.missileBases} bases: the most this colony can hold (extra goes to the treasury)`
+        : b.defense > 0 ? `Next missile base (${fmt(missileBaseCost(c.missileBases), 0)} BC) in ${Math.max(1, Math.ceil((missileBaseCost(c.missileBases) - c.defenseProgress) / b.defense))} turn(s)` : "",
       industry: c.factories >= c.maxFactories - 0.5 ? "Factories full; extra goes half to treasury" : `+${fmt(b.industry / v.stats.factoryCost)} factories/turn`,
       ecology: c.population >= c.capacity - 0.01 ? "Population full" : `+${fmt(growth + b.ecology / 20)} pop/turn`,
       research: `+${fmt(b.research)} research/turn`,

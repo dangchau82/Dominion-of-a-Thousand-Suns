@@ -1,7 +1,7 @@
 // End-of-turn processing. Same order for every empire, player or AI.
 
 import { ensureProject, learn, tech, techCost, techStats } from "./tech";
-import { MISSILE_BASE_COST } from "./data/ships";
+import { maxMissileBases, missileBaseCost } from "./data/ships";
 import { colonyShipCount, shipDesign } from "./designs";
 import { recordChronicle } from "./chronicle";
 import { resolveCombat } from "./combat";
@@ -80,11 +80,21 @@ function processColony(state: GameState, c: Colony): number {
   }
 
   // Defense
-  c.defenseProgress += b.defense;
-  while (c.defenseProgress >= MISSILE_BASE_COST) {
-    c.defenseProgress -= MISSILE_BASE_COST;
-    c.missileBases++;
-    event(state, { empireId: e.id, kind: "baseBuilt", text: `${s.name} built a missile base (${c.missileBases} total).`, starId: s.id });
+  // Each base costs more than the last, and a colony can keep only so many; spending past the cap goes to the treasury.
+  const baseCap = maxMissileBases(c.population);
+  if (c.missileBases >= baseCap) {
+    leftover += b.defense + c.defenseProgress;
+    c.defenseProgress = 0;
+  } else {
+    c.defenseProgress += b.defense;
+    let builtBases = 0;
+    while (c.missileBases < baseCap && c.defenseProgress >= missileBaseCost(c.missileBases)) {
+      c.defenseProgress -= missileBaseCost(c.missileBases);
+      c.missileBases++;
+      builtBases++;
+    }
+    if (c.missileBases >= baseCap) { leftover += c.defenseProgress; c.defenseProgress = 0; }
+    if (builtBases > 0) event(state, { empireId: e.id, kind: "baseBuilt", text: `${s.name} built ${builtBases > 1 ? `${builtBases} missile bases` : "a missile base"} (${c.missileBases} total${c.missileBases >= baseCap ? ", the most it can hold" : ""}).`, starId: s.id });
   }
 
   // Industry: a building in progress takes half (all, once factories are full);

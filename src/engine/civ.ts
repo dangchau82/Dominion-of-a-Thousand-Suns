@@ -1,6 +1,7 @@
 // The civilization layer: colony buildings, galactic wonders, culture and
 // golden ages, and leaders who serve the empire. Same rules for everyone.
 
+import { maxMissileBases } from "./data/ships";
 import {
   BUILDING_BY_ID, BUILDINGS, GOLDEN_AGE_AT, GOLDEN_AGE_BONUS, GOLDEN_AGE_TURNS, LEADER_KINDS, MAX_LEADERS, NAME_PARTS,
   type BuildingDef, type BuildingEffects, type EmpireBonus, type LeaderKind,
@@ -73,7 +74,7 @@ function finish(state: GameState, e: Empire, c: Colony, b: BuildingDef): void {
   const s = state.stars[c.starId]!;
   c.buildings.push(b.id);
   if (b.effects.pop && s.planet) s.planet.terraform += b.effects.pop;
-  if (b.effects.bases) c.missileBases += b.effects.bases;
+  if (b.effects.bases) c.missileBases = Math.min(c.missileBases + b.effects.bases, maxMissileBases(c.population) + b.effects.bases);
   if (b.wonder) {
     state.wonders[b.id] = { empireId: e.id, starId: s.id, turn: state.turn };
     e.wonders.push(b.id);

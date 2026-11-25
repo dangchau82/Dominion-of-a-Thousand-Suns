@@ -301,4 +301,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;

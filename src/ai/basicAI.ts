@@ -11,7 +11,7 @@ import type { Command } from "../engine/commands";
 import { canUseFuelTanks, designStats, partChoices, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
 import { fieldTier, researchChoices } from "../engine/tech";
-import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, type HullSize, type ShipDesign } from "../engine/data/ships";
+import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, maxMissileBases, type HullSize, type ShipDesign } from "../engine/data/ships";
 import { TECHS, type Tech } from "../engine/data/techs";
 
 const TECH_TIERS = new Map(TECHS.map((t) => [t.id, t.tier]));
@@ -151,6 +151,8 @@ function diplomacy(ctx: Ctx): void {
       if (c.id === ctx.threat) continue;
       if (c.offersPeace && (length >= 10 + Math.round(ctx.aggression * 20) || losing)) cmds.push({ type: "offerPeace", targetId: c.id });
       else if (!c.weOfferedPeace && length >= 15 && (losing || coin(view, c.id) < 0.05 * (1 - ctx.aggression))) cmds.push({ type: "offerPeace", targetId: c.id });
+      // War-weariness: endless wars wear everyone down.
+      else if (!c.weOfferedPeace && length >= 50 && coin(view, 31 + c.id) < 0.15 + (length - 50) * 0.01) cmds.push({ type: "offerPeace", targetId: c.id });
     }
   }
   // Stop a runaway leader: war on them, and rally others.
@@ -564,7 +566,9 @@ function production(ctx: Ctx, settleTargets: number): void {
   // At war, the fleet target is full size at once (no early-game ramp), so a declaration gets a real answer.
   const ramp = atWar ? 1 : Math.min(1, view.turn / 80);
   const wantPower = totalProd * (1.5 + 5 * ctx.aggression) * (atWar ? 1.6 : 1) * ramp * ctx.level.fleet * ctx.focus.fleet;
-  const needShips = !!warship && fleetPower < wantPower;
+  // A big hoard turns into ships rather than sitting idle (the treasury then funds the shipyard).
+  const rich = view.me.treasury > 2500 + view.turn * 10;
+  const needShips = !!warship && (fleetPower < wantPower || rich);
   const threatened = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
   const enemyNear = (c: ColonyInfo) => view.seenFleets.some((f) => ctx.wars.some((w) => w.id === f.empireId) && dist(f, ctx.starById.get(c.starId)!) < 6);
 
@@ -579,7 +583,8 @@ function production(ctx: Ctx, settleTargets: number): void {
     const big = c.population >= (atWar ? 15 : 30);
     let want: string | null = null;
     let s: SliderSet;
-    const def = atWar && (enemyNear(c) || threatened.has(c.starId)) ? 25 : atWar ? 5 : 0;
+    const basesFull = c.missileBases >= maxMissileBases(c.population);
+    const def = basesFull ? 0 : atWar && (enemyNear(c) || threatened.has(c.starId)) ? 25 : atWar ? 5 : 0;
     if (c.isCapital) {
       want = scouts < 2 && unexplored > 0 ? "scout"
         : needShips && (atWar || colonyShips >= settleTargets) ? warship!.id
@@ -788,8 +793,9 @@ function findThreat(view: EmpireView): Id | null {
     if (s.id === view.me.id) continue;
     let score = 0;
     if (s.buildingAscension) score = Math.max(score, 1);
-    score = Math.max(score, s.culture / 100000 - 0.15, s.techFields / 6 - 0.2);
-    if (view.turn >= 140 && totalVotes > 0) score = Math.max(score, (s.votes / totalVotes) * 1.6 - 0.25);
+    // Runaway leaders: close to a culture win, far ahead in tech, or holding a big share of the galaxy's votes.
+    score = Math.max(score, s.culture / 100000 - 0.05, s.techFields / 6 - 0.2);
+    if (view.turn >= 120 && totalVotes > 0) score = Math.max(score, (s.votes / totalVotes) * 1.6 - 0.15);
     if (score >= 0.6 && (!worst || score > worst.score)) worst = { id: s.id, score };
   }
   // Don't gang up on someone we can't even reach.

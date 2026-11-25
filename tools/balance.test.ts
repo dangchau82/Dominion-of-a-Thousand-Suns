@@ -1,5 +1,5 @@
 // Balance tester: 18 AI-vs-AI games on a large galaxy. Not part of npm test (slow, ~2 minutes).
-// Run: npx vitest run tools/balance.test.ts --dir tools   → results in /tmp/balance.json
+// Run: BALANCE=1 npx vitest run   → results in /tmp/balance.json
 import { it } from "vitest";
 import { writeFileSync } from "node:fs";
 import { newGame, endTurn } from "../src/engine";
@@ -13,6 +13,8 @@ it("balance", () => {
     // rotate who is in each game so every race appears equally
     const race = ids[g % ids.length]!;
     const s = newGame({ seed: 1000 + g, size: "large", shape: "ellipse", rivals: 7, playerRaceId: race, playerName: "P", difficulty: "normal" } as never);
+    // Nobody is "the player" here, so a game only ends with a real win (or turn 400).
+    for (const e of s.empires) e.isPlayer = false;
     let t = 0;
     const snap: Record<number, any> = {};
     while (!s.winner && t < 400) {
@@ -20,7 +22,7 @@ it("balance", () => {
       if (t === 100 || t === 200) snap[t] = s.empires.map((e) => ({ race: e.raceId, cols: Object.values(s.colonies).filter((c) => c.empireId === e.id).length, alive: e.alive }));
     }
     rows.push({ g, turns: t, winner: s.winner ? s.empires[s.winner.empireId]!.raceId : null, how: s.winner?.kind ?? null, snap,
-      final: s.empires.map((e) => ({ race: e.raceId, cols: Object.values(s.colonies).filter((c) => c.empireId === e.id).length, alive: e.alive, techs: e.research.known.length })) });
+      maxBases: Math.max(0, ...Object.values(s.colonies).map((c) => c.missileBases)), treasury: s.empires.map((e) => Math.round(e.treasury)), final: s.empires.map((e) => ({ race: e.raceId, cols: Object.values(s.colonies).filter((c) => c.empireId === e.id).length, alive: e.alive, techs: e.research.known.length })) });
     console.log(`game ${g}: ${t} turns, winner ${rows.at(-1).winner} by ${rows.at(-1).how} (${((Date.now() - t0) / 1000) | 0}s)`);
   }
   writeFileSync("/tmp/balance.json", JSON.stringify(rows));

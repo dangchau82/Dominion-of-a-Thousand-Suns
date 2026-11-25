@@ -7,6 +7,7 @@ import { learn, newResearchState, TECH_BY_ID } from "./tech";
 import { addDesign, starterDesigns } from "./designs";
 import { COUNCIL_FIRST } from "./victory";
 import { FIELDS, SAVE_VERSION, type GameState } from "./types";
+import { maxMissileBases } from "./data/ships";
 
 /** Version 1 saves had research "levels"; give each empire a tech tree and the techs those levels imply. */
 function migrateV1(state: GameState): void {
@@ -80,6 +81,12 @@ export function deserialize(json: string): GameState {
   if (data.version === 5) migrateV5(data as GameState);
   if (data.version === 6) migrateV6(data as GameState);
   if (data.version === 7) { const s = data as GameState; s.pendingEvents = []; s.nextEventId = 1; s.version = 8; }
+  if (data.version === 8) {
+    // Version 9 caps missile bases per colony; trim old fortress worlds down to the cap.
+    const s = data as GameState;
+    for (const c of Object.values(s.colonies)) c.missileBases = Math.min(c.missileBases, maxMissileBases(c.population));
+    s.version = 9;
+  }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

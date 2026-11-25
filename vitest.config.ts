@@ -3,5 +3,6 @@ import { defineConfig } from "vitest/config";
 // Long AI-vs-AI games run slower on GitHub's machines than locally.
 export default defineConfig({
   // tools/ holds the slow balance tester; run it by hand (see the file).
-  test: { testTimeout: 60000, include: ["tests/**/*.test.ts"] },
+  // BALANCE=1 runs only the slow balance tester in tools/.
+  test: { testTimeout: 60000, include: process.env.BALANCE ? ["tools/balance.test.ts"] : ["tests/**/*.test.ts"] },
 });
