@@ -11,7 +11,7 @@ export const COUNCIL_FIRST = 150;
 export const COUNCIL_EVERY = 25;
 export const VOTE_SHARE_TO_WIN = 2 / 3;
 export const POP_PER_VOTE = 25;
-export const CULTURE_VICTORY = 95000; // balance 2026-11-24: 100k -> tech won 14/18; 90k -> culture won 12/18
+export const CULTURE_VICTORY = 75000; // balance 2026-11-24: 100k -> tech won 14/18; 90k -> culture won 12/18
 /** Technology victory: master all six fields, then build this. */
 export const ASCENSION_GATE = "w-ascension";
 

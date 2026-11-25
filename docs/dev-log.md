@@ -72,3 +72,4 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 - Quorai wins fell from 4 to 2; winners now spread over 8 races.
 - Still open: hoards (~1700 median), 4 of 18 games unfinished at T400, conquest wins ~0.
 - Test fix: war-count test counted events only after the last turn (events are trimmed each turn).
+- Round 2 (fresh seeds 2000+): culture target 95k -> 75k and Gate 100k -> 90k. Result on 18 medium games: tech 4, culture 7, council 5, no winner 2; 12 different races won; median game ends ~T350. (Culture 85k: 5 unfinished; 70k: culture 10 / tech 1.)
