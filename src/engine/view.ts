@@ -16,7 +16,7 @@ import { colonyBudget, type ColonyBudget } from "./turn";
 import {
   FIELDS,
   type Colony, type Empire, type Fleet, type Id, type GameEvent, type GameState, type ResearchField,
-  type StarColor, type StarKnowledge,
+  type StarColor, type StarKnowledge, type Difficulty,
 } from "./types";
 
 export interface PublicStar {
@@ -50,6 +50,7 @@ export interface ResearchProject {
 
 export interface EmpireView {
   turn: number;
+  difficulty: Difficulty;
   me: Empire;
   /** Ship designs this empire can build (built-ins first). */
   designs: ShipDesign[];
@@ -109,6 +110,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
 
   return {
     turn: state.turn,
+    difficulty: state.settings.difficulty ?? "normal",
     me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
     stars: state.stars.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, color: s.color, nebula: s.nebula })),
     events: state.events.filter((ev) => ev.empireId === null || ev.empireId === empireId).map((ev) => ({ ...ev })),

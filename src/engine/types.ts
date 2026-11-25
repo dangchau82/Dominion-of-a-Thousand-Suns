@@ -127,7 +127,11 @@ export interface GameSettings {
   rivals: number;
   playerRaceId: string;
   playerName: string;
+  /** How hard the AI plays. It never cheats at any level; harder AIs plan and fight more seriously. */
+  difficulty?: Difficulty;
 }
+
+export type Difficulty = "relaxed" | "normal" | "hard";
 
 export interface GameEvent {
   turn: number;
