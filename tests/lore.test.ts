@@ -205,3 +205,21 @@ describe("branching crises (Gemini)", () => {
     }
   });
 });
+
+import { FIGHTER_BAYS, FIGHTER_VARIANTS } from "../src/engine/data/carriers";
+
+describe("carriers (Gemini, balanced by Claude)", () => {
+  // Beam damage per shot by tier, from data/techs.ts (best beam at that tier).
+  const BEAM: Record<number, number> = { 3: 5.5, 5: 7.5, 7: 18, 9: 25 };
+  it("a fighter bay deals about what the same space of beams deals (within 20%)", () => {
+    for (const b of FIGHTER_BAYS) {
+      const fighters = b.fighters.large!;
+      const bay = fighters * ((b.fighter.damage[0] + b.fighter.damage[1]) / 2) * b.fighter.shots;
+      const beams = ((1000 * b.spaceShare) / (8 + 2 * b.tier)) * BEAM[b.tier]!;
+      expect(bay / beams, b.id).toBeGreaterThan(0.8);
+      expect(bay / beams, b.id).toBeLessThan(1.2);
+      expect(b.hulls).not.toContain("small");
+    }
+    expect(FIGHTER_VARIANTS.length).toBe(4);
+  });
+});
