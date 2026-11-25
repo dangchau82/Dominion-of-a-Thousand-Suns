@@ -239,3 +239,21 @@ describe("victory warnings (Gemini)", () => {
     for (const v of VICTORY_TENSION) expect(v.counterPlay.maxSimultaneousWars).toBeLessThanOrEqual(2);
   });
 });
+
+import { STARBASES, SUPERWEAPONS } from "../src/engine/data/megaprojects";
+import { TECHS } from "../src/engine/data/techs";
+
+describe("superweapons and starbases (Gemini, balanced by Claude)", () => {
+  it("starbases give no more than about warship value per BC; superweapons take 30-100 turns and can't stay on", () => {
+    const tierOf = (id: string) => TECHS.find((t) => t.id === id)!.tier;
+    for (const b of STARBASES) {
+      const value = b.hits * 2 + b.weapons.reduce((a, w) => a + w.count * (4 + 3 * tierOf(w.techId)), 0);
+      expect(value / b.cost, b.id).toBeLessThanOrEqual(1.15);
+    }
+    for (const w of SUPERWEAPONS) {
+      expect(w.cost / 300).toBeGreaterThanOrEqual(30);
+      expect(w.cost / 150).toBeLessThanOrEqual(100);
+      expect(w.power).not.toMatch(/morale/);
+    }
+  });
+});
