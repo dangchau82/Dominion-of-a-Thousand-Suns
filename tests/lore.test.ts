@@ -145,7 +145,6 @@ describe("Gemini pack 2: prophecies, minor races, expeditions", () => {
 
 import { RESOLUTIONS } from "../src/engine/data/resolutions";
 import { REBEL_FACTIONS, SPY_MISSION_TEXTS, UNREST_EVENTS } from "../src/engine/data/unrest";
-import { RACES } from "../src/engine/data/races";
 
 describe("Gemini pack 3: council resolutions, unrest and civil war", () => {
   const LIMIT: Record<string, number> = { production: 0.08, research: 0.08, growth: 0.15, range: 1, attack: 1, spying: 1, relations: 10, trade: 0.15, culture: 0.15 };
