@@ -303,7 +303,7 @@ describe("the Crusade crisis (Gemini)", () => {
       for (const c of e.choices) for (const fx of c.effects) expect(inScale(fx), `${e.id} ${JSON.stringify(fx)}`).toBe(true);
     }
     expect(new Set(CRUSADE_CHAIN.filter((e) => e.branch).map((e) => e.branch))).toEqual(new Set(["order", "chaos", "neutral"]));
-    expect(CRUSADE.conversion).toMatch(/falls below/);
+    expect(CRUSADE.conversion).toMatch(/unless your empire.s culture per turn outweighs it/);
   });
 });
 

@@ -1,4 +1,4 @@
-// The crusade crisis: a faith that conquers through culture. Written by Gemini (2026-11-25), checked by Claude; rules built by Claude.
+// The crusade crisis: a faith that conquers through culture. Written by Gemini (2026-11-25, revised), checked by Claude; rules built by Claude.
 import type { LateGameEventDef } from "./lateGameLore";
 
 export interface CrusadeFaith {
@@ -12,7 +12,6 @@ export interface CrusadeFaith {
   endings: { resist: string; join: string; destroy: string }; // each under 40 words
 }
 
-// Claude: the conversion rule was written backwards (high culture made worlds fall); fixed so low culture is what lets the Fold in.
 export const CRUSADE: CrusadeFaith = {
   name: "The Candescent Fold",
   preachers: "Bell-Walkers",
@@ -21,7 +20,7 @@ export const CRUSADE: CrusadeFaith = {
   appearance:
     "They travel in seamless pearl-grey robes aboard slow, unarmed sail-barques draped in woven copper chimes, carrying bronze tuning bells and offering warm bread to every weary dockworker.",
   conversion:
-    "Each turn, exposed colonies drift toward the Fold if your empire's culture per turn falls below the local pilgrim pressure; Golden Ages make worlds immune. High security spending slows Bell-Walker infiltration; low-culture worlds gradually flip peacefully to the Fold without a shot fired.",
+    "Each turn, Bell-Walker pilgrim pressure rises on exposed colonies unless your empire's culture per turn outweighs it, while Golden Ages grant full immunity. Higher security spending slows infiltration; low-culture worlds eventually flip peacefully to the Fold without a shot fired.",
   endings: {
     resist:
       "Your empire's vibrant arts, civic pride, and Golden Ages outshine the Fold's lullaby, inspiring neighboring worlds to reclaim their own voices as the sail-barques drift quietly back beyond the rim.",
@@ -37,11 +36,11 @@ export const CRUSADE: CrusadeFaith = {
  * - Events 1-3: arrival, early converts, and an ambiguous miracle;
  * - Event 4: sets branch ("order" = resist, "chaos" = join, "neutral" = bargain);
  * - Events 5-6 ("order"), 7-8 ("chaos"), 9 ("neutral"): branch consequences;
- * - Event 10 (no branch, requires event 4 so every branch reaches it): the Prophet arrives.
+ * - Event 10 (no branch, fires after the active branch's last event resolves): the Prophet arrives.
  */
 export const CRUSADE_CHAIN: LateGameEventDef[] = [
   {
-    id: "crusade-1-rimward-sails",
+    id: "crusade-1-sails-beyond-the-rim",
     title: "Sails Beyond the Rim",
     art: "contact",
     trigger: "turn",
@@ -74,11 +73,11 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     ],
   },
   {
-    id: "crusade-2-quiet-squares",
+    id: "crusade-2-bell-walkers-of-the-square",
     title: "The Bell-Walkers of the Square",
     art: "council",
     trigger: "colony",
-    requires: "crusade-1-rimward-sails",
+    requires: "crusade-1-sails-beyond-the-rim",
     text: "Barefoot Bell-Walkers now walk the plazas of {colony}, tending the sick and calming bitter feuds. Crime has nearly vanished, yet evening shifts stand half-empty as workers linger in silent chime-circles.",
     choices: [
       {
@@ -108,11 +107,11 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     ],
   },
   {
-    id: "crusade-3-clean-wells",
+    id: "crusade-3-miracle-in-the-dust",
     title: "A Miracle in the Dust",
     art: "anomaly",
     trigger: "colony",
-    requires: "crusade-2-quiet-squares",
+    requires: "crusade-2-bell-walkers-of-the-square",
     text: "After a heavy-metal dust storm poisoned the reservoirs of {colony}, three Bell-Walkers rang their bells over the water all night. By dawn every well ran sweet and pure, though orbital sensors detected microscopic acoustic nanites in the silt.",
     choices: [
       {
@@ -142,11 +141,11 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     ],
   },
   {
-    id: "crusade-4-threshold-choice",
+    id: "crusade-4-call-of-the-candescent-fold",
     title: "The Call of the Candescent Fold",
     art: "council",
     trigger: "turn",
-    requires: "crusade-3-clean-wells",
+    requires: "crusade-3-miracle-in-the-dust",
     text: "Across {colony} and neighboring worlds of the {rival}, millions prepare to lay down weapons and tools in a synchronized planetary vigil. The Bell-Walkers ask our government to choose: resist their quiet tide, embrace the Fold, or strike a pragmatic accord.",
     choices: [
       {
@@ -183,7 +182,7 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     title: "Anthems Over the Chimes",
     art: "council",
     trigger: "colony",
-    requires: "crusade-4-threshold-choice",
+    requires: "crusade-4-call-of-the-candescent-fold",
     branch: "order",
     text: "Poets, holo-dramatists, and historians on {colony} have answered the Bell-Walkers' lullaby with soaring epics of our people's journey, drawing crowds away from the silent squares.",
     choices: [
@@ -214,7 +213,7 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     ],
   },
   {
-    id: "crusade-6-harmonic-vigil",
+    id: "crusade-6-great-unlearning",
     title: "The Great Unlearning",
     art: "crisis",
     trigger: "colony",
@@ -253,7 +252,7 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     title: "Swords Into Chimes",
     art: "council",
     trigger: "colony",
-    requires: "crusade-4-threshold-choice",
+    requires: "crusade-4-call-of-the-candescent-fold",
     branch: "chaos",
     text: "Embracing the Candescent Fold, citizens on {colony} melt ordnance stockpiles into bronze chimes and invite pilgrims from the {rival} to settle beside them without walls or tariffs.",
     choices: [
@@ -286,7 +285,7 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     ],
   },
   {
-    id: "crusade-8-quiet-horizon",
+    id: "crusade-8-borderless-communion",
     title: "The Borderless Communion",
     art: "anomaly",
     trigger: "colony",
@@ -325,7 +324,7 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     title: "The Salt-Bell Concordat",
     art: "contact",
     trigger: "colony",
-    requires: "crusade-4-threshold-choice",
+    requires: "crusade-4-call-of-the-candescent-fold",
     branch: "neutral",
     text: "Under our chartered accord on {colony}, Bell-Walkers keep quiet order in rough frontier mining towns and mediate border disputes with the {rival} in exchange for autonomous temple quarters.",
     choices: [
@@ -357,11 +356,11 @@ export const CRUSADE_CHAIN: LateGameEventDef[] = [
     ],
   },
   {
-    id: "crusade-10-prophet-at-the-gate",
+    id: "crusade-10-shepherd-of-stillness",
     title: "The Shepherd of Stillness",
-    art: "victory",
+    art: "council",
     trigger: "turn",
-    requires: "crusade-4-threshold-choice",
+    requires: "crusade-4-call-of-the-candescent-fold",
     text: "Above {colony}, a vast cathedral-barque of woven copper unfolds like a silent flower. The Fold's blind Prophet speaks softly to every mind in the system: 'Lay down the heavy crown of self, little sibling, and rest in the peace you have sought since your first star-flight.'",
     choices: [
       {
