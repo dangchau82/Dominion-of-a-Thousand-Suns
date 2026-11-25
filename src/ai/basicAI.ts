@@ -16,7 +16,7 @@ import { TECHS, type Tech } from "../engine/data/techs";
 
 const TECH_TIERS = new Map(TECHS.map((t) => [t.id, t.tier]));
 import type { ColonyInfo, EmpireView, KnownEmpire, PublicStar } from "../engine/view";
-import type { Fleet, Id, ResearchField, SliderSet } from "../engine/types";
+import type { AutopilotFocus, Fleet, Id, ResearchField, SliderSet } from "../engine/types";
 
 // ---------- helpers ----------
 
@@ -67,6 +67,21 @@ function bestColonyDesign(ctx: Ctx): string {
   return own[0]?.id ?? "colony";
 }
 
+/** Autopilot focus: how the AI bends its race's usual habits. "balanced" leaves them alone. */
+interface FocusKnobs {
+  aggression?: number; curiosity?: number;
+  fleet: number; settlePop: number; spies: number;
+  research: Partial<Record<ResearchField, number>>;
+}
+const FOCUS: Record<AutopilotFocus, FocusKnobs> = {
+  balanced: { fleet: 1, settlePop: 25, spies: 0, research: {} },
+  warlike: { aggression: 0.85, fleet: 1.7, settlePop: 30, spies: 0, research: { weapons: 25, forceFields: 15, computers: 5 } },
+  industrial: { aggression: 0.25, fleet: 0.8, settlePop: 30, spies: 0, research: { construction: 30, planetology: 10 } },
+  expansion: { fleet: 0.8, settlePop: 15, spies: 0, research: { propulsion: 25, planetology: 25 } },
+  science: { curiosity: 0.95, fleet: 0.8, settlePop: 30, spies: 0, research: { computers: 30 } },
+  spies: { fleet: 0.9, settlePop: 25, spies: 2, research: { computers: 20 } },
+};
+
 /** How seriously the AI plays at each difficulty. Same information and rules at every level. */
 const LEVEL = {
   relaxed: { fleet: 0.5, edge: 0.6, firstWar: 110, warMood: 0.4, troops: 2.2 },
@@ -81,6 +96,7 @@ interface Ctx {
   view: EmpireView;
   cmds: Command[];
   designs: Map<string, ShipDesign>;
+  focus: FocusKnobs;
   aggression: number;
   honor: number;
   curiosity: number;
@@ -238,12 +254,14 @@ function propose(to: Id, proposal: ProposalInput): Command {
 function espionage(ctx: Ctx): void {
   const { view, cmds } = ctx;
   if ((view.turn + view.me.id) % 10 !== 2) return;
-  cmds.push({ type: "setSecurity", percent: 2 + Math.round(ctx.aggression * 2) + (ctx.wars.length ? 2 : 0) });
+  cmds.push({ type: "setSecurity", percent: 2 + Math.round(ctx.aggression * 2) + (ctx.wars.length ? 2 : 0) + (ctx.focus.spies ? 2 : 0) });
   for (const c of view.contacts) {
     if (!c.alive) continue;
     const atWar = c.warSince !== null;
-    const alloc = atWar ? 3 : c.ourFeeling < -25 ? 2 : ctx.curiosity > 0.7 && c.theirTechs.length > 5 ? 1 : 0;
-    const mission = atWar && ctx.aggression > 0.5 ? "sabotage" : alloc > 0 ? "steal" : "watch";
+    const base = atWar ? 3 : c.ourFeeling < -25 ? 2 : ctx.curiosity > 0.7 && c.theirTechs.length > 5 ? 1 : 0;
+    const alloc = Math.min(6, base + ctx.focus.spies);
+    const saboteur = ctx.focus.spies > 0 && (atWar || c.ourFeeling < 0);
+    const mission = (atWar && ctx.aggression > 0.5) || saboteur ? "sabotage" : alloc > 0 ? "steal" : "watch";
     if (alloc > 0 || (c.spies?.alloc ?? 0) > 0) cmds.push({ type: "setSpies", targetId: c.id, alloc, mission });
   }
 }
@@ -364,6 +382,7 @@ function research(ctx: Ctx): void {
   const boxed = boxedIn(ctx);
   if (boxed.range) alloc.propulsion += 35;
   if (boxed.hostility) alloc.planetology += 35;
+  for (const [f, add] of Object.entries(ctx.focus.research)) alloc[f as ResearchField] += add ?? 0;
   // Late game: pour research into the fields still short of the top tier (the road to the Ascension Gate).
   const tiers = Object.fromEntries((Object.keys(alloc) as ResearchField[]).map((f) => [f, fieldTier(view.me.research, f)])) as Record<ResearchField, number>;
   if (Object.values(tiers).filter((t) => t >= 8).length >= 3) {
@@ -542,7 +561,9 @@ function production(ctx: Ctx, settleTargets: number): void {
   const fleetPower = view.fleets.reduce((a, f) => a + warPower(ctx, f), 0);
   const totalProd = view.colonies.reduce((a, c) => a + c.budget.ship + c.budget.defense + c.budget.industry + c.budget.ecology + c.budget.research, 0);
   // Keep a standing fleet worth a few turns of the whole empire's output; more for warlike races and in wartime.
-  const wantPower = totalProd * (1.5 + 5 * ctx.aggression) * (atWar ? 1.6 : 1) * Math.min(1, view.turn / 80) * ctx.level.fleet;
+  // At war, the fleet target is full size at once (no early-game ramp), so a declaration gets a real answer.
+  const ramp = atWar ? 1 : Math.min(1, view.turn / 80);
+  const wantPower = totalProd * (1.5 + 5 * ctx.aggression) * (atWar ? 1.6 : 1) * ramp * ctx.level.fleet * ctx.focus.fleet;
   const needShips = !!warship && fleetPower < wantPower;
   const threatened = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
   const enemyNear = (c: ColonyInfo) => view.seenFleets.some((f) => ctx.wars.some((w) => w.id === f.empireId) && dist(f, ctx.starById.get(c.starId)!) < 6);
@@ -555,7 +576,7 @@ function production(ctx: Ctx, settleTargets: number): void {
   for (const c of colonies) {
     const growing = c.population < c.capacity - 1;
     const factoriesFull = c.factories >= c.maxFactories - 0.5;
-    const big = c.population >= 30;
+    const big = c.population >= (atWar ? 15 : 30);
     let want: string | null = null;
     let s: SliderSet;
     const def = atWar && (enemyNear(c) || threatened.has(c.starId)) ? 25 : atWar ? 5 : 0;
@@ -569,7 +590,7 @@ function production(ctx: Ctx, settleTargets: number): void {
       const eco = growing ? 10 : 0;
       const res = 100 - ship - def - eco - (factoriesFull ? 0 : 30);
       s = sliders(ship, def, factoriesFull ? 0 : 30, eco, Math.max(0, res));
-    } else if (!atWar && c.population >= 25 && factoriesFull && settleTargets > colonyPlanned - (buildsColony(c) ? 1 : 0)) {
+    } else if (!atWar && c.population >= ctx.focus.settlePop && factoriesFull && settleTargets > colonyPlanned - (buildsColony(c) ? 1 : 0)) {
       // A well-built colony helps the capital spread out.
       want = pod;
       if (!buildsColony(c)) colonyPlanned++;
@@ -764,15 +785,17 @@ function findThreat(view: EmpireView): Id | null {
 
 function makeCtx(view: EmpireView): Ctx {
   const p = view.race.personality;
+  const focus = FOCUS[view.me.focus ?? "balanced"] ?? FOCUS.balanced;
   return {
+    focus,
     threat: findThreat(view),
     level: LEVEL[view.difficulty] ?? LEVEL.normal,
     view,
     cmds: [],
     designs: new Map(view.designs.map((d) => [d.id, d])),
-    aggression: p.aggression,
+    aggression: focus.aggression ?? p.aggression,
     honor: p.honor,
-    curiosity: p.curiosity,
+    curiosity: focus.curiosity ?? p.curiosity,
     wars: view.contacts.filter((c) => c.warSince !== null && c.alive),
     taken: new Set(view.fleets.map((f) => f.destStarId).filter((d): d is Id => d !== null)),
     starById: new Map(view.stars.map((s) => [s.id, s])),

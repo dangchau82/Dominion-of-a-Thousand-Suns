@@ -8,7 +8,7 @@ import { DEFAULT_MODEL, geminiChat, geminiKey, geminiModel, saveGemini, type Cha
 import { markSeen, nextTip, setTipsOff, tipsOff } from "./advisor";
 import type { EventEffect } from "../engine/data/events";
 import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/buildings";
-import type { TreatyKind } from "../engine/types";
+import { AUTOPILOT_FOCI, type AutopilotFocus, type TreatyKind } from "../engine/types";
 import {
   applyCommand, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
   popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, colonyShipCount, HULLS, HULL_SIZES, MAX_DESIGNS,
@@ -1533,6 +1533,26 @@ export class GameScreen {
       const row = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       const exp = el("button", {}, "Export save code (move to another device)");
       const auto = el("div", { class: "row", style: "justify-content:flex-start;flex-wrap:wrap;gap:6px" }, "<span class='dim' style='width:100%'>Autopilot: the AI runs your empire, stopping for new races, wars, council votes and the end of the game.</span>");
+      const FOCUS_LABELS: Record<AutopilotFocus, string> = {
+        balanced: "⚖️ Balanced", warlike: "⚔️ Warlike", industrial: "🏭 Industrial",
+        expansion: "🌱 Expansionist", science: "🔬 Science", spies: "🕵️ Spies & sabotage",
+      };
+      const FOCUS_HELP: Record<AutopilotFocus, string> = {
+        balanced: "Plays the way your race naturally would.",
+        warlike: "Big fleets, weapons and shields first, quicker to fight.",
+        industrial: "Factories and construction tech, a smaller fleet, avoids wars.",
+        expansion: "Colony ships from every well-developed world; range and planetology research.",
+        science: "Pours effort into research and computers.",
+        spies: "Extra agents in every empire, sabotage rivals, tighter security at home.",
+      };
+      const cur = this.state.empires[PLAYER]!.focus ?? "balanced";
+      const focusSeg = el("div", { class: "seg", style: "width:100%" });
+      for (const f of AUTOPILOT_FOCI) {
+        const b = el("button", { class: f === cur ? "on" : "", title: FOCUS_HELP[f] }, FOCUS_LABELS[f]);
+        b.onclick = () => { this.cmd({ type: "setFocus", focus: f }); autosave(this.state); close(); this.showMenu(); };
+        focusSeg.append(b);
+      }
+      auto.append(el("span", { class: "dim", style: "width:100%;margin-top:4px" }, `Focus: ${FOCUS_HELP[cur]}`), focusSeg);
       for (const n of [5, 10, 25]) {
         const b = el("button", { class: "small" }, `▶ ${n} turns`);
         b.onclick = () => { close(); this.autopilot(n); };

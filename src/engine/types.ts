@@ -92,6 +92,9 @@ export interface StarKnowledge {
   population: number | null;
 }
 
+export const AUTOPILOT_FOCI = ["balanced", "warlike", "industrial", "expansion", "science", "spies"] as const;
+export type AutopilotFocus = (typeof AUTOPILOT_FOCI)[number];
+
 export interface Empire {
   id: Id;
   name: string;
@@ -131,6 +134,8 @@ export interface Empire {
   leaderOffer: Leader | null;
   /** Recent random events (so they don't repeat too soon). */
   recentEvents?: string[];
+  /** What the AI concentrates on when it runs this empire (rivals, or the player's autopilot). */
+  focus?: AutopilotFocus;
 }
 
 export interface Leader {

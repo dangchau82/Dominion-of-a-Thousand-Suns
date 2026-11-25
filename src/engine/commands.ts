@@ -15,7 +15,7 @@ import { empire, empireRace, newColony, shipCount, star } from "./game";
 import { exploreStar, isExplored } from "./knowledge";
 import { fleetExtraRange, inFuelRange } from "./movement";
 import {
-  FIELDS, SLIDERS,
+  AUTOPILOT_FOCI, FIELDS, SLIDERS, type AutopilotFocus,
   type Colony, type GameState, type Id, type ResearchField, type Slider, type SliderSet, type SpyMission, type TreatyKind,
 } from "./types";
 
@@ -34,6 +34,7 @@ export type Command =
   | { type: "breakTreaty"; with: Id; treaty: TreatyKind }
   | { type: "setSpies"; targetId: Id; alloc: number; mission: SpyMission }
   | { type: "setSecurity"; percent: number }
+  | { type: "setFocus"; focus: AutopilotFocus }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -238,6 +239,11 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "dismissLeader": {
       if (!e.leaders.some((l) => l.id === cmd.leaderId)) return fail("No such leader");
       e.leaders = e.leaders.filter((l) => l.id !== cmd.leaderId);
+      return { ok: true };
+    }
+    case "setFocus": {
+      if (!(AUTOPILOT_FOCI as readonly string[]).includes(cmd.focus)) return fail("Unknown focus");
+      e.focus = cmd.focus;
       return { ok: true };
     }
     case "setSecurity": {
