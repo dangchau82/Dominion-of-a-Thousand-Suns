@@ -61,6 +61,18 @@ export interface Colony {
   /** Building under construction, or null. */
   buildQueue: string | null;
   buildProgress: number;
+  /** Unrest 0 (calm) .. 100 (revolt). See src/engine/unrest.ts. Unset = 0 (older saves). */
+  unrest?: number;
+  /** Unrest stirred up by enemy agents; fades 10% a turn. */
+  agitation?: number;
+  /** Race of the people living here when it differs from the owner's (a conquered world). */
+  peopleRaceId?: string;
+  /** Empire this occupied world was taken from; it rejoins them if it revolts while they live. */
+  occupiedFrom?: Id;
+  /** Turn the occupation began. */
+  occupiedSince?: number;
+  /** Enemy-funded rebels: revolts are twice as likely until this turn. */
+  rebelsFundedUntil?: number;
 }
 
 export type ResearchField =
@@ -140,6 +152,8 @@ export interface Empire {
   autoExplore?: boolean;
   /** Last turn this empire warned another empire about nearby colonies. */
   borderWarned?: Record<Id, number>;
+  /** Rebel empires: the empire they broke away from in a civil war. */
+  rebelOf?: Id;
 }
 
 export interface Leader {
@@ -195,7 +209,8 @@ export interface CouncilState {
 export type TreatyKind = "trade" | "research" | "nap" | "alliance";
 export const TREATIES: readonly TreatyKind[] = ["trade", "research", "nap", "alliance"];
 
-export type SpyMission = "steal" | "sabotage" | "watch";
+export type SpyMission = "steal" | "sabotage" | "watch" | "inciteUnrest" | "fundRebels" | "spreadPropaganda";
+export const SPY_MISSIONS: readonly SpyMission[] = ["watch", "steal", "sabotage", "inciteUnrest", "fundRebels", "spreadPropaganda"];
 export interface SpyNetwork {
   /** Percent of total production spent on spies against this empire (0-10). */
   alloc: number;
@@ -259,7 +274,7 @@ export interface GameEvent {
   kind:
     | "explored" | "colonized" | "shipBuilt" | "research" | "growth" | "contact"
     | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion"
-    | "diplomacy" | "spy" | "culture" | "council";
+    | "diplomacy" | "spy" | "culture" | "council" | "unrest";
   text: string;
   starId?: Id;
 }

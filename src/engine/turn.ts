@@ -15,6 +15,7 @@ import {
   popCost, popGrowth,
 } from "./formulas";
 import { empireRace } from "./game";
+import { processUnrest, unrestPenalty } from "./unrest";
 import { updateVision } from "./knowledge";
 import { mergeFleets, moveFleets } from "./movement";
 import { FIELDS, type Colony, type Empire, type GameEvent, type GameState, type Star } from "./types";
@@ -43,7 +44,8 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   // Buildings, wonders, leaders and golden ages raise output.
   const ce = colonyEffects(c);
   const eb = empireBonus(e);
-  const boosted = production * (1 + ce.production + eb.production);
+  // Unrest cuts output (up to 25% at open revolt).
+  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c));
   // Spies and internal security are paid first, out of every colony's output.
   const net = boosted * (1 - spendingShare(e));
   const part = (pct: number) => (net * pct) / 100;
@@ -199,6 +201,7 @@ export function endTurn(state: GameState): void {
   }
 
   processCivilization(state);
+  processUnrest(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

@@ -29,6 +29,7 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 - **AI rule:** the AI may hear and use only its own prophecies (through its view).
 
 ### Civil war and spy-driven unrest
+**Status: done** (2026-11-25): unrest, revolts, rebel empires and the three spy missions are in play; see dev log.
 - **Civil war:** a huge, unhappy empire can split; rebels take some worlds and become a new AI empire. A natural brake on runaway leaders.
 - **Unrest** comes from conquest (occupation), war weariness, sprawl, lost wars and enemy agents.
 - **New spy missions:** "incite unrest" (raise unrest on a target world), "fund rebels" (push an unhappy world toward revolt), "spread propaganda" (lower their culture, raise ours). Spy races (Lumen, Ixil, and any empire on the Spies focus) are best at it.
@@ -39,7 +40,7 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 | Idea | Inspired by | How it plays in our game | Status | Notes |
 |---|---|---|---|---|
 | Ancient gate network | gate networks in both shows | Neutral gates on the map. Claim one and fleets jump between gates in one turn; lose it and the enemy uses it. | idea | Fits the elder-powers stage; the Serevahn "Slipstream Rings" in `data/lateGameLore.ts` are this. Velari already travel by "gates". |
-| Occupation and resistance | one race occupying another | Conquered worlds have unrest: lower output, rebels, sometimes a revolt that frees them. Conquest stops being a pure win. | idea | **Top pick.** Also tackles the open problem that conquest rarely decides games. |
+| Occupation and resistance | one race occupying another | Conquered worlds have unrest: lower output, rebels, sometimes a revolt that frees them. Conquest stops being a pure win. | done | **Top pick.** Also tackles the open problem that conquest rarely decides games. |
 | Surrender offers | wars ending at the brink | A losing empire offers worlds or tech to stop a war. | idea | Part of Gemini's coding test ("AI reactions"); waiting for its answer. |
 | Galactic Council resolutions | the station's council | Between elections the council votes on sanctions, trade embargoes or condemning an aggressor, giving smaller empires power. | idea | **Top pick.** Gives the council something to do every 25 turns. |
 | Parasite overlords | Stargate's ruling parasites | A neutral tyrant holding enslaved worlds. Free them for loyal colonies, or take its tech. | idea | Could be a big neutral "lair" with planets. |
@@ -63,7 +64,7 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 | Neutral zones | Star Trek's neutral zone | Treaties can create a no-go border; entering it is an act of war. | idea | |
 | Federation victory | Star Trek's federation | Allied empires can win together by council vote: a peaceful path to victory. | idea | Needs care so allies don't win too easily. |
 | Invasive critters | Star Trek's breeding furballs | A funny event chain: cute creatures breed out of control on a colony. | idea | Pure Gemini writing job. |
-| Civil war | Star Wars' rebellion | See "Civil war and spy-driven unrest" above. | idea | **Must-have.** |
+| Civil war | Star Wars' rebellion | See "Civil war and spy-driven unrest" above. | done (2026-11-25, `src/engine/unrest.ts`) | **Must-have.** |
 | Supernova crisis | Danny's request | Late game: a star flickers, then counts down (~20 turns, prophecies may warn earlier). Evacuate with transports or harvest it for research until the last moment. The blast wipes most people and factories on nearby colonies, destroys fleets there, and leaves a dead star (blocks travel) or a rare remnant (big research). Quorai live in stars: disaster or a unique "ride the fire" choice. Lure enemy fleets there. | idea | Today only two small "star flare" events exist (unstable-star, flare-season). |
 | Superweapon project | Star Wars' battle station | A planet-killing station that takes years to build but has a weak point a small fleet can strike. | idea | **Must-have.** A wonder-style project everyone can see coming. |
 | Bounty hunters | Star Wars' bounty hunters | Pay to remove an enemy leader or a key captain. | idea | Also a money sink. |

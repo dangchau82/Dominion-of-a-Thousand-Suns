@@ -118,8 +118,26 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 - Quorai investigation: win rate in 54-game samples 36%, 25%, 50%, 59% (travel phase->warp), 41% (star habitat size 15->9), 65% (size 6). Expected ~17%. Star-habitat size and travel are NOT the driver (results did not fall as it shrank; sample noise is +-12%). Both changes reverted. Suspects not yet tested: ignoresEnvironment with low growth, AI personality p(0.4,0.5,0.2,0.9,0.4), phase travel.
 
 ## 2026-11-25 14:50 Master AI, part 1 (main session, Fable 5.2)
-- New `src/ai/masterAI.ts` (not yet wired into the game: no "Master" difficulty or menu yet) and `tools/tournament.test.ts` (run: `GAMES=18 SEED0=8000 npx vitest run --config tools/vitest.tournament.config.ts`).
+- New `src/ai/masterAI.ts` (not yet wired into the game: no "Master" difficulty or menu yet) and `tools/tournament.test.ts` (run: `GAMES=18 SEED0=8000 npx vitest run --config tools/vitest.tools.config.ts`).
 - It plays the basic AI's turn, then: no wars of choice, takes any peace, culture buildings and wonders first, never builds the Gate, rushes buildings every turn, and before a council vote gifts 200 BC at a time to lift the cheapest set of voters to feeling 62.
 - Tournament, medium, 1 master vs 5 basic, seat 0, same seeds with a basic AI in seat 0 as control: seeds 7000+ master 3/6, control 1/6; **seeds 8000+ master 14/18 (12 council, 2 culture), control 0/18**. Target was 40%.
 - **Balance finding: the council can be bought.** A gift gives +BC/10 feeling (max 20 per gift, no limit on gifts per turn), and rivals vote for anyone at feeling 40-60. About 400-600 BC per voter the turn of the vote wins it. A human can do the same. Suggested fixes (not done, design decision): cap gift warmth per 10 turns, make votes need lasting friendship (treaty or 20+ turns of good relations), and make AIs refuse to crown anyone near 50% of votes.
 - Still to do: wire in (Empire.ai, "master" difficulty, UI: the groundwork patch no longer applies cleanly), Gate route when safe, war play, a test in tests/.
+
+## 2026-11-25 15:05-15:45 Unrest, revolts and civil war (main session, Opus 5.5)
+Danny's must-have "civil war with spy options" and the idea "occupation and resistance", built on Gemini's `data/unrest.ts`. Rules in `src/engine/unrest.ts`; no save-version bump (all new fields are optional).
+- **Unrest 0-100 per colony** drifts 15%/turn toward a target: occupied foreign people +15 (+45 more fading over 120 turns), far from the capital up to +15, more than 12 colonies up to +15, wars longer than 30 turns up to +12, enemy agitators up to +40; minus internal security x2, culture buildings x2, golden age -15. Capitals never rebel.
+- **Effects:** up to -25% output at 100; at 30+ a 5%/turn chance of one of Gemini's 10 unrest events (their morale choices now also move that colony's unrest by 5 per point); at 65+ a revolt chance of 3% + 0.2%/point per turn (doubled while rebels are funded).
+- **Revolt:** an occupied world rejoins its old empire (or any living empire of its people); otherwise the world and restless neighbours within 6 ly (at most a third of the empire) break away as a **rebel empire** (Gemini's faction name and manifesto), at war with the old one, keeping the techs, map knowledge and designs, with half the idle fleets there defecting. At most 4 rebel empires a game; past that, riots are crushed (people and factories lost).
+- **New spy missions:** incite unrest (+30 agitation), fund rebels (angriest world, +15 agitation, revolt chance x2 for 10 turns), spread propaganda (takes 1% of their culture, max 300, half to us). Basic AI funds rebels against a runaway leader it's at war with, and spy-focused AIs incite unrest.
+- **AI:** raises security when its worlds are restless (+1/+3/+5 at 25/40/55), and builds Civic Forums and Grand Theaters on restless worlds. Master AI likewise.
+- **UI:** colony chip "😐/😠/😡 Unrest N ↑↓" with the reasons (tooltip, and a line when 30+); new spy missions in the spy menu; auto-turns stop when a world rises up.
+- **Balance** (54 medium games, 5 rivals, seeds 3000+, same seeds before/after):
+
+| | culture | council | tech | no winner | median end | games with a civil war |
+|---|---|---|---|---|---|---|
+| before | 22 | 15 | 11 | 6 | T340 | - |
+| first tuning (penalty 40%, faster weariness) | 24 | 14 | 5 | **11** | T352 | 25 |
+| **kept** (penalty 25%, weariness after 30 turns) | 25 | 18 | 6 | 5 | T330 | 7 |
+- Quorai unchanged (9 of 22 games) — unrest is not the Quorai fix.
+- Tools: `tools/unrest-probe.test.ts` (counts revolts, civil wars, unrest levels); `tools/vitest.tools.config.ts` runs any tool test (`TOOL=tools/x.test.ts`).

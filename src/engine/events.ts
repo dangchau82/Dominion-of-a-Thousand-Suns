@@ -2,6 +2,7 @@
 // must choose. The AI chooses through the same command as the player.
 
 import { EVENTS, type EventEffect, type GameEventDef } from "./data/events";
+import { UNREST_EVENTS } from "./data/unrest";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
 import { distance } from "./formulas";
@@ -12,7 +13,7 @@ export const EVENT_CHANCE = 1 / 14;
 /** Unanswered events resolve with their first choice after this many turns. */
 export const EVENT_TIMEOUT = 5;
 
-export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map(EVENTS.map((e) => [e.id, e]));
+export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS].map((e) => [e.id, e]));
 
 function fill(text: string, state: GameState, p: PendingEvent): string {
   return text
@@ -80,7 +81,12 @@ function apply(state: GameState, e: Empire, p: PendingEvent, fx: EventEffect): v
     case "research": e.research.progress[fx.field] = Math.max(0, e.research.progress[fx.field] + fx.amount); break;
     case "population": if (colony) colony.population = Math.max(1, colony.population + fx.amount); break;
     case "factories": if (colony) colony.factories = Math.max(0, colony.factories + fx.amount); break;
-    case "morale": case "culture": e.culture = Math.max(0, e.culture + (fx.kind === "morale" ? fx.amount * 10 : fx.amount)); break;
+    case "morale":
+      // Morale also calms (or stirs) the colony the event is about.
+      if (colony && p.colonyStarId === colony.starId) colony.unrest = Math.max(0, Math.min(100, (colony.unrest ?? 0) - fx.amount * 5));
+      e.culture = Math.max(0, e.culture + fx.amount * 10);
+      break;
+    case "culture": e.culture = Math.max(0, e.culture + fx.amount); break;
     case "ships": {
       const s = state.stars[colony?.starId ?? e.capitalStarId]!;
       state.fleets.push({ id: state.nextFleetId++, empireId: e.id, ships: { [fx.template]: fx.count }, x: s.x, y: s.y, starId: s.id, destStarId: null });

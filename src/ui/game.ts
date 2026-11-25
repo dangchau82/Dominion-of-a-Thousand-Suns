@@ -21,11 +21,12 @@ import { fleetExtraRange } from "../engine/movement";
 import { COLONY_POD, FUEL_TANKS, maxMissileBases, missileBaseCost } from "../engine/data/ships";
 import { researchChoices, tech, techCost } from "../engine/tech";
 import { TECHS } from "../engine/data/techs";
-import { FIELDS, SLIDERS, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
+import { FIELDS, SLIDERS, type Colony, type Fleet, type Id, type ResearchField, type Slider } from "../engine/types";
 import { art, portraitHTML, setImageLoadedHandler } from "./assets";
 import { StarMap, type FleetTap } from "./map";
 import { autosave } from "./storage";
 import { LEADER_TRAITS } from "../engine/data/leaderTraits";
+import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
 
@@ -318,6 +319,7 @@ export class GameScreen {
       if (this.state.winner) stopReason = "The game has been decided.";
       else if (evs.some((e) => e.kind === "war" && e.text.includes(me.name) && e.text.includes("declared war"))) stopReason = "War was declared involving you.";
       else if (evs.some((e) => e.kind === "invasion" && e.empireId === PLAYER && e.text.includes("captured"))) stopReason = "A planet changed hands.";
+      else if (evs.some((e) => e.kind === "unrest" && (e.text.includes(me.name) || e.empireId === PLAYER))) stopReason = "Unrest: a world rose up in your empire.";
       else if (this.state.council.session || this.state.council.awaitingVerdict !== null) stopReason = "The Galactic Council is in session.";
       else if (!me.alive) stopReason = "Your empire has fallen.";
       else if (me.contacts.length > knownBefore) stopReason = "You have met a new race.";
@@ -510,6 +512,18 @@ export class GameScreen {
     this.root.append(p);
   }
 
+  /** Unrest chip for a colony: level, output lost, and why (tap/hover for reasons). */
+  private unrestChip(c: Colony): string {
+    const u = Math.round(c.unrest ?? 0);
+    const target = unrestTarget(this.state, this.state.colonies[c.starId]!);
+    if (u < 5 && target < 5) return "";
+    const why = unrestBreakdown(this.state, this.state.colonies[c.starId]!).map((p) => `${p.label}: ${p.amount > 0 ? "+" : ""}${p.amount}`).join("\n");
+    const mood = u >= REVOLT_AT ? "😡 Revolt risk" : u >= UNREST_EVENT_AT ? "😠 Unrest" : "😐 Unrest";
+    const trend = target > u + 2 ? " ↑" : target < u - 2 ? " ↓" : "";
+    const tip = `Unrest ${u} (heading to ${Math.round(target)}). Costs ${Math.round(unrestPenalty(c) * 100)}% of output.\n${why}\nCalm it with internal security, a Civic Forum or Grand Theater, or a golden age.${u >= REVOLT_AT ? "\nAbove " + REVOLT_AT + " the world may revolt and break away." : ""}`;
+    return `<span class="chip ${u >= REVOLT_AT ? "bad" : ""}" title="${esc(tip)}">${mood} ${u}${trend}</span>`;
+  }
+
   private colonyBlock(starId: Id): HTMLElement {
     const v = this.view;
     const c = v.colonies.find((x) => x.starId === starId)!;
@@ -519,7 +533,7 @@ export class GameScreen {
     const growth = s.planet ? popGrowth(c.population, s.planet, v.race, v.me) : 0;
     wrap.innerHTML = `<div class="chips"><span class="chip">👥 ${fmt(c.population)} / ${c.capacity}</span>
       <span class="chip">🏭 ${fmt(c.factories, 0)} / ${fmt(c.maxFactories, 0)} factories</span>
-      <span class="chip">⚙️ ${fmt(b.production)} BC/turn</span>${c.missileBases ? `<span class="chip">🛡️ ${c.missileBases}/${maxMissileBases(c.population)} bases</span>` : ""}</div>`;
+      <span class="chip">⚙️ ${fmt(b.production)} BC/turn</span>${c.missileBases ? `<span class="chip">🛡️ ${c.missileBases}/${maxMissileBases(c.population)} bases</span>` : ""}${this.unrestChip(c)}</div>${(c.unrest ?? 0) >= UNREST_EVENT_AT ? `<div class="dim">Unrest: ${esc(unrestBreakdown(this.state, this.state.colonies[c.starId]!).filter((p) => p.amount !== 0).map((p) => `${p.label} ${p.amount > 0 ? "+" : ""}${p.amount}`).join(", "))}</div>` : ""}`;
 
     const note: Record<Slider, string> = {
       ship: c.buildTemplate
@@ -1052,7 +1066,8 @@ export class GameScreen {
         sp.innerHTML = `<b>Spies</b> <span class="dim">· ${net?.agents ?? 0} agents in place · ${net?.alloc ?? 0}% of production</span>`;
         const alloc = el("input", { type: "range", min: "0", max: "10", value: String(net?.alloc ?? 0), style: "width:100%;accent-color:#6fb6ff" });
         const mission = el("select", { class: "tech-select" });
-        for (const [m, label] of [["watch", "Watch (see their colonies)"], ["steal", "Steal technology"], ["sabotage", "Sabotage factories and bases"]] as const) {
+        for (const [m, label] of [["watch", "Watch (see their colonies)"], ["steal", "Steal technology"], ["sabotage", "Sabotage factories and bases"],
+          ["inciteUnrest", "Incite unrest on their worlds"], ["fundRebels", "Fund rebels (their angriest world)"], ["spreadPropaganda", "Spread propaganda (take their culture)"]] as const) {
           const opt = el("option", { value: m }, label);
           if ((net?.mission ?? "watch") === m) opt.selected = true;
           mission.append(opt);

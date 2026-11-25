@@ -15,7 +15,7 @@ import { empire, empireRace, newColony, shipCount, star } from "./game";
 import { exploreStar, isExplored } from "./knowledge";
 import { fleetExtraRange, inFuelRange } from "./movement";
 import {
-  AUTOPILOT_FOCI, FIELDS, SLIDERS, type AutopilotFocus,
+  AUTOPILOT_FOCI, FIELDS, SLIDERS, SPY_MISSIONS, type AutopilotFocus,
   type Colony, type GameState, type Id, type ResearchField, type Slider, type SliderSet, type SpyMission, type TreatyKind,
 } from "./types";
 
@@ -177,7 +177,7 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "setSpies": {
       const t = state.empires[cmd.targetId];
       if (!t || t.id === e.id || !e.contacts.includes(t.id)) return fail("You haven't met them");
-      if (!["steal", "sabotage", "watch"].includes(cmd.mission)) return fail("Unknown mission");
+      if (!SPY_MISSIONS.includes(cmd.mission)) return fail("Unknown mission");
       setSpies(e, t.id, cmd.alloc, cmd.mission);
       return { ok: true };
     }

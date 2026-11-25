@@ -29,8 +29,8 @@ function buildingScore(view: EmpireView, c: ColonyInfo, id: string, atWar: boole
   if (id.startsWith("w-")) return c.starId === bestYard && c.budget.production >= 80 ? (WONDER_SCORE[id] ?? 2) : 0;
   const crowded = c.population > c.capacity - 5;
   switch (id) {
-    case "civic-forum": return 10;
-    case "grand-theater": return 10;
+    case "civic-forum": return 10 + ((c.unrest ?? 0) >= 25 ? 5 : 0);
+    case "grand-theater": return 10 + ((c.unrest ?? 0) >= 25 ? 5 : 0);
     case "automated-foundry": return 9;
     case "research-institute": return 8;
     case "hydroponic-farms": return crowded ? 9 : 4;

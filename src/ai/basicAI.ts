@@ -273,14 +273,20 @@ function propose(to: Id, proposal: ProposalInput): Command {
 function espionage(ctx: Ctx): void {
   const { view, cmds } = ctx;
   if ((view.turn + view.me.id) % 10 !== 2) return;
-  cmds.push({ type: "setSecurity", percent: 2 + Math.round(ctx.aggression * 2) + (ctx.wars.length ? 2 : 0) + (ctx.focus.spies ? 2 : 0) });
+  // Restless worlds need more internal security.
+  const unrest = Math.max(0, ...view.colonies.map((c) => c.unrest ?? 0));
+  const calm = unrest >= 55 ? 5 : unrest >= 40 ? 3 : unrest >= 25 ? 1 : 0;
+  cmds.push({ type: "setSecurity", percent: Math.min(10, 2 + Math.round(ctx.aggression * 2) + (ctx.wars.length ? 2 : 0) + (ctx.focus.spies ? 2 : 0) + calm) });
   for (const c of view.contacts) {
     if (!c.alive) continue;
     const atWar = c.warSince !== null;
     const base = atWar ? 3 : c.ourFeeling < -25 ? 2 : ctx.curiosity > 0.7 && c.theirTechs.length > 5 ? 1 : 0;
     const alloc = Math.min(6, base + ctx.focus.spies);
     const saboteur = ctx.focus.spies > 0 && (atWar || c.ourFeeling < 0);
-    const mission = (atWar && ctx.aggression > 0.5) || saboteur ? "sabotage" : alloc > 0 ? "steal" : "watch";
+    // Against a runaway leader, fund rebels in its worlds; spy empires at war also stir up unrest.
+    const mission = atWar && c.id === ctx.threat ? "fundRebels"
+      : saboteur && coin(view, 57 + c.id) < 0.4 ? "inciteUnrest"
+      : (atWar && ctx.aggression > 0.5) || saboteur ? "sabotage" : alloc > 0 ? "steal" : "watch";
     if (alloc > 0 || (c.spies?.alloc ?? 0) > 0) cmds.push({ type: "setSpies", targetId: c.id, alloc, mission });
   }
 }
@@ -294,8 +300,8 @@ const BUILD_PRIORITY: Record<string, (ctx: Ctx, c: ColonyInfo) => number> = {
   "arcology": (_x, c) => (c.population > c.capacity - 6 ? 8 : 3),
   "spaceport": () => 4,
   "orbital-drydock": (x, c) => (c.isCapital || c.population > 40 ? 3 + x.aggression * 5 : 0),
-  "civic-forum": () => 3,
-  "grand-theater": () => 3,
+  "civic-forum": (_x, c) => ((c.unrest ?? 0) >= 25 ? 9 : 3),
+  "grand-theater": (_x, c) => ((c.unrest ?? 0) >= 25 ? 9 : 3),
   "planetary-fortress": (x) => (x.wars.length ? 7 : 0.5),
 };
 

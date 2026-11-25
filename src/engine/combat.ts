@@ -14,6 +14,7 @@ import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
 import { shipDesign } from "./designs";
 import { beamHitChance } from "./formulas";
 import { empireRace, newColony, shipCount } from "./game";
+import { onCapture } from "./unrest";
 import * as R from "./rng";
 import { techStats } from "./tech";
 import type { Colony, Empire, Fleet, GameState, Id, Star } from "./types";
@@ -316,6 +317,7 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
     const captured = newColony(s.id, attacker.id, Math.min(capturedPopulation(attacker, att, old.population), cap), old.foundedTurn);
     captured.factories = old.factories;
     captured.buildings = [...old.buildings];
+    onCapture(state, captured, old, owner, attacker);
     transferWonders(state, s.id, attacker);
     state.colonies[s.id] = captured;
     const text = `The ${attacker.name} captured ${s.name} with ${plural(att, "surviving troop")}.`;

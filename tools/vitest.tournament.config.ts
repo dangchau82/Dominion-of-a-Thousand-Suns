@@ -1,2 +1,0 @@
-import { defineConfig } from "vitest/config";
-export default defineConfig({ test: { testTimeout: 6000000, include: ["tools/tournament.test.ts"] } });

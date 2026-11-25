@@ -3,6 +3,7 @@
 // own EmpireView through the same "respond" command the player uses.
 
 import { race } from "./data/races";
+import { SPY_MISSION_TEXTS } from "./data/unrest";
 import { say } from "./dialogue";
 import { empireBonus } from "./civ";
 import { tradeMultiplier } from "./abilities";
@@ -346,6 +347,8 @@ export function processEspionage(state: GameState): void {
         learn(e.research, id);
         event(state, e.id, "spy", `Our agents stole ${tech(id).name} from the ${t.name}!`);
         event(state, t.id, "spy", `Spies stole our ${tech(id).name}${R.chance(rng, 0.5) ? ` (the trail leads to the ${e.name})` : ""}.`);
+      } else if (net.mission === "inciteUnrest" || net.mission === "fundRebels" || net.mission === "spreadPropaganda") {
+        unrestMission(state, e, t, net.mission);
       } else {
         const targets = Object.values(state.colonies).filter((c) => c.empireId === t.id).sort((a, b) => a.starId - b.starId);
         if (!targets.length) continue;
@@ -364,6 +367,34 @@ export function processEspionage(state: GameState): void {
       }
     }
   }
+}
+
+const MISSION_TEXT = new Map(SPY_MISSION_TEXTS.map((m) => [m.mission, m]));
+
+/** Spy missions that stir up unrest (texts by Gemini, data/unrest.ts). */
+function unrestMission(state: GameState, e: Empire, t: Empire, mission: "inciteUnrest" | "fundRebels" | "spreadPropaganda"): void {
+  const targets = Object.values(state.colonies).filter((c) => c.empireId === t.id && !c.isCapital).sort((a, b) => a.starId - b.starId);
+  const text = MISSION_TEXT.get(mission)!;
+  let c = targets.length ? R.pick(state.rng, targets) : state.colonies[t.capitalStarId];
+  if (mission === "fundRebels" && targets.length) {
+    // Rebels are funded where they are angriest.
+    c = [...targets].sort((a, b) => (b.unrest ?? 0) - (a.unrest ?? 0) || a.starId - b.starId)[0]!;
+  }
+  if (!c) return;
+  const s = state.stars[c.starId]!;
+  if (mission === "inciteUnrest") c.agitation = (c.agitation ?? 0) + 30;
+  else if (mission === "fundRebels") {
+    c.agitation = (c.agitation ?? 0) + 15;
+    c.rebelsFundedUntil = state.turn + 10;
+  } else {
+    const loss = Math.min(t.culture * 0.01, 300);
+    t.culture -= loss;
+    e.culture += loss / 2;
+    for (const x of targets) x.agitation = (x.agitation ?? 0) + 5;
+  }
+  const fill = (str: string) => str.replace(/\{colony\}/g, s.name).replace(/\{rival\}/g, t.name);
+  event(state, e.id, "spy", fill(text.success), s.id);
+  event(state, t.id, "spy", fill(text.victimNotice) + (R.chance(state.rng, 0.5) ? ` The trail leads to the ${e.name}.` : ""), s.id);
 }
 
 /** Agents report on the target's colonies. */
