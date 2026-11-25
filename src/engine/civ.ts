@@ -6,6 +6,7 @@ import {
   BUILDING_BY_ID, BUILDINGS, GOLDEN_AGE_AT, GOLDEN_AGE_BONUS, GOLDEN_AGE_TURNS, LEADER_KINDS, MAX_LEADERS, NAME_PARTS,
   type BuildingDef, type BuildingEffects, type EmpireBonus, type LeaderKind,
 } from "./data/buildings";
+import { LEADER_TRAITS } from "./data/leaderTraits";
 import * as R from "./rng";
 import { buildingCost, is, LARVAE_EVERY } from "./abilities";
 import { canColonize, distance } from "./formulas";
@@ -14,6 +15,7 @@ import { fieldTier } from "./tech";
 import { FIELDS, type Colony, type Empire, type GameState, type Id, type Leader } from "./types";
 
 const KEYS = ["production", "research", "growth", "range", "attack", "spying", "relations", "trade", "culture"] as const;
+const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
 
 function add(into: Required<EmpireBonus>, b: EmpireBonus, times = 1): void {
   for (const k of KEYS) into[k] += (b[k] ?? 0) * times;
@@ -26,7 +28,15 @@ export function empireBonus(e: Empire): Required<EmpireBonus> {
     const w = BUILDING_BY_ID.get(id)?.wonder;
     if (w) add(out, w.empire);
   }
-  for (const l of e.leaders ?? []) add(out, LEADER_KINDS[l.kind].perLevel, l.level);
+  for (const l of e.leaders ?? []) {
+    add(out, LEADER_KINDS[l.kind].perLevel, l.level);
+    // Traits apply once per leader (not scaled by level) with both upside and downside.
+    const trait = l.trait ? TRAIT_BY_ID.get(l.trait) : undefined;
+    if (trait) {
+      add(out, trait.upside);
+      add(out, trait.downside);
+    }
+  }
   if (e.goldenAge) add(out, GOLDEN_AGE_BONUS);
   return out;
 }
@@ -139,9 +149,12 @@ export function processCivilization(state: GameState): void {
     }
     if (e.leaderOffer && e.leaderOffer.offerUntil < state.turn) e.leaderOffer = null;
     if (!e.leaderOffer && e.leaders.length < MAX_LEADERS && state.turn > 10 && R.chance(state.rng, 1 / 22)) {
-      e.leaderOffer = newLeader(state);
+      const offer = newLeader(state);
+      e.leaderOffer = offer;
+      const traitName = offer.trait ? TRAIT_BY_ID.get(offer.trait)?.name : undefined;
+      const traitSuffix = traitName ? ` Trait: ${traitName}.` : "";
       state.events.push({ turn: state.turn, empireId: e.id, kind: "culture",
-        text: `${e.leaderOffer.name} offers to serve as ${LEADER_KINDS[e.leaderOffer.kind].title} (level ${e.leaderOffer.level}, boosts ${LEADER_KINDS[e.leaderOffer.kind].text}). Hire for ${e.leaderOffer.cost} BC in the Empire screen.` });
+        text: `${offer.name} offers to serve as ${LEADER_KINDS[offer.kind].title} (level ${offer.level}, boosts ${LEADER_KINDS[offer.kind].text}). Hire for ${offer.cost} BC in the Empire screen.${traitSuffix}` });
     }
   }
 }
@@ -168,11 +181,13 @@ function newLeader(state: GameState): Leader {
   const roll = R.next(rng);
   const level = roll < 0.6 ? 1 : roll < 0.9 ? 2 : 3;
   const name = R.pick(rng, NAME_PARTS.first) + R.pick(rng, NAME_PARTS.mid) + R.pick(rng, NAME_PARTS.last);
+  // Pick a trait id right as the leader is generated so offers and hires share the same trait.
+  const trait = R.pick(rng, LEADER_TRAITS).id;
   const scale = 1 + state.turn / 100;
   return {
     id: state.nextLeaderId++, name, kind, level,
     cost: Math.round(120 * level * scale), salary: Math.round((2 + level * 2) * scale),
-    offerUntil: state.turn + 10,
+    offerUntil: state.turn + 10, trait,
   };
 }
 
