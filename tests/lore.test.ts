@@ -226,3 +226,16 @@ describe("carriers (Gemini, balanced by Claude)", () => {
     expect(FIGHTER_VARIANTS.length).toBe(4);
   });
 });
+
+import { VICTORY_TENSION } from "../src/engine/data/victoryTension";
+import { CULTURE_VICTORY, VOTE_SHARE_TO_WIN } from "../src/engine/victory";
+
+describe("victory warnings (Gemini)", () => {
+  it("use the real victory numbers and never start more than 2 wars", () => {
+    const culture = VICTORY_TENSION.find((v) => v.kind === "culture")!;
+    for (const w of culture.warnings) expect(w.text).toContain((CULTURE_VICTORY * w.ratio).toLocaleString("en-US"));
+    const council = VICTORY_TENSION.find((v) => v.kind === "council")!;
+    for (const w of council.warnings) expect(w.text).toContain(`${Math.round(VOTE_SHARE_TO_WIN * w.ratio * 100)}%`);
+    for (const v of VICTORY_TENSION) expect(v.counterPlay.maxSimultaneousWars).toBeLessThanOrEqual(2);
+  });
+});
