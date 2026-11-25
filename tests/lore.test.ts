@@ -6,6 +6,7 @@ import { AWAKENING_CHAIN, BLIGHT_CRISIS, ELDER_POWERS, STATION } from "../src/en
 import { resolveEvent } from "../src/engine/events";
 import { STORYLINES } from "../src/engine/data/storylines";
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
+import { GATE_EVENTS, GATE_TYPES, STANCES } from "../src/engine/data/gates";
 
 const NEW_EVENTS = ["precursor-dreadnought", "void-stowaway", "ace-defector", "orbital-elevator-collapse",
   "galactic-olympiad", "rogue-terraforming-fleet", "phantom-beacon", "privateer-letter"];
@@ -343,6 +344,24 @@ describe("the supernova crisis (Gemini)", () => {
     for (const r of REMNANTS) {
       expect(r.researchPerTurn).toBeGreaterThanOrEqual(5);
       expect(r.researchPerTurn).toBeLessThanOrEqual(25);
+    }
+  });
+});
+
+describe("gates and ambushes (Gemini)", () => {
+  it("has 3 gate types, 3 stances and 4 events, all in scale", () => {
+    expect(GATE_TYPES.length).toBe(3);
+    for (const g of GATE_TYPES) {
+      expect(g.throughput).toBeGreaterThanOrEqual(5);
+      expect(g.throughput).toBeLessThanOrEqual(60);
+      expect(g.awakenCost).toBeLessThanOrEqual(2000);
+      expect(g.attritionPerTurn).toBeLessThanOrEqual(0.05);
+    }
+    expect(STANCES.map((s) => s.id).sort()).toEqual(["ambush", "decoy", "staging"]);
+    expect(GATE_EVENTS.length).toBe(4);
+    for (const e of GATE_EVENTS) {
+      checkText(e);
+      for (const c of e.choices) for (const fx of c.effects) expect(inScale(fx), `${e.id}: ${JSON.stringify(fx)}`).toBe(true);
     }
   });
 });
