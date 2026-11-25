@@ -150,3 +150,11 @@ Danny's must-have "civil war with spy options" and the idea "occupation and resi
 - **Tournament after the gift cap** (1 master vs 5 basic, medium, seeds 8000+): **13/18 wins** (7 council, 6 culture); control (basic AI in the same seat) 0/18. Note: seat 0 under a basic AI has won only 1 of 24 tournament games (expected ~4); worth checking whether seat 0 starts worse.
 - **All-master games** (18, seeds 3000+): culture 13, council 3, no winner 2, median end T343, 12 different races won; Quorai not dominant.
 - Tests: `tests/masterAI.test.ts` (wiring, legal orders, never the Gate, gift cap, determinism). Balance tester takes `DIFF=master`.
+
+## 2026-11-25 16:05 Gemini packs taken over from Claude 2 (out of usage)
+Danny passed 5 Gemini answers to the main session. All added as **data only** with `tests/lore2.test.ts`:
+- `data/infestation.ts` (Hollow Crawlers: 10-event chain with 3 branches, specimen gamble): passed. Note for the runner: event 10 should follow the end of the chosen branch, not event 4.
+- `data/contracts.ts` (frontier job board: 18 contracts, 6 twists): passed; Iron-Jackal Corsair money 330 -> 300 (tier 2 stays in event scale).
+- `data/hazardWorlds.ts` (6 death worlds, prison colony, 6 prison events; Gemini called it deathWorlds.ts): passed; upkeep rises with the production bonus.
+- `data/legends.ts` (12 crew traits, legend loss morale, 8 synthetic leader traits, 5 events): passed; unused import removed, one description capitalised.
+- `data/megaprojectEvents.ts` (5 superweapon + 5 starbase events, superweapon reactions for all 18 races): superweapon events named one specific weapon though any of the four can be built: now "our superweapon"; one title and two labels reworded.
