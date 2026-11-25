@@ -5,6 +5,7 @@ import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
 import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
 import { buildable, buyCost } from "./civ";
+import { techVictoryProgress, votesOf } from "./victory";
 import { GOLDEN_AGE_AT } from "./data/buildings";
 import type { ShipDesign } from "./data/ships";
 import {
@@ -19,7 +20,7 @@ import { colonyBudget, type ColonyBudget } from "./turn";
 import {
   FIELDS,
   type Colony, type Empire, type Fleet, type Id, type GameEvent, type GameState, type ResearchField,
-  type StarColor, type StarKnowledge, type Difficulty, type Proposal, type SpyNetwork, type TreatyKind,
+  type StarColor, type StarKnowledge, type Difficulty, type Proposal, type SpyNetwork, type TreatyKind, type Winner,
 } from "./types";
 
 export interface PublicStar {
@@ -70,6 +71,17 @@ export interface EmpireView {
   proposals: (Proposal & { text: string })[];
   /** Wonders built anywhere (news travels): wonder id -> holder and turn. */
   wonders: Record<string, { empireId: Id; turn: number }>;
+  /** The Galactic Council: public, as in the classic game. */
+  council: {
+    nextTurn: number;
+    session: { turn: number; candidates: [Id, Id]; weight: Record<Id, number>; myVote: Id | null | undefined } | null;
+    awaitingVerdict: Id | null;
+    defied: boolean;
+  };
+  winner: Winner | null;
+  keepPlaying: boolean;
+  /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
+  standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean }[];
   /** Culture needed for the next golden age, or null after the last. */
   nextGoldenAge: number | null;
   /** Ship designs this empire can build (built-ins first). */
@@ -140,6 +152,21 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     proposals: state.proposals.filter((p) => p.to === empireId || p.from === empireId).map((p) => ({ ...p, text: describeProposal(state, p) })),
     wonders: Object.fromEntries(Object.entries(state.wonders).map(([id, w]) => [id, { empireId: w.empireId, turn: w.turn }])),
     nextGoldenAge: GOLDEN_AGE_AT[e.goldenAges] ?? null,
+    council: {
+      nextTurn: state.council.nextTurn,
+      session: state.council.session ? {
+        turn: state.council.session.turn, candidates: [...state.council.session.candidates] as [Id, Id],
+        weight: { ...state.council.session.weight }, myVote: state.council.session.votes[empireId],
+      } : null,
+      awaitingVerdict: state.council.awaitingVerdict,
+      defied: state.council.defied,
+    },
+    winner: state.winner ? { ...state.winner } : null,
+    keepPlaying: !!state.keepPlaying,
+    standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
+      id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),
+      techFields: techVictoryProgress(o), alive: o.alive,
+    })),
     me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,
     stars: state.stars.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, color: s.color, nebula: s.nebula })),
     events: state.events.filter((ev) => ev.empireId === null || ev.empireId === empireId).map((ev) => ({ ...ev })),

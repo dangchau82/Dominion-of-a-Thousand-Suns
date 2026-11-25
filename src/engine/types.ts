@@ -143,6 +143,30 @@ export interface Leader {
   offerUntil: number;
 }
 
+export type VictoryKind = "conquest" | "council" | "culture" | "technology";
+export interface Winner {
+  empireId: Id;
+  kind: VictoryKind;
+  turn: number;
+}
+
+export interface CouncilSession {
+  turn: number;
+  candidates: [Id, Id];
+  /** Voter -> candidate, or null to abstain. Missing = hasn't voted yet. */
+  votes: Record<Id, Id | null>;
+  /** Votes each empire holds this session. */
+  weight: Record<Id, number>;
+}
+export interface CouncilState {
+  nextTurn: number;
+  session: CouncilSession | null;
+  /** An AI empire was elected; the player must accept (lose) or defy (war with everyone). */
+  awaitingVerdict: Id | null;
+  /** The player defied the council. */
+  defied: boolean;
+}
+
 export type TreatyKind = "trade" | "research" | "nap" | "alliance";
 export const TREATIES: readonly TreatyKind[] = ["trade", "research", "nap", "alliance"];
 
@@ -210,7 +234,7 @@ export interface GameEvent {
   kind:
     | "explored" | "colonized" | "shipBuilt" | "research" | "growth" | "contact"
     | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion"
-    | "diplomacy" | "spy" | "culture";
+    | "diplomacy" | "spy" | "culture" | "council";
   text: string;
   starId?: Id;
 }
@@ -232,6 +256,11 @@ export interface GameState {
   /** Wonders built so far: wonder id -> who holds it and where. */
   wonders: Record<string, { empireId: Id; starId: Id; turn: number }>;
   nextLeaderId: number;
+  /** The Galactic Council: when it next meets, and the session in progress. */
+  council: CouncilState;
+  /** Set when someone has won; the player may keep playing afterwards. */
+  winner: Winner | null;
+  keepPlaying?: boolean;
   /** Diplomatic proposals waiting for an answer. */
   proposals: Proposal[];
   nextProposalId: number;
@@ -248,4 +277,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;

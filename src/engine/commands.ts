@@ -4,6 +4,7 @@
 import { researchChoices } from "./tech";
 import { atWar, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
+import { castVote, councilVerdict } from "./victory";
 import { answerProposal, breakTreaty, checkProposal, giveGift, hasTreaty, makeProposal, setSpies, type ProposalInput } from "./diplomacy";
 import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
@@ -33,6 +34,9 @@ export type Command =
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
+  | { type: "councilVote"; candidateId: Id | null }
+  | { type: "councilVerdict"; accept: boolean }
+  | { type: "keepPlaying" }
   | { type: "fundShips"; starId: Id; bc: number }
   | { type: "dismissLeader"; leaderId: number }
   | { type: "offerPeace"; targetId: Id }
@@ -181,6 +185,7 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       const c = ownColony(state, empireId, cmd.starId);
       if (!c || !c.buildQueue) return fail("Nothing being built");
       const cost = buyCost(c);
+      if (cost <= 0) return fail("This can't be bought");
       if (e.treasury < cost) return fail(`Need ${cost} BC`);
       e.treasury -= cost;
       progressBuilding(state, e, c, cost / 2);
@@ -194,6 +199,20 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       e.treasury -= cmd.bc;
       c.shipProgress += cmd.bc;
       return { ok: true };
+    }
+    case "councilVote": {
+      const err = castVote(state, e, cmd.candidateId);
+      return err ? fail(err) : { ok: true };
+    }
+    case "keepPlaying": {
+      if (!e.isPlayer || !state.winner || !e.alive) return fail("Nothing to continue");
+      state.keepPlaying = true;
+      return { ok: true };
+    }
+    case "councilVerdict": {
+      if (!e.isPlayer) return fail("Only the player answers the council's verdict");
+      const err = councilVerdict(state, e, cmd.accept);
+      return err ? fail(err) : { ok: true };
     }
     case "hireLeader": {
       const err = hireLeader(state, e);

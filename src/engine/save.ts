@@ -5,6 +5,7 @@ import { race } from "./data/races";
 import { makeRng } from "./rng";
 import { learn, newResearchState, TECH_BY_ID } from "./tech";
 import { addDesign, starterDesigns } from "./designs";
+import { COUNCIL_FIRST } from "./victory";
 import { FIELDS, SAVE_VERSION, type GameState } from "./types";
 
 /** Version 1 saves had research "levels"; give each empire a tech tree and the techs those levels imply. */
@@ -56,6 +57,13 @@ function migrateV5(state: GameState): void {
   state.version = 6;
 }
 
+/** Version 6 saves had no council or victory. */
+function migrateV6(state: GameState): void {
+  state.council = { nextTurn: Math.max(COUNCIL_FIRST, state.turn + 10), session: null, awaitingVerdict: null, defied: false };
+  state.winner = null;
+  state.version = 7;
+}
+
 export function serialize(state: GameState): string {
   return JSON.stringify(state);
 }
@@ -70,6 +78,7 @@ export function deserialize(json: string): GameState {
   if (data.version === 3) migrateV3(data as GameState);
   if (data.version === 4) migrateV4(data as GameState);
   if (data.version === 5) migrateV5(data as GameState);
+  if (data.version === 6) migrateV6(data as GameState);
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

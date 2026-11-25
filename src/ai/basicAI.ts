@@ -231,7 +231,8 @@ function civilization(ctx: Ctx): void {
     let bestScore = 0;
     for (const id of options) {
       let score: number;
-      if (id.startsWith("w-")) score = c.isCapital && prod > 120 && view.turn > 60 ? 5 + ctx.curiosity * 3 : 0;
+      if (id === "w-ascension") score = c.isCapital ? 100 : 0;
+      else if (id.startsWith("w-")) score = c.isCapital && prod > 120 && view.turn > 60 ? 5 + ctx.curiosity * 3 : 0;
       else score = BUILD_PRIORITY[id]?.(ctx, c) ?? 1;
       if (score > bestScore) { bestScore = score; best = id; }
     }
@@ -248,6 +249,21 @@ function civilization(ctx: Ctx): void {
   if (yard && spare > 100) cmds.push({ type: "fundShips", starId: yard.starId, bc: Math.floor(spare * (ctx.wars.length ? 0.6 : 0.3)) });
   const offer = view.me.leaderOffer;
   if (offer && view.me.leaders.length < 3 && view.me.treasury >= offer.cost * 1.3) cmds.push({ type: "hireLeader" });
+}
+
+// ---------- the Galactic Council ----------
+
+function council(ctx: Ctx): void {
+  const s = ctx.view.council.session;
+  const me = ctx.view.me.id;
+  if (!s || s.myVote !== undefined || s.weight[me] === undefined) return;
+  if (s.candidates.includes(me)) { ctx.cmds.push({ type: "councilVote", candidateId: me }); return; }
+  const feel = (id: Id) => ctx.view.contacts.find((c) => c.id === id)?.ourFeeling ?? -5;
+  const [a, b] = s.candidates;
+  const best = feel(a) >= feel(b) ? a : b;
+  // Abstain rather than crown someone we dislike; warlike races hate handing over the galaxy.
+  const ally = ctx.view.contacts.find((c) => c.id === best)?.treaties.includes("alliance");
+  ctx.cmds.push({ type: "councilVote", candidateId: ally || feel(best) >= 40 + ctx.aggression * 20 ? best : null });
 }
 
 // ---------- research ----------
@@ -565,6 +581,7 @@ function makeCtx(view: EmpireView): Ctx {
 export function basicAITurn(view: EmpireView): Command[] {
   const ctx = makeCtx(view);
   answers(ctx);
+  council(ctx);
   diplomacy(ctx);
   deals(ctx);
   espionage(ctx);

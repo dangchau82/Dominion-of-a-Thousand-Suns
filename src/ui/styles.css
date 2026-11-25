@@ -133,3 +133,5 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 .empire-card img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; }
 .empire-card .row { grid-column: 1 / -1; }
 .quote { font-style: italic; opacity: 0.85; }
+.standings { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+.standings th, .standings td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #1b2440; }

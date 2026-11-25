@@ -3,8 +3,8 @@ import { runAITurns } from "../src/ai";
 import { endTurn, newGame, race } from "../src/engine";
 import { FAIR_START_RADIUS } from "../src/engine/galaxy";
 import { canColonizeClimate } from "../src/engine/formulas";
-it("18 races on huge, 11 rivals on large", () => {
-  for (const [size, rivals] of [["huge", 17], ["large", 11], ["medium", 7], ["small", 4]] as const) {
+it("all 18 races fit on large and huge", () => {
+  for (const [size, rivals] of [["huge", 17], ["large", 17], ["medium", 7], ["small", 4]] as const) {
     for (const seed of [1, 2, 3]) {
       const g = newGame({ seed, size, shape: "spiral", rivals, playerRaceId: "nyx", playerName: "D" });
       expect(g.empires.length).toBe(rivals + 1);

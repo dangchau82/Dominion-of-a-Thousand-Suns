@@ -6,6 +6,7 @@ import { bridgeStars, generateStars, pickHomeStars, prepareHome } from "./galaxy
 import { exploreStar } from "./knowledge";
 import * as R from "./rng";
 import { newResearchState } from "./tech";
+import { COUNCIL_FIRST } from "./victory";
 import { addDesign, starterDesigns } from "./designs";
 import {
   FIELDS, SAVE_VERSION,
@@ -40,6 +41,7 @@ export function newGame(settings: GameSettings): GameState {
   const state: GameState = {
     version: SAVE_VERSION, turn: 1, settings, rng, stars,
     empires: [], colonies: {}, fleets: [], nextFleetId: 1, events: [], designs: {}, nextDesignId: 1, proposals: [], nextProposalId: 1, wonders: {}, nextLeaderId: 1,
+    council: { nextTurn: COUNCIL_FIRST, session: null, awaitingVerdict: null, defied: false }, winner: null,
   };
 
   races.forEach((r, i) => {

@@ -7,7 +7,7 @@ import {
 } from "./data/buildings";
 import * as R from "./rng";
 import { fieldTier } from "./tech";
-import type { Colony, Empire, GameState, Id, Leader } from "./types";
+import { FIELDS, type Colony, type Empire, type GameState, type Id, type Leader } from "./types";
 
 const KEYS = ["production", "research", "growth", "range", "attack", "spying", "relations", "trade", "culture"] as const;
 
@@ -50,13 +50,14 @@ export function buildable(state: GameState, e: Empire, c: Colony): BuildingDef[]
     if (c.buildings.includes(b.id)) return false;
     if (b.requires && fieldTier(e.research, b.requires[0]) < b.requires[1]) return false;
     if (b.wonder && state.wonders[b.id]) return false;
+    if (b.id === "w-ascension" && !FIELDS.every((f) => fieldTier(e.research, f) >= 10)) return false;
     return true;
   });
 }
 
 /** BC to finish the current building at once (twice the remaining cost, like rushing in classic city builders). */
 export function buyCost(c: Colony): number {
-  if (!c.buildQueue) return 0;
+  if (!c.buildQueue || c.buildQueue === "w-ascension") return 0;
   return Math.ceil(Math.max(0, building(c.buildQueue).cost - c.buildProgress) * 2);
 }
 

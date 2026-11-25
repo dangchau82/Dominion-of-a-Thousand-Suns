@@ -93,6 +93,7 @@ export class GameScreen {
 
   private endTurn(): void {
     if (this.busy) return;
+    if (this.state.winner && !this.state.keepPlaying) { this.showGameOver(); return; }
     this.busy = true;
     this.moving = null;
     this.setHint(null);
@@ -448,7 +449,7 @@ export class GameScreen {
         const waiting = v.proposals.filter((p) => p.to === PLAYER);
         if (waiting.length) {
           const b = el("button", { class: "primary", style: "width:100%;margin:6px 0" }, `📨 ${waiting.length} message${waiting.length > 1 ? "s" : ""} waiting`);
-          b.onclick = () => { close(); this.showProposals(); };
+          b.onclick = () => { close(); this.showMessages(); };
           box.append(b);
         }
         if (!v.contacts.length) box.append(el("p", {}, "You haven't met anyone yet. Keep exploring."));
@@ -488,8 +489,114 @@ export class GameScreen {
     });
   }
 
-  /** Proposals other empires sent us; answered one by one. */
+  /** After a turn: the end of the game, the council, then messages. */
   private showProposals(): void {
+    const v = makeView(this.state, PLAYER);
+    if (v.winner && !v.keepPlaying) return this.showGameOver();
+    if (v.council.awaitingVerdict !== null) return this.showVerdict();
+    if (v.council.session && v.council.session.myVote === undefined && v.council.session.weight[PLAYER] !== undefined) return this.showCouncil();
+    this.showMessages();
+  }
+
+  private showCouncil(): void {
+    const v = makeView(this.state, PLAYER);
+    const s = v.council.session!;
+    const total = Object.values(s.weight).reduce((a, b) => a + b, 0);
+    const name = (id: Id) => this.state.empires[id]!.name;
+    this.modal((box, close) => {
+      box.innerHTML = `<img class="event-pic" src="${art.event("council")}" alt=""><h2>The Galactic Council</h2>
+        <p>The council must choose a ruler for the galaxy. Two thirds of all votes (<b>${Math.ceil(total * 2 / 3)}</b> of ${total}) are needed to win.</p>
+        <ul>${Object.entries(s.weight).sort((a, b) => b[1] - a[1]).map(([id, w]) => `<li>${esc(name(Number(id)))}${s.candidates.includes(Number(id)) ? " <b>(candidate)</b>" : ""}: ${w} votes</li>`).join("")}</ul>
+        <p class="dim">Votes come from population. If someone else is elected you may accept (you lose) or defy the council (every empire declares war on you).</p>`;
+      const row = el("div", { class: "row", style: "flex-wrap:wrap" });
+      const vote = (id: Id | null) => { this.cmd({ type: "councilVote", candidateId: id }); close(); this.showMessages(); };
+      if (s.candidates.includes(PLAYER)) {
+        const b = el("button", { class: "primary" }, `Vote for yourself (${s.weight[PLAYER]})`);
+        b.onclick = () => vote(PLAYER);
+        row.append(b);
+      } else {
+        for (const id of s.candidates) {
+          const b = el("button", { class: "primary" }, `Vote: ${esc(name(id))}`);
+          b.onclick = () => vote(id);
+          row.append(b);
+        }
+        const ab = el("button", {}, "Abstain");
+        ab.onclick = () => vote(null);
+        row.append(ab);
+      }
+      box.append(row);
+    });
+  }
+
+  private showVerdict(): void {
+    const v = makeView(this.state, PLAYER);
+    const winner = this.state.empires[v.council.awaitingVerdict!]!;
+    this.modal((box, close) => {
+      box.innerHTML = `<img class="event-pic" src="${art.event("council")}" alt=""><h2>The council has chosen</h2>
+        <p>The Galactic Council elected the <b>${esc(winner.name)}</b> to rule the galaxy.</p>
+        <p>Accept, and the game ends in their victory. Defy, and every empire you know declares war on you, and the council never meets again.</p>`;
+      const row = el("div", { class: "row" });
+      const acc = el("button", {}, "Accept (lose)");
+      acc.onclick = () => { this.cmd({ type: "councilVerdict", accept: true }); close(); autosave(this.state); this.showGameOver(); };
+      const defy = el("button", { class: "primary" }, "Defy the council!");
+      defy.onclick = () => { this.cmd({ type: "councilVerdict", accept: false }); close(); autosave(this.state); this.refresh(); this.showMessages(); };
+      row.append(acc, defy);
+      box.append(row);
+    });
+  }
+
+  private showGameOver(): void {
+    const v = makeView(this.state, PLAYER);
+    const w = v.winner!;
+    const won = w.empireId === PLAYER;
+    const who = this.state.empires[w.empireId]!;
+    const how: Record<string, string> = {
+      conquest: "by conquest", council: "by vote of the Galactic Council", culture: "through culture", technology: "by building the Ascension Gate",
+    };
+    this.modal((box, close) => {
+      box.innerHTML = `<img class="event-pic" src="${art.event(won ? "victory" : "crisis")}" alt="">
+        <h2>${won ? "Victory!" : "Defeat"}</h2>
+        <p>${won ? `You have won the galaxy ${how[w.kind]} on turn ${w.turn}.` : `The ${esc(who.name)} won the galaxy ${how[w.kind]} on turn ${w.turn}.`}</p>
+        <p class="dim">Your empire: ${v.colonies.length} colonies, ${fmt(v.colonies.reduce((a, c) => a + c.population, 0), 0)} population, ${v.me.research.known.length} techs, ${fmt(v.me.culture, 0)} culture${this.state.cheated ? " · cheats were used" : ""}.</p>`;
+      const row = el("div", { class: "row" });
+      if (v.me.alive) {
+        const keep = el("button", {}, "Keep playing");
+        keep.onclick = () => { this.cmd({ type: "keepPlaying" }); autosave(this.state); close(); this.refresh(); };
+        row.append(keep);
+      }
+      const menu = el("button", { class: "primary" }, "Main menu");
+      menu.onclick = () => { close(); location.reload(); };
+      row.append(menu);
+      box.append(row);
+    });
+  }
+
+  /** Paths to victory and how everyone is doing. */
+  private showVictory(): void {
+    const v = makeView(this.state, PLAYER);
+    this.modal((box, close) => {
+      const total = v.standings.filter((s) => s.alive).reduce((a, s) => a + s.votes, 0);
+      const rows = [...v.standings].sort((a, b) => b.votes - a.votes).map((s) =>
+        `<tr${s.id === PLAYER ? ' class="good"' : ""}><td style="color:${s.color}">${esc(s.name)}${s.alive ? "" : " †"}</td><td>${s.votes}</td><td>${fmt(s.culture / 1000, 1)}k</td><td>${s.techFields}/6</td></tr>`).join("");
+      box.innerHTML = `<h2>Paths to victory</h2>
+        <ul>
+          <li><b>Conquest</b>: be the last empire standing.</li>
+          <li><b>Galactic Council</b>: from turn 150, every 25 turns, the two biggest empires stand and need two thirds of all votes. ${v.council.defied ? "<span class='bad'>You defied the council; it no longer meets.</span>" : `Next session: turn ${v.council.nextTurn}.`}</li>
+          <li><b>Culture</b>: reach 100k culture.</li>
+          <li><b>Technology</b>: reach tier 10 in all six fields, then build the Ascension Gate.</li>
+        </ul>
+        <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th></tr>${rows}</table>
+        <p class="dim">Shows you and the empires you have met. Total votes among them: ${total}.</p>`;
+      const row = el("div", { class: "row" });
+      const ok = el("button", { class: "primary" }, "Close");
+      ok.onclick = close;
+      row.append(ok);
+      box.append(row);
+    });
+  }
+
+  /** Proposals other empires sent us; answered one by one. */
+  private showMessages(): void {
     const waiting = makeView(this.state, PLAYER).proposals.filter((p) => p.to === PLAYER);
     if (!waiting.length) return;
     this.modal((box, close) => {
@@ -695,7 +802,7 @@ export class GameScreen {
     this.modal((box, close) => {
       const pic = contact ? `<img class="event-pic" src="${art.event("contact")}" alt="">`
         : war ? `<img class="event-pic" src="${art.event("crisis")}" alt="">` : "";
-      const order = ["war", "invasion", "battle", "contact", "diplomacy", "spy", "culture", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
+      const order = ["council", "war", "invasion", "battle", "contact", "diplomacy", "spy", "culture", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
       const sorted = [...events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
       box.innerHTML = `${pic}<h2>Turn ${turn} report</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
       const row = el("div", { class: "row" });
@@ -1085,6 +1192,9 @@ export class GameScreen {
       box.innerHTML = `<h2>Game menu</h2><p class="dim">Your game saves automatically after every turn on this device.</p>`;
       const row = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       const exp = el("button", {}, "Export save code (move to another device)");
+      const vic = el("button", {}, "Victory and the Galactic Council");
+      vic.onclick = () => { close(); this.showVictory(); };
+      row.append(vic);
       const mine = el("button", {}, "Your empire: culture, leaders, wonders");
       mine.onclick = () => { close(); this.showEmpire(); };
       row.append(mine);

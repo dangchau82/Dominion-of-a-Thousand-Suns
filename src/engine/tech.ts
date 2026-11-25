@@ -22,7 +22,7 @@ export function tech(id: string): Tech {
  * Cheap early (so the first techs arrive in tens of turns, not hundreds) and steep late.
  * Tuned by self-play so strong empires finish the tree around turn 300.
  */
-export const TIER_COST: readonly number[] = [0, 40, 150, 450, 1200, 2800, 6000, 12000, 22000, 40000, 70000];
+export const TIER_COST: readonly number[] = [0, 40, 150, 450, 1200, 2800, 6000, 12000, 26000, 55000, 100000];
 export function techCost(t: Tech, r: Race): number {
   return Math.round((TIER_COST[t.tier] ?? 70000) / r.research);
 }
