@@ -4,6 +4,7 @@
 import { aiAnswerProposals, runAITurns } from "../ai";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
+import { DEFAULT_MODEL, geminiChat, geminiKey, geminiModel, saveGemini, type ChatTurn } from "./gemini";
 import { markSeen, nextTip, setTipsOff, tipsOff } from "./advisor";
 import type { EventEffect } from "../engine/data/events";
 import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/buildings";
@@ -767,6 +768,10 @@ export class GameScreen {
           draw(answer || "They will think about it.");
         };
 
+        const chat = el("button", { class: "small", style: "margin-bottom:6px" }, "💬 Speak freely (Gemini link)");
+        chat.onclick = () => { close(); this.showChat(id); };
+        box.append(chat);
+
         // Treaties
         const tr = el("div", { class: "tech-card" });
         tr.innerHTML = `<b>Treaties</b>`;
@@ -866,6 +871,98 @@ export class GameScreen {
         box.append(row);
       };
       draw();
+    });
+  }
+
+  private chats = new Map<Id, ChatTurn[]>();
+
+  /** Free conversation with an alien leader through the player's own Gemini key. Flavour only. */
+  private showChat(id: Id): void {
+    const them = this.state.empires[id]!;
+    const r = race(them.raceId);
+    const history = this.chats.get(id) ?? [];
+    this.chats.set(id, history);
+    this.modal((box, close) => {
+      const draw = (status = "") => {
+        const v = makeView(this.state, PLAYER);
+        const o = v.contacts.find((x) => x.id === id)!;
+        box.innerHTML = `<div class="empire-card"><img src="${art.portrait(o.raceId)}" alt=""><div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
+          <div class="dim">${esc(r.name)} · ${moodWord(o.attitude)} toward you · chat is for fun and can't change the game</div></div></div>`;
+        if (!geminiKey()) {
+          box.append(el("p", {}, "To talk freely with alien leaders, add your own Gemini API key in ☰ → Gemini link. It stays on this device."));
+        }
+        const log = el("div", { class: "chat-log" });
+        if (!history.length) log.append(el("div", { class: "quote" }, esc(say(v.turn, them, o.warSince !== null ? "threaten" : "greeting", this.state.empires[PLAYER]!))));
+        for (const t of history) log.append(el("div", { class: t.role === "user" ? "chat-me" : "chat-them" }, esc(t.text)));
+        if (status) log.append(el("div", { class: "dim" }, esc(status)));
+        box.append(log);
+        const input = el("input", { type: "text", class: "tech-select", style: "width:100%", placeholder: "Say something…", maxlength: "300" }) as HTMLInputElement;
+        const send = el("button", { class: "primary" }, "Send");
+        const go = async () => {
+          const text = input.value.trim();
+          if (!text || !geminiKey()) return;
+          history.push({ role: "user", text });
+          draw("…");
+          try {
+            const reply = await geminiChat(this.personaPrompt(id), history.slice(-12));
+            history.push({ role: "model", text: reply });
+            draw();
+          } catch (err) {
+            history.pop();
+            draw((err as Error).message);
+          }
+        };
+        send.onclick = () => void go();
+        input.onkeydown = (ev) => { if (ev.key === "Enter") void go(); };
+        const row = el("div", { class: "row" });
+        const back = el("button", {}, "Back");
+        back.onclick = () => { close(); this.showDiplomacy(id); };
+        row.append(back, send);
+        box.append(input, row);
+        log.scrollTop = log.scrollHeight;
+        input.focus();
+      };
+      draw();
+    });
+  }
+
+  private personaPrompt(id: Id): string {
+    const v = makeView(this.state, PLAYER);
+    const o = v.contacts.find((x) => x.id === id)!;
+    const them = this.state.empires[id]!;
+    const r = race(them.raceId);
+    const samples = ["greeting", "threaten", "praise", "refuse"].map((s) => say(v.turn, them, s as never, this.state.empires[PLAYER]!)).join("\n");
+    return [
+      `You are the ruler of the ${them.name}, a ${r.style.toLowerCase()} people (${r.name}) in the space strategy game "Dominion of a Thousand Suns".`,
+      `Your people: ${r.unique}`,
+      `You are speaking with the ruler of the ${v.me.name}. You feel ${moodWord(o.attitude)} toward them (${o.attitude} on a -100 to 100 scale).`,
+      o.warSince !== null ? `You are at war with them since turn ${o.warSince}.` : "You are at peace with them.",
+      o.treaties.length ? `Treaties between you: ${o.treaties.join(", ")}.` : "You have no treaties.",
+      `It is turn ${v.turn}.`,
+      `Speak in this voice (examples):\n${samples}`,
+      "Rules: stay in character; answer in 1 to 3 short sentences; never say you are an AI or a language model;",
+      "do not agree to binding deals in chat (treaties and trades happen through the diplomacy menu, so say they should propose it formally);",
+      "keep it PG-13; do not invent other empires or game rules.",
+    ].join("\n");
+  }
+
+  private showGeminiSettings(): void {
+    this.modal((box, close) => {
+      box.innerHTML = `<h2>Gemini link</h2>
+        <p>Optional: talk freely with alien leaders using your own Gemini API key. Get one at <b>aistudio.google.com/apikey</b>.</p>
+        <p class="dim">Your key stays on this device (browser storage). It isn't saved in your game, isn't in the game's code, and only goes to Google. Chat is just for fun: it can't change the game, and the AI empires never use it to decide anything.</p>`;
+      const key = el("input", { type: "password", class: "tech-select", style: "width:100%", placeholder: "Paste your Gemini API key", value: geminiKey() }) as HTMLInputElement;
+      const model = el("input", { type: "text", class: "tech-select", style: "width:100%", value: geminiModel() }) as HTMLInputElement;
+      box.append(el("div", { class: "dim" }, "API key"), key, el("div", { class: "dim" }, `Model (default ${DEFAULT_MODEL})`), model);
+      const row = el("div", { class: "row" });
+      const save = el("button", { class: "primary" }, "Save");
+      save.onclick = () => { saveGemini(key.value, model.value); this.toast(key.value ? "Gemini link saved on this device" : "Gemini key removed"); close(); };
+      const clear = el("button", {}, "Remove key");
+      clear.onclick = () => { saveGemini("", model.value); key.value = ""; this.toast("Gemini key removed"); };
+      const cancel = el("button", {}, "Close");
+      cancel.onclick = close;
+      row.append(clear, cancel, save);
+      box.append(row);
     });
   }
 
@@ -1323,7 +1420,9 @@ export class GameScreen {
       tips.onclick = () => { setTipsOff(!tipsOff()); tips.textContent = `Advisor tips: ${tipsOff() ? "off" : "on"}`; this.renderTip(); };
       const vic = el("button", {}, "Victory and the Galactic Council");
       vic.onclick = () => { close(); this.showVictory(); };
-      row.append(vic, snd, tips);
+      const gem = el("button", {}, `Gemini link: ${geminiKey() ? "on" : "off"} (talk to aliens)`);
+      gem.onclick = () => { close(); this.showGeminiSettings(); };
+      row.append(vic, snd, tips, gem);
       const mine = el("button", {}, "Your empire: culture, leaders, wonders");
       mine.onclick = () => { close(); this.showEmpire(); };
       row.append(mine);

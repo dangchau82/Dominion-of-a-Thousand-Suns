@@ -17,7 +17,7 @@ Turn-based space 4X for phone and PC: Master of Orion 1 core plus the best of Mo
 - `src/engine/` — rules: types, data tables, formulas, galaxy generation, turn processing, commands, per-empire views, saves
 - `src/engine/data/` — game data (planets, stars, races, ship templates). Data, not code, so it can be tuned or modded.
 - `src/ai/` — AI players (`basicAI.ts`: personality-driven, plays from its EmpireView only)
-- `src/ui/` — screens (stage 1 screens come next)
+- `src/ui/` — screens; `gemini.ts` is the optional chat link (key kept in browser storage only)
 - `tests/` — Vitest; `tests/selfplay.test.ts` runs AI-vs-AI games as a stability check
 
 ## Commands
