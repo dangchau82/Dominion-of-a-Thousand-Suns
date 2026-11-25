@@ -297,4 +297,77 @@ export const EVENTS: GameEventDef[] = [
       { label: "Broadcast it to all", result: "Every people hears it; scholars everywhere are grateful.", effects: [{ kind: "culture", amount: 80 }, { kind: "relations", amount: 10 }] },
     ],
   },
+  // ---- Written by Gemini, reviewed and rescaled by Claude (2026-11-25) ----
+  {
+    id: "precursor-dreadnought", title: "The Sleeping Leviathan", art: "anomaly", trigger: "explore",
+    text: "Orbiting {star}, our scouts found a kilometer-long warship from a vanished age. Its reactor still hums faintly.",
+    choices: [
+      { label: "Overload its core for research", result: "The core detonates in a controlled burst, flooding our sensors with lost physics.", effects: [{ kind: "research", field: "weapons", amount: 300 }, { kind: "research", field: "forceFields", amount: 200 }] },
+      { label: "Strip its hull plating", result: "Salvage tugs haul back priceless alloys and antique munitions.", effects: [{ kind: "money", amount: 300 }] },
+      { label: "Broadcast its coordinates", result: "Scholars across the galaxy marvel at the discovery.", effects: [{ kind: "culture", amount: 110 }, { kind: "relations", amount: 12 }] },
+    ],
+  },
+  {
+    id: "void-stowaway", title: "Something Came Back", art: "crisis", trigger: "explore",
+    text: "A survey ship returning from {star} docked with an extra passenger: a crystalline organism feeding on reactor heat.",
+    choices: [
+      { label: "Contain and study it", result: "Two labs are ruined, but our engineers unlock radical energy containment.", effects: [{ kind: "factories", amount: -6 }, { kind: "research", field: "forceFields", amount: 350 }] },
+      { label: "Vent the docking bay", result: "Brutal and immediate. The creature drifts into the dark.", effects: [{ kind: "morale", amount: -3 }] },
+      { label: "Feed it surplus power", result: "It splits harmlessly into luminous pearls prized by collectors.", effects: [{ kind: "money", amount: 240 }, { kind: "culture", amount: 50 }] },
+    ],
+  },
+  {
+    id: "ace-defector", title: "The Ghost Squadron", art: "contact", trigger: "war",
+    text: "A decorated squadron commander from the {rival} offers to defect with encrypted fleet routing tables, for a steep price.",
+    choices: [
+      { label: "Pay their price (220 BC)", result: "Their star charts expose every blind spot in the {rival}'s border patrols.", effects: [{ kind: "money", amount: -220 }, { kind: "revealStars", count: 6 }, { kind: "research", field: "computers", amount: 300 }] },
+      { label: "Publicly parade the defectors", result: "Morale soars at home while the {rival} seethe in humiliation.", effects: [{ kind: "culture", amount: 95 }, { kind: "relations", amount: -20 }] },
+      { label: "Turn them away", result: "We fight this war without buying traitors.", effects: [{ kind: "relations", amount: 8 }] },
+    ],
+  },
+  {
+    id: "orbital-elevator-collapse", title: "Skyhook Severed", art: "crisis", trigger: "colony",
+    text: "Sabotage or metal fatigue has snapped the main orbital tether above {colony}. Debris rains across the industrial belt.",
+    choices: [
+      { label: "Emergency rescue and rebuild", result: "Heroic shuttle pilots save thousands, though the treasury takes a beating.", effects: [{ kind: "money", amount: -180 }, { kind: "morale", amount: 4 }] },
+      { label: "Prioritize the factories", result: "Industry resumes quickly, at a grim human cost.", effects: [{ kind: "population", amount: -4 }, { kind: "factories", amount: 4 }] },
+      { label: "Let the colony recover slowly", result: "Wreckage litters the plains for years.", effects: [{ kind: "population", amount: -2 }, { kind: "factories", amount: -12 }] },
+    ],
+  },
+  {
+    id: "galactic-olympiad", title: "Games Among the Stars", art: "council", trigger: "turn",
+    text: "Envoys propose hosting a grand interstellar tournament on our capital, inviting athletes even from the {rival}.",
+    choices: [
+      { label: "Spare no expense (180 BC)", result: "Spectators flood our worlds, spending freely and cheering for days.", effects: [{ kind: "money", amount: -180 }, { kind: "culture", amount: 160 }, { kind: "relations", amount: 18 }] },
+      { label: "Host a modest affair", result: "A pleasant distraction from galactic tensions.", effects: [{ kind: "culture", amount: 65 }, { kind: "relations", amount: 6 }] },
+      { label: "Exclude the {rival}", result: "Our citizens cheer the snub, though diplomats wince.", effects: [{ kind: "morale", amount: 5 }, { kind: "relations", amount: -15 }] },
+    ],
+  },
+  {
+    id: "rogue-terraforming-fleet", title: "World-Shapers for Hire", art: "contact", trigger: "colony",
+    text: "Nomadic terraforming barges offer to seed {colony} with engineered biosphere vaults before moving on.",
+    choices: [
+      { label: "Hire them (160 BC)", result: "New oceans and fertile valleys expand the habitable land.", effects: [{ kind: "money", amount: -160 }, { kind: "planetSize", amount: 8 }] },
+      { label: "Buy their biological samples", result: "Our scientists reverse-engineer their hardy strains.", effects: [{ kind: "money", amount: -70 }, { kind: "research", field: "planetology", amount: 320 }] },
+      { label: "Decline", result: "The barges drift back into the void.", effects: [{ kind: "nothing" }] },
+    ],
+  },
+  {
+    id: "phantom-beacon", title: "Echoes of a Dead Empire", art: "ruins", trigger: "explore",
+    text: "Near {star}, an automated buoy replays the final diplomatic archives of a civilization that destroyed itself.",
+    choices: [
+      { label: "Decode their warning", result: "Their tragic history inspires our finest poets and thinkers.", effects: [{ kind: "culture", amount: 130 }] },
+      { label: "Extract their star maps", result: "The buoy's memory banks reveal untouched outer systems.", effects: [{ kind: "revealStars", count: 6 }] },
+      { label: "Salvage their weapon blueprints", result: "We learn the exact doomsday physics that ended them.", effects: [{ kind: "research", field: "weapons", amount: 400 }] },
+    ],
+  },
+  {
+    id: "privateer-letter", title: "Letters of Marque", art: "pirates", trigger: "war",
+    text: "Freebooter captains offer to raid the {rival}'s supply lines under our flag in exchange for half the plunder.",
+    choices: [
+      { label: "Grant letters of marque", result: "Privateers strip the {rival}'s convoys and deliver stolen designs.", effects: [{ kind: "money", amount: 190 }, { kind: "research", field: "propulsion", amount: 250 }, { kind: "relations", amount: -15 }] },
+      { label: "Recruit them into regular patrols", result: "Their fast hulls bolster our scouting wing.", effects: [{ kind: "money", amount: -100 }, { kind: "ships", template: "scout", count: 3 }] },
+      { label: "Refuse pirate aid", result: "We keep our hands clean.", effects: [{ kind: "culture", amount: 35 }] },
+    ],
+  },
 ];

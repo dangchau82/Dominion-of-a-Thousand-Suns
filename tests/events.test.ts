@@ -5,9 +5,9 @@ import { EVENTS } from "../src/engine/data/events";
 const settings: GameSettings = { seed: 3, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "humans", playerName: "Danny" };
 
 describe("random events", () => {
-  it("has 32 well-formed events", () => {
-    expect(EVENTS.length).toBe(32);
-    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(32);
+  it("has 40 well-formed events", () => {
+    expect(EVENTS.length).toBe(40);
+    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(40);
     for (const e of EVENTS) expect(e.choices.length).toBeGreaterThanOrEqual(2);
   });
 
