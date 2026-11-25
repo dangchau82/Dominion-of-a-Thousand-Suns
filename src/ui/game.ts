@@ -56,6 +56,9 @@ function effectText(fx: EventEffect): string {
   }
 }
 
+/** The optional Gemini chat link is switched off for now. */
+const SHOW_GEMINI = false;
+
 const PLAYER = 0;
 const SLIDER_NAMES: Record<Slider, string> = {
   ship: "Ships", defense: "Defense", industry: "Industry", ecology: "Ecology", research: "Research",
@@ -768,9 +771,12 @@ export class GameScreen {
           draw(answer || "They will think about it.");
         };
 
-        const chat = el("button", { class: "small", style: "margin-bottom:6px" }, "💬 Speak freely (Gemini link)");
-        chat.onclick = () => { close(); this.showChat(id); };
-        box.append(chat);
+        // Gemini link is hidden for now (Danny's call); showChat() stays ready for later.
+        if (SHOW_GEMINI) {
+          const chat = el("button", { class: "small", style: "margin-bottom:6px" }, "💬 Speak freely (Gemini link)");
+          chat.onclick = () => { close(); this.showChat(id); };
+          box.append(chat);
+        }
 
         // Treaties
         const tr = el("div", { class: "tech-card" });
@@ -1422,7 +1428,8 @@ export class GameScreen {
       vic.onclick = () => { close(); this.showVictory(); };
       const gem = el("button", {}, `Gemini link: ${geminiKey() ? "on" : "off"} (talk to aliens)`);
       gem.onclick = () => { close(); this.showGeminiSettings(); };
-      row.append(vic, snd, tips, gem);
+      row.append(vic, snd, tips);
+      if (SHOW_GEMINI) row.append(gem);
       const mine = el("button", {}, "Your empire: culture, leaders, wonders");
       mine.onclick = () => { close(); this.showEmpire(); };
       row.append(mine);
