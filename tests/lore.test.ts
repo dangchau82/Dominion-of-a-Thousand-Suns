@@ -5,6 +5,7 @@ import { EVENTS, type EventEffect, type GameEventDef } from "../src/engine/data/
 import { AWAKENING_CHAIN, BLIGHT_CRISIS, ELDER_POWERS, STATION } from "../src/engine/data/lateGameLore";
 import { resolveEvent } from "../src/engine/events";
 import { STORYLINES } from "../src/engine/data/storylines";
+import { STORYLINES_2 } from "../src/engine/data/storylines-2";
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
 import { GATE_EVENTS, GATE_TYPES, STANCES } from "../src/engine/data/gates";
 
@@ -15,7 +16,7 @@ const NEW_EVENTS = ["precursor-dreadnought", "void-stowaway", "ace-defector", "o
 function inScale(fx: EventEffect): boolean {
   switch (fx.kind) {
     case "money": return Math.abs(fx.amount) <= 320;
-    case "research": return fx.amount <= 400;
+    case "research": return Math.abs(fx.amount) <= 400;
     case "culture": return Math.abs(fx.amount) <= 160;
     case "population": return Math.abs(fx.amount) <= 5;
     case "relations": return Math.abs(fx.amount) <= 20;
@@ -362,6 +363,22 @@ describe("gates and ambushes (Gemini)", () => {
     for (const e of GATE_EVENTS) {
       checkText(e);
       for (const c of e.choices) for (const fx of c.effects) expect(inScale(fx), `${e.id}: ${JSON.stringify(fx)}`).toBe(true);
+    }
+  });
+});
+
+describe("race storylines batch 2 (Gemini)", () => {
+  it("6 chapters per race, 2 forks each, in scale, clean text", () => {
+    for (const race of ["vossari", "kethrak", "lumen", "thraal", "seraphine"]) {
+      expect(STORYLINES_2.filter((c) => c.raceId === race).map((c) => c.chapter)).toEqual([1, 2, 3, 4, "5A", "5B"]);
+    }
+    const ids = [...STORYLINES, ...STORYLINES_2].map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const c of STORYLINES_2) {
+      expect(c.choices.length).toBe(2);
+      expect(c.title).not.toMatch(/\{/);
+      checkText(c);
+      for (const ch of c.choices) for (const fx of ch.effects) expect(inScale(fx), `${c.id}: ${JSON.stringify(fx)}`).toBe(true);
     }
   });
 });

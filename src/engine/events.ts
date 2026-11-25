@@ -76,7 +76,8 @@ function apply(state: GameState, e: Empire, p: PendingEvent, fx: EventEffect): v
     ?? state.colonies[e.capitalStarId];
   switch (fx.kind) {
     case "money": e.treasury = Math.max(0, e.treasury + fx.amount); break;
-    case "research": e.research.progress[fx.field] += Math.max(0, fx.amount); break;
+    // Negative research is a real cost: it drains progress in that field, never below zero.
+    case "research": e.research.progress[fx.field] = Math.max(0, e.research.progress[fx.field] + fx.amount); break;
     case "population": if (colony) colony.population = Math.max(1, colony.population + fx.amount); break;
     case "factories": if (colony) colony.factories = Math.max(0, colony.factories + fx.amount); break;
     case "morale": case "culture": e.culture = Math.max(0, e.culture + (fx.kind === "morale" ? fx.amount * 10 : fx.amount)); break;
