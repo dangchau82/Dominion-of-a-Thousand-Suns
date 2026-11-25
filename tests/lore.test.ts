@@ -5,6 +5,7 @@ import { EVENTS, type EventEffect, type GameEventDef } from "../src/engine/data/
 import { AWAKENING_CHAIN, BLIGHT_CRISIS, ELDER_POWERS, STATION } from "../src/engine/data/lateGameLore";
 import { resolveEvent } from "../src/engine/events";
 import { STORYLINES } from "../src/engine/data/storylines";
+import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
 
 const NEW_EVENTS = ["precursor-dreadnought", "void-stowaway", "ace-defector", "orbital-elevator-collapse",
   "galactic-olympiad", "rogue-terraforming-fleet", "phantom-beacon", "privateer-letter"];
@@ -322,6 +323,26 @@ describe("invasive critters (Gemini)", () => {
         if (fx.kind === "population") expect(Math.abs(fx.amount)).toBeLessThanOrEqual(2);
         if (fx.kind === "factories") expect(Math.abs(fx.amount)).toBeLessThanOrEqual(5);
       }
+    }
+  });
+});
+
+describe("the supernova crisis (Gemini)", () => {
+  const all = [...SUPERNOVA_WARNINGS, ...SUPERNOVA_AFTERMATH, QUORAI_SUPERNOVA];
+  it("has 4 warnings, 3 aftermaths and a Quorai choice, all in scale", () => {
+    expect(SUPERNOVA_WARNINGS.length).toBe(4);
+    expect(SUPERNOVA_AFTERMATH.length).toBe(3);
+    for (const e of all) {
+      checkText(e);
+      for (const c of e.choices) for (const fx of c.effects) expect(inScale(fx), `${e.id}: ${JSON.stringify(fx)}`).toBe(true);
+    }
+    expect(new Set(all.map((e) => e.id)).size).toBe(all.length);
+  });
+  it("remnants give 5 to 25 research a turn", () => {
+    expect(REMNANTS.length).toBe(4);
+    for (const r of REMNANTS) {
+      expect(r.researchPerTurn).toBeGreaterThanOrEqual(5);
+      expect(r.researchPerTurn).toBeLessThanOrEqual(25);
     }
   });
 });
