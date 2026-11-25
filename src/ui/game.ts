@@ -248,13 +248,23 @@ export class GameScreen {
       <span class="stat">🔬 <b>${fmt(rp, 0)}</b></span>
       <span class="stat">💰 <b>${fmt(v.me.treasury, 0)}</b></span>
       <span class="spacer"></span>`;
-    const research = el("button", { class: "small" }, "Research");
-    research.onclick = () => this.showResearch();
-    const fleets = el("button", { class: "small" }, "Fleets");
-    fleets.onclick = () => this.showFleets();
-    const menu = el("button", { class: "small" }, "☰");
-    menu.onclick = () => this.showMenu();
-    this.top.append(research, fleets, menu);
+    // Shortcuts: icon always, label on wider screens.
+    const nav = el("div", { class: "topnav" });
+    const add = (icon: string, label: string, title: string, go: () => void, badge = 0) => {
+      const b = el("button", { class: "small navbtn", title }, `<span class="ico">${icon}</span><span class="lbl">${label}</span>${badge ? `<span class="badge">${badge}</span>` : ""}`);
+      b.onclick = () => { play("click"); go(); };
+      nav.append(b);
+    };
+    const waiting = v.proposals.filter((p) => p.to === PLAYER).length;
+    if (waiting) add("📨", "Messages", "Offers and demands waiting for your answer", () => this.showMessages(), waiting);
+    add("🔬", "Research", "Research: fields, projects and tech", () => this.showResearch());
+    add("🚀", "Fleets", "All your fleets", () => this.showFleets());
+    add("🛠️", "Ships", "Ship designs and the designer", () => this.showDesigns());
+    add("🤝", "Diplomacy", "Other empires: talk, trade, treaties, spies, war and peace", () => this.showEmpires(), v.contacts.filter((o) => o.offersPeace).length);
+    add("🏛️", "Empire", "Your culture, leaders and wonders", () => this.showEmpire());
+    add("⚖️", "Council", "Victory paths and the Galactic Council", () => (v.council.session ? this.showCouncil() : this.showVictory()), v.council.session ? 1 : 0);
+    add("☰", "Menu", "Autopilot, sound, saves and settings", () => this.showMenu());
+    this.top.append(nav);
   }
 
   private renderEndbar(): void {

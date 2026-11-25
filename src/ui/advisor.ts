@@ -16,14 +16,14 @@ export const TIPS: Tip[] = [
   { id: "scouts", when: (v) => v.turn <= 6 && idle(v, "scout"), text: "Your scouts are waiting. Tap the ship icon beside your home star, press Send 1 Scout, then tap an unexplored star." },
   { id: "colony-ship", when: (v) => idle(v, "colony") && v.stars.some((s) => v.canSettle(s.id)), text: "You have a colony ship and a world it can settle. Stars you can settle get a green ring while moving it." },
   { id: "research", when: (v) => v.turn >= 4, text: "Open Research (top right) to see what you're studying. Push one field's slider up to get its tech much sooner." },
-  { id: "contact", when: (v) => v.contacts.length > 0, text: "You've met another empire! Open ☰ → Empires → Talk to trade, sign treaties, swap techs or send spies." },
+  { id: "contact", when: (v) => v.contacts.length > 0, text: "You've met another empire! Tap 🤝 Diplomacy at the top, then Talk, to trade, sign treaties, swap techs or send spies." },
   { id: "factories", when: (v) => v.colonies.some((c) => c.isCapital && c.factories >= c.maxFactories - 0.5), text: "Your capital's factories are full. Move its Industry slider to Research, Ship or a building." },
   { id: "buildings", when: (v) => v.colonies.some((c) => v.buildable(c.starId).length > 1), text: "Colonies can construct buildings (Start building… in the colony panel). Wonders (★) are one per galaxy, so race for them." },
   { id: "warships", when: (v) => v.turn >= 35, text: "Rivals will arm. Use Fleets → 🛠️ Ship designs to make warships, and set a shipyard to build them." },
   { id: "war", when: (v) => v.contacts.some((c) => c.warSince !== null), text: "You're at war. Missile bases (the Defense slider) protect planets. To take a planet, defeat its defenses, then tap it and choose Invade…" },
-  { id: "leader", when: (v) => v.me.leaderOffer !== null, text: "A leader offers to serve you. See ☰ → Your empire to hire them." },
-  { id: "council", when: (v) => v.turn >= 135, text: "The Galactic Council meets from turn 150. Check ☰ → Victory to see who has the most votes." },
-  { id: "autopilot", when: (v) => v.turn >= 20, text: "Busy? ☰ → Autopilot lets the AI run your empire for a few turns. It stops for wars, council votes and the end of the game." },
+  { id: "leader", when: (v) => v.me.leaderOffer !== null, text: "A leader offers to serve you. Tap 🏛️ Empire at the top to hire them." },
+  { id: "council", when: (v) => v.turn >= 135, text: "The Galactic Council meets from turn 150. Tap ⚖️ Council at the top to see who has the most votes." },
+  { id: "autopilot", when: (v) => v.turn >= 20, text: "Busy? ☰ → Autopilot lets the AI run your empire for a few turns. It stops for new races, wars, council votes and the end of the game." },
 ];
 
 export function tipsOff(): boolean {
