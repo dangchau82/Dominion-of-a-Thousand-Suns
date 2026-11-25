@@ -171,3 +171,17 @@ describe("Gemini pack 3: living ships", () => {
     expect(new Set([...LIVING_TRAITS, ...MUTATIONS].map((t) => t.id)).size).toBe(22);
   });
 });
+
+import { MONEY_SINKS } from "../src/engine/data/moneySinks";
+
+describe("money sinks (Gemini)", () => {
+  it("the investment drains money on average, and nothing rushes the Ascension Gate", () => {
+    const bourse = MONEY_SINKS.find((m) => m.benefitKind === "bourseInvestment")!;
+    const outcomes = bourse.outcomes!;
+    expect(outcomes.reduce((a, o) => a + o.probability, 0)).toBeCloseTo(1);
+    expect(outcomes.reduce((a, o) => a + o.probability * o.payoutMultiplier, 0)).toBeLessThan(1);
+    const rush = MONEY_SINKS.find((m) => m.benefitKind === "rushWonderProduction")!;
+    expect(rush.benefitValue).toBeLessThanOrEqual(0.5);
+    expect(rush.aiSummary).toMatch(/never the Ascension Gate/);
+  });
+});
