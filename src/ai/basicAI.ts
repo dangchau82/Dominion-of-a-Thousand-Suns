@@ -319,10 +319,17 @@ function civilization(ctx: Ctx): void {
     const cost = view.buyCost(c.starId);
     if (cost > 0 && cost <= spare * 0.5) { cmds.push({ type: "buyBuilding", starId: c.starId }); spare -= cost; }
   }
-  const yard = view.colonies.find((c) => c.isCapital && c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship")
-    ?? view.colonies.find((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "warship")
-    ?? view.colonies.find((c) => c.buildTemplate && ctx.designs.get(c.buildTemplate)?.role === "colony");
-  if (yard && spare > 100) cmds.push({ type: "fundShips", starId: yard.starId, bc: Math.floor(spare * (ctx.wars.length ? 0.7 : 0.4)) });
+  // Fund every shipyard, warship yards first, so a big hoard turns into ships instead of piling up.
+  const yards = view.colonies
+    .filter((c) => c.buildTemplate)
+    .sort((a, b) => Number(ctx.designs.get(b.buildTemplate!)?.role === "warship") - Number(ctx.designs.get(a.buildTemplate!)?.role === "warship"));
+  let pool = spare * (ctx.wars.length ? 0.7 : 0.5);
+  for (const yard of yards) {
+    if (pool < 100) break;
+    const bc = Math.floor(Math.min(pool, Math.max(150, pool / 2)));
+    cmds.push({ type: "fundShips", starId: yard.starId, bc });
+    pool -= bc;
+  }
 }
 
 // ---------- random events ----------

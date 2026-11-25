@@ -27,12 +27,12 @@ describe("AI", () => {
   });
 
   it("relaxed rivals start fewer wars than hard ones", () => {
+    // One seed is chaotic (a single tweak shifts who fights whom), so total over a few seeds.
     const count = (difficulty: "relaxed" | "hard") => {
-      const g = newGame({ seed: 7, size: "medium", shape: "ellipse", rivals: 6, playerRaceId: "humans", playerName: "X", difficulty });
       let wars = 0;
-      for (let t = 1; t <= 160; t++) {
-        runAITurns(g, true);
-        endTurn(g);
+      for (const seed of [7, 8, 9]) {
+        const g = newGame({ seed, size: "medium", shape: "ellipse", rivals: 6, playerRaceId: "humans", playerName: "X", difficulty });
+        for (let t = 1; t <= 120; t++) { runAITurns(g, true); endTurn(g); }
         wars += g.events.filter((e) => e.kind === "war" && e.empireId === null && e.text.includes("declared")).length;
       }
       return wars;
