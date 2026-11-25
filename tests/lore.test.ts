@@ -9,7 +9,8 @@ import { STORYLINES_2 } from "../src/engine/data/storylines-2";
 import { STORYLINES_3 } from "../src/engine/data/storylines-3";
 import { STORYLINES_4 } from "../src/engine/data/storylines-4";
 import { NEW_DIALOGUE } from "../src/engine/data/dialogue2";
-import { RACES } from "../src/engine/data/races";
+import { LAIRS } from "../src/engine/data/lairs";
+import { HULLS } from "../src/engine/data/ships";
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "../src/engine/data/supernova";
 import { GATE_EVENTS, GATE_TYPES, STANCES } from "../src/engine/data/gates";
 
@@ -397,6 +398,30 @@ describe("new rival voices (Gemini)", () => {
           for (const tag of l.match(/\{[a-z]+\}/g) ?? []) expect(["{leader}", "{empire}", "{star}"]).toContain(tag);
           expect(l.split(/\s+/).length, l).toBeLessThanOrEqual(30);
         }
+      }
+    }
+  });
+});
+
+describe("neutral lairs (Gemini)", () => {
+  it("15 lairs, 5 kinds x 3 tiers, real weapons, guards and rewards in scale", () => {
+    expect(LAIRS.length).toBe(15);
+    for (const kind of ["pirates", "hive", "sleeper", "treasure", "anomaly"]) {
+      expect(LAIRS.filter((l) => l.kind === kind).map((l) => l.tier).sort()).toEqual([1, 2, 3]);
+    }
+    const techIds = new Set(TECHS.map((t) => t.id));
+    const maxHp = { 1: 80, 2: 800, 3: 3000 } as const;
+    for (const l of LAIRS) {
+      expect(l.name).not.toMatch(/\{/);
+      let hp = 0;
+      for (const g of l.guards) {
+        hp += HULLS[g.hull].hits * g.count;
+        for (const w of g.weapons) expect(techIds.has(w.techId), `${l.id}: ${w.techId}`).toBe(true);
+      }
+      expect(hp, `${l.id} guard hit points`).toBeLessThanOrEqual(maxHp[l.tier]);
+      for (const fx of l.reward) {
+        if (fx.kind === "money" || fx.kind === "research" || fx.kind === "culture") expect(Math.abs(fx.amount)).toBeLessThanOrEqual(fx.kind === "culture" ? 320 : fx.kind === "money" ? 600 : 800);
+        if (fx.kind === "ships") expect(fx.count).toBeLessThanOrEqual(3);
       }
     }
   });
