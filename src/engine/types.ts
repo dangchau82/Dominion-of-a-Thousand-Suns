@@ -99,6 +99,10 @@ export interface Empire {
   knowledge: Record<Id, StarKnowledge>;
   /** Other empires this one has met. */
   contacts: Id[];
+  /** Empires this one is at war with -> turn the war began. */
+  atWar: Record<Id, number>;
+  /** Empires that have offered this one peace (accept by offering back). */
+  peaceOffers: Id[];
 }
 
 export interface Fleet {
@@ -131,7 +135,7 @@ export interface GameEvent {
   empireId: Id | null;
   kind:
     | "explored" | "colonized" | "shipBuilt" | "research" | "growth" | "contact"
-    | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info";
+    | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion";
   text: string;
   starId?: Id;
 }
@@ -163,4 +167,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;

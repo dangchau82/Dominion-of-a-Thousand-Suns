@@ -213,6 +213,7 @@ export class GameScreen {
           ${k.lastSeen < v.turn && k.ownerId !== PLAYER ? ` · seen turn ${k.lastSeen}` : ""}</div></div>`;
       p.append(head);
       if (c) p.append(this.colonyBlock(c.starId));
+      if (k.ownerId !== null && k.ownerId !== PLAYER) p.append(this.foreignBlock(s.id, k.ownerId));
     }
     p.append(this.fleetsBlock(s.id));
     this.panel = p;
@@ -287,6 +288,12 @@ export class GameScreen {
   private fleetsBlock(starId: Id): HTMLElement {
     const v = this.view;
     const wrap = el("div", {});
+    for (const sf of v.seenFleets.filter((x) => x.starId === starId)) {
+      const o = v.contacts.find((x) => x.id === sf.empireId);
+      const hostile = o?.warSince != null;
+      wrap.append(el("div", { class: hostile ? "bad" : "dim", style: "margin:6px 0" },
+        `${hostile ? "⚠ Enemy fleet" : "Foreign fleet"}: ${sf.ships} ship${sf.ships > 1 ? "s" : ""} of the ${esc(o?.name ?? "unknown empire")}`));
+    }
     const here = v.fleets.filter((f) => f.starId === starId && f.destStarId === null);
     const leaving = v.fleets.filter((f) => f.starId === starId && f.destStarId !== null);
     const incoming = v.fleets.filter((f) => f.destStarId === starId);
@@ -337,6 +344,113 @@ export class GameScreen {
     return wrap;
   }
 
+  /** War, peace and invasion buttons for another empire's colony. */
+  private foreignBlock(starId: Id, ownerId: Id): HTMLElement {
+    const v = this.view;
+    const wrap = el("div", { class: "section" });
+    const o = v.contacts.find((x) => x.id === ownerId);
+    if (!o) {
+      wrap.innerHTML = `<div class="dim">You haven't met this empire yet.</div>`;
+      return wrap;
+    }
+    wrap.innerHTML = `<div>${o.warSince !== null ? `<b class="bad">At war</b> with the ${esc(o.name)} since turn ${o.warSince}` : `At peace with the ${esc(o.name)}`}</div>`;
+    const row = el("div", { class: "row", style: "justify-content:flex-start;flex-wrap:wrap" });
+    if (o.warSince === null) {
+      const war = el("button", { class: "small" }, "Declare war");
+      war.onclick = () => this.confirmWar(o.id, o.name);
+      row.append(war);
+    } else {
+      const inv = el("button", { class: "small primary" }, "Invade…");
+      inv.onclick = () => this.showInvade(starId);
+      const peace = el("button", { class: "small" }, o.offersPeace ? "Accept their peace offer" : o.weOfferedPeace ? "Peace offered" : "Offer peace");
+      peace.disabled = o.weOfferedPeace && !o.offersPeace;
+      peace.onclick = () => { this.cmd({ type: "offerPeace", targetId: o.id }); this.refresh(); };
+      row.append(inv, peace);
+    }
+    wrap.append(row);
+    return wrap;
+  }
+
+  private confirmWar(id: Id, name: string): void {
+    if (!confirm(`Declare war on the ${name}? Your fleets and theirs will fight wherever they meet.`)) return;
+    if (this.cmd({ type: "declareWar", targetId: id })) this.toast(`You are at war with the ${name}!`);
+    this.refresh();
+  }
+
+  /** Pick a colony to send troops from. */
+  private showInvade(targetId: Id): void {
+    const v = this.view;
+    const target = v.stars[targetId]!;
+    const k = v.knowledge[targetId];
+    const sources = v.colonies.filter((c) => c.population >= 2 && v.reachable(targetId, { id: -1, empireId: PLAYER, ships: { transport: 1 }, x: v.stars[c.starId]!.x, y: v.stars[c.starId]!.y, starId: c.starId, destStarId: null }));
+    this.modal((box, close) => {
+      box.innerHTML = `<h2>Invade ${esc(target.name)}</h2>
+        <p class="dim">Troops come from a colony's population. They land once the planet's missile bases and warships here are destroyed, then fight its people one on one. Defenders have a small edge, so bring more troops than they have people${k?.population != null ? ` (last seen: ${k.population})` : ""}.</p>`;
+      if (!sources.length) box.append(el("p", {}, "None of your colonies with 2+ population is in range."));
+      for (const c of sources) {
+        const s = v.stars[c.starId]!;
+        const max = Math.floor(c.population - 1);
+        const card = el("div", { class: "tech-card" });
+        const turns = Math.max(1, Math.ceil(Math.hypot(s.x - target.x, s.y - target.y) / v.stats.speed - 1e-9));
+        card.innerHTML = `<b>${esc(s.name)}</b> <span class="dim">· pop ${fmt(c.population)} · ${turns} turn${turns > 1 ? "s" : ""} away</span>`;
+        const input = el("input", { type: "range", min: "1", max: String(max), value: String(Math.min(max, Math.max(1, Math.round((k?.population ?? 10) * 1.5)))), style: "width:100%;accent-color:#6fb6ff" });
+        const go = el("button", { class: "small primary" }, `Send ${input.value} troops`);
+        input.oninput = () => { go.textContent = `Send ${input.value} troops`; };
+        go.onclick = () => {
+          if (this.cmd({ type: "sendTransports", fromStarId: c.starId, toStarId: targetId, troops: Number(input.value) })) {
+            this.toast(`${input.value} troops on the way to ${target.name}`);
+            close(); this.refresh();
+          }
+        };
+        card.append(input, go);
+        box.append(card);
+      }
+      const row = el("div", { class: "row" });
+      const ok = el("button", {}, "Close");
+      ok.onclick = close;
+      row.append(ok);
+      box.append(row);
+    });
+  }
+
+  private showEmpires(): void {
+    this.modal((box, close) => {
+      const draw = () => {
+        const v = makeView(this.state, PLAYER);
+        box.innerHTML = `<h2>Empires</h2><p class="dim">Empires you have met. Full diplomacy (treaties, trade, spies) comes in a later stage.</p>`;
+        if (!v.contacts.length) box.append(el("p", {}, "You haven't met anyone yet. Keep exploring."));
+        for (const o of v.contacts) {
+          const card = el("div", { class: "tech-card empire-card" });
+          const colonies = Object.values(v.knowledge).filter((k) => k.ownerId === o.id).length;
+          card.innerHTML = `<img src="${art.portrait(o.raceId)}" alt=""><div><b style="color:${o.color}">${esc(o.name)}</b>${o.alive ? "" : " <span class='dim'>(destroyed)</span>"}
+            <div class="dim">${race(o.raceId).name} · ${colonies} known colonies</div>
+            <div>${o.warSince !== null ? `<b class="bad">At war</b> since turn ${o.warSince}${o.offersPeace ? " · <span class='good'>they offer peace</span>" : ""}` : "At peace"}</div></div>`;
+          if (o.alive) {
+            const row = el("div", { class: "row", style: "justify-content:flex-start" });
+            if (o.warSince === null) {
+              const war = el("button", { class: "small" }, "Declare war");
+              war.onclick = () => { this.confirmWar(o.id, o.name); draw(); };
+              row.append(war);
+            } else {
+              const peace = el("button", { class: "small" }, o.offersPeace ? "Accept peace" : o.weOfferedPeace ? "Peace offered" : "Offer peace");
+              peace.disabled = o.weOfferedPeace && !o.offersPeace;
+              peace.onclick = () => { this.cmd({ type: "offerPeace", targetId: o.id }); draw(); };
+              row.append(peace);
+            }
+            card.append(row);
+          }
+          box.append(card);
+        }
+        const row = el("div", { class: "row" });
+        const ok = el("button", {}, "Close");
+        ok.onclick = () => { close(); this.refresh(); };
+        row.append(ok);
+        box.append(row);
+      };
+      draw();
+    });
+  }
+
   private refreshKeepScroll(): void {
     const y = this.panel?.scrollTop ?? 0;
     this.refresh();
@@ -378,9 +492,11 @@ export class GameScreen {
 
   private showReport(turn: number, events: EmpireView["events"]): void {
     const contact = events.find((e) => e.kind === "contact");
+    const war = events.find((e) => e.kind === "war" || e.kind === "battle" || e.kind === "invasion");
     this.modal((box, close) => {
-      const pic = contact ? `<img class="event-pic" src="${art.event("contact")}" alt="">` : "";
-      const order = ["contact", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
+      const pic = contact ? `<img class="event-pic" src="${art.event("contact")}" alt="">`
+        : war ? `<img class="event-pic" src="${art.event("crisis")}" alt="">` : "";
+      const order = ["war", "invasion", "battle", "contact", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
       const sorted = [...events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
       box.innerHTML = `${pic}<h2>Turn ${turn} report</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
       const row = el("div", { class: "row" });
@@ -681,6 +797,9 @@ export class GameScreen {
       box.innerHTML = `<h2>Game menu</h2><p class="dim">Your game saves automatically after every turn on this device.</p>`;
       const row = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       const exp = el("button", {}, "Export save code (move to another device)");
+      const emp = el("button", {}, "Empires: war and peace");
+      emp.onclick = () => { close(); this.showEmpires(); };
+      row.append(emp);
       exp.onclick = () => {
         box.innerHTML = `<h2>Save code</h2><p class="dim">Copy this code, then on the other device choose Import.</p>`;
         const ta = el("textarea") as HTMLTextAreaElement;

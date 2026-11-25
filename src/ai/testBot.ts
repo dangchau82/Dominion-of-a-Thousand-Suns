@@ -54,26 +54,38 @@ export function testBotTurn(view: EmpireView): Command[] {
     }
   }
 
+  // War: accept peace after a while, and build warships to defend.
+  const wars = view.contacts.filter((c) => c.warSince !== null);
+  for (const c of wars) {
+    if (c.offersPeace && view.turn - (c.warSince ?? 0) >= 10) cmds.push({ type: "offerPeace", targetId: c.id });
+  }
+  const atWar = wars.length > 0;
+  const warship = view.designs.filter((d) => d.role === "warship" && d.weapons.length > 0).sort((a, b) => b.cost - a.cost)[0];
+
   // Production: capital builds scouts early, then colony ships while there is room to grow.
   const scouts = view.fleets.reduce((n, f) => n + (f.ships.scout ?? 0), 0);
   const colonyShips = view.fleets.reduce((n, f) => n + (f.ships.colony ?? 0), 0);
   const openTargets = settleable.filter((s) => !taken.has(s.id)).length;
   for (const c of view.colonies) {
     if (c.isCapital) {
-      const want = scouts < 3 && unexplored.length > 0 ? "scout"
+      const want = atWar && warship ? warship.id
+        : scouts < 3 && unexplored.length > 0 ? "scout"
         : openTargets > colonyShips ? "colony" : null;
       if (c.buildTemplate !== want) cmds.push({ type: "setBuild", starId: c.starId, templateId: want });
-      const shipPct = want === "colony" ? 35 : want === "scout" ? 10 : 0;
+      const shipPct = atWar ? 35 : want === "colony" ? 35 : want === "scout" ? 10 : 0;
+      const defense = atWar ? 10 : 0;
       cmds.push({
         type: "setSliders", starId: c.starId,
-        sliders: { ship: shipPct, defense: 0, industry: 100 - shipPct - 25 - 10, ecology: 10, research: 25 },
+        sliders: { ship: shipPct, defense, industry: 100 - shipPct - defense - 25 - 10, ecology: 10, research: 25 },
       });
     } else {
       const growing = c.population < c.capacity - 1;
       const factoriesFull = c.factories >= c.maxFactories - 0.5;
       cmds.push({
         type: "setSliders", starId: c.starId,
-        sliders: factoriesFull && !growing
+        sliders: atWar && c.population > 10
+          ? { ship: 0, defense: 30, industry: factoriesFull ? 0 : 40, ecology: growing ? 20 : 0, research: factoriesFull ? 50 : 10 }
+          : factoriesFull && !growing
           ? { ship: 0, defense: 0, industry: 0, ecology: 0, research: 100 }
           : { ship: 0, defense: 0, industry: factoriesFull ? 30 : 70, ecology: growing ? 30 : 0, research: factoriesFull ? 40 : 0 },
       });

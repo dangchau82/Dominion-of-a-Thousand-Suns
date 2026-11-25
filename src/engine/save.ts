@@ -31,6 +31,12 @@ function migrateV2(state: GameState): void {
   state.version = 3;
 }
 
+/** Version 3 saves had no war or peace. */
+function migrateV3(state: GameState): void {
+  for (const e of state.empires) { e.atWar = {}; e.peaceOffers = []; }
+  state.version = 4;
+}
+
 export function serialize(state: GameState): string {
   return JSON.stringify(state);
 }
@@ -42,6 +48,7 @@ export function deserialize(json: string): GameState {
   }
   if (data.version === 1) migrateV1(data as GameState);
   if (data.version === 2) migrateV2(data as GameState);
+  if (data.version === 3) migrateV3(data as GameState);
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

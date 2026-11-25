@@ -2,6 +2,7 @@
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
 import { researchChoices } from "./tech";
+import { atWar, declareWar, offerPeace } from "./combat";
 import { SCRAP_REFUND, addDesign, checkDesign, designsOf, type DesignSpec } from "./designs";
 import { canColonize } from "./formulas";
 import { empire, empireRace, newColony, shipCount, star } from "./game";
@@ -20,6 +21,9 @@ export type Command =
   | { type: "setResearch"; alloc: Record<ResearchField, number> }
   | { type: "setResearchProject"; field: ResearchField; techId: string }
   | { type: "createDesign"; spec: DesignSpec }
+  | { type: "declareWar"; targetId: Id }
+  | { type: "offerPeace"; targetId: Id }
+  | { type: "sendTransports"; fromStarId: Id; toStarId: Id; troops: number }
   | { type: "scrapDesign"; designId: string }
   | { type: "moveFleet"; fleetId: Id; destStarId: Id; ships?: Record<string, number> }
   | { type: "colonize"; fleetId: Id };
@@ -111,6 +115,35 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "setResearch": {
       e.research.alloc = normalizeTo100(cmd.alloc, FIELDS);
       return { ok: true };
+    }
+    case "declareWar": {
+      const t = state.empires[cmd.targetId];
+      if (!t || t.id === e.id || !t.alive) return fail("No such empire");
+      if (!e.contacts.includes(t.id)) return fail("You haven't met them");
+      if (atWar(e, t)) return fail("Already at war");
+      declareWar(state, e, t);
+      return { ok: true };
+    }
+    case "offerPeace": {
+      const t = state.empires[cmd.targetId];
+      if (!t || !atWar(e, t)) return fail("Not at war with them");
+      offerPeace(state, e, t);
+      return { ok: true };
+    }
+    case "sendTransports": {
+      const c = ownColony(state, empireId, cmd.fromStarId);
+      if (!c) return fail("Not your colony");
+      const dest = state.stars[cmd.toStarId];
+      if (!dest || dest.id === c.starId) return fail("Pick another star");
+      if (!Number.isInteger(cmd.troops) || cmd.troops < 1) return fail("Send at least 1 troop");
+      if (c.population - cmd.troops < 1) return fail("Leave at least 1 population behind");
+      if (!isExplored(e, dest.id)) return fail("Explore it first");
+      if (!inFuelRange(state, e, dest, 0)) return fail("Out of range");
+      c.population -= cmd.troops;
+      const src = state.stars[c.starId]!;
+      const f = { id: state.nextFleetId++, empireId, ships: { transport: cmd.troops }, x: src.x, y: src.y, starId: src.id, destStarId: dest.id };
+      state.fleets.push(f);
+      return { ok: true, fleetId: f.id };
     }
     case "createDesign": {
       const err = checkDesign(state, e, cmd.spec);

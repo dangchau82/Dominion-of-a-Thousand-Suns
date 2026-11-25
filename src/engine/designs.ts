@@ -18,9 +18,12 @@ export function shipDesign(state: GameState, id: string): ShipDesign {
   return d;
 }
 
-/** Designs an empire can build: the built-ins plus its own. */
+/** Designs an empire can build: the built-ins (except troop transports) plus its own. */
 export function designsOf(state: GameState, empireId: Id): ShipDesign[] {
-  return [...Object.values(BUILTIN_DESIGNS), ...Object.values(state.designs).filter((d) => d.empireId === empireId)];
+  return [
+    ...Object.values(BUILTIN_DESIGNS).filter((d) => d.role !== "transport"),
+    ...Object.values(state.designs).filter((d) => d.empireId === empireId),
+  ];
 }
 
 export type SystemSlot = "computer" | "shield" | "ecm" | "armor";

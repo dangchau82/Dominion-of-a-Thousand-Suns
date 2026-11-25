@@ -27,7 +27,7 @@ export const HULLS: Record<HullSize, Hull> = {
   huge: { name: "Huge", space: 5000, cost: 1200, hits: 600, defense: 0, factor: 125 },
 };
 
-export type ShipRole = "scout" | "colony" | "warship";
+export type ShipRole = "scout" | "colony" | "warship" | "transport";
 
 export interface WeaponMount {
   techId: string;
@@ -63,6 +63,8 @@ const builtin = (d: Pick<ShipDesign, "id" | "name" | "role" | "hull" | "cost" | 
 export const BUILTIN_DESIGNS: Record<string, ShipDesign> = {
   scout: builtin({ id: "scout", name: "Scout", role: "scout", hull: "small", cost: 12, extraRange: 3 }),
   colony: builtin({ id: "colony", name: "Colony Ship", role: "colony", hull: "large", cost: 150, extraRange: 0 }),
+  /** Troop transports carry population; each one holds one unit of troops. Made by "send troops", never built. */
+  transport: builtin({ id: "transport", name: "Troop Transport", role: "transport", hull: "small", cost: 0, extraRange: 0 }),
 };
 
 /** Each empire may keep this many designs of its own (built-ins don't count). */

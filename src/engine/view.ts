@@ -29,6 +29,12 @@ export interface SeenFleet {
 
 export interface KnownEmpire {
   id: Id; name: string; raceId: string; color: string; alive: boolean;
+  /** Turn our war with them began, or null at peace. */
+  warSince: number | null;
+  /** They have offered us peace. */
+  offersPeace: boolean;
+  /** We have offered them peace. */
+  weOfferedPeace: boolean;
 }
 
 export interface ColonyInfo extends Colony {
@@ -87,7 +93,10 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     .map((f) => ({ id: f.id, empireId: f.empireId, x: f.x, y: f.y, starId: f.starId, ships: shipCount(f) }));
   const contacts: KnownEmpire[] = e.contacts.map((id) => {
     const o = state.empires[id]!;
-    return { id: o.id, name: o.name, raceId: o.raceId, color: o.color, alive: o.alive };
+    return {
+      id: o.id, name: o.name, raceId: o.raceId, color: o.color, alive: o.alive,
+      warSince: e.atWar[o.id] ?? null, offersPeace: e.peaceOffers.includes(o.id), weOfferedPeace: o.peaceOffers.includes(e.id),
+    };
   });
 
   const projects = Object.fromEntries(

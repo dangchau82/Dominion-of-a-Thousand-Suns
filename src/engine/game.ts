@@ -56,6 +56,8 @@ export function newGame(settings: GameSettings): GameState {
       research: newResearchState(rng, r),
       knowledge: {},
       contacts: [],
+      atWar: {},
+      peaceOffers: [],
     };
     state.empires.push(empire);
     for (const spec of starterDesigns()) addDesign(state, empire, spec);

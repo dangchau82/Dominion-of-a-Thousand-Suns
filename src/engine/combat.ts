@@ -1,0 +1,355 @@
+// Space battles, planetary defense, bombing and invasions.
+// Battles resolve automatically at the end of each turn wherever empires at
+// war share a star. Same rules for every empire; all dice come from the
+// game's seeded RNG, so a save replays exactly.
+// Hit chances follow the classic beam formula, adapted from Remnants of the
+// Precursors (GPL-3.0).
+
+import { HULLS, type ShipDesign } from "./data/ships";
+import { tech } from "./tech";
+import { shipDesign } from "./designs";
+import { beamHitChance } from "./formulas";
+import { empireRace, newColony, shipCount } from "./game";
+import * as R from "./rng";
+import { techStats } from "./tech";
+import type { Colony, Empire, Fleet, GameState, Id, Star } from "./types";
+
+export const BASE_HP = 25;
+export const MAX_ROUNDS = 8;
+/** Missiles and torpedoes run out after this many rounds. */
+export const MISSILE_ROUNDS = 3;
+
+export function atWar(a: Empire, b: Empire): boolean {
+  return a.atWar[b.id] !== undefined;
+}
+
+interface Gun {
+  kind: "beam" | "missile" | "bomb" | "torpedo";
+  min: number;
+  max: number;
+  count: number;
+}
+
+interface Unit {
+  side: 0 | 1;
+  empireId: Id;
+  /** Design id, or "planet". */
+  key: string;
+  name: string;
+  count: number;
+  start: number;
+  hp: number;
+  maxHp: number;
+  attack: number;
+  beamDef: number;
+  missileDef: number;
+  shield: number;
+  guns: Gun[];
+  small: boolean;
+  invulnerable: boolean;
+}
+
+function guns(d: ShipDesign): Gun[] {
+  const out: Gun[] = [];
+  for (const w of d.weapons) {
+    const t = tech(w.techId);
+    for (const fx of t.effects) if (fx.stat === "weapon") out.push({ kind: fx.kind, min: fx.min, max: fx.max, count: w.count });
+  }
+  return out;
+}
+
+function levelOf(id: string | null, stat: string): number {
+  if (!id) return 0;
+  for (const fx of tech(id).effects) if (fx.stat === stat && "value" in fx) return fx.value;
+  return 0;
+}
+
+function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count: number): Unit {
+  const r = empireRace(e);
+  const h = HULLS[d.hull];
+  const armor = levelOf(d.armor, "armor");
+  const maxHp = d.role === "warship" ? h.hits * (1 + 0.5 * Math.max(0, armor - 1)) : d.role === "transport" ? 1 : h.hits;
+  return {
+    side, empireId: e.id, key: d.id, name: d.name, count, start: count, hp: maxHp, maxHp,
+    attack: levelOf(d.computer, "computer") + r.shipAttack,
+    beamDef: h.defense + r.shipDefense,
+    missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm"),
+    shield: levelOf(d.shield, "shield"),
+    guns: guns(d), small: d.hull === "small",
+    invulnerable: !!(e.isPlayer && state.cheats?.godMode),
+  };
+}
+
+/** A colony's missile bases fight as one target whose hit points are its bases. */
+function planetUnit(state: GameState, side: 0 | 1, e: Empire, c: Colony): Unit | null {
+  if (c.missileBases <= 0) return null;
+  const ts = techStats(e);
+  const best = ts.weapons.map(tech).flatMap((t) => t.effects).filter((fx) => fx.stat === "weapon" && fx.kind === "missile")
+    .reduce((m, fx) => (fx.stat === "weapon" && fx.max > m ? fx.max : m), 4);
+  return {
+    side, empireId: e.id, key: "planet", name: "missile base", count: c.missileBases, start: c.missileBases,
+    hp: BASE_HP, maxHp: BASE_HP, attack: ts.computer, beamDef: 0, missileDef: 0, shield: ts.planetShield,
+    guns: [{ kind: "missile", min: best, max: best, count: 2 }], small: false,
+    invulnerable: !!(e.isPlayer && state.cheats?.godMode),
+  };
+}
+
+function armed(u: Unit): boolean {
+  return u.count > 0 && u.guns.some((g) => g.kind !== "bomb");
+}
+
+function hitChance(g: Gun, shooter: Unit, target: Unit): number {
+  if (g.kind === "beam") return beamHitChance(shooter.attack, 0, target.beamDef, 1);
+  // Missiles and torpedoes home in; jammers (ECM) throw them off.
+  return Math.min(1, Math.max(0.05, (7 + shooter.attack - target.missileDef) / 10));
+}
+
+/** Pick a target, weighted by how many of each enemy are left. */
+function pickTarget(rng: R.RngState, enemies: Unit[]): Unit | null {
+  const live = enemies.filter((u) => u.count > 0);
+  const total = live.reduce((a, u) => a + u.count, 0);
+  if (total <= 0) return null;
+  let roll = R.next(rng) * total;
+  for (const u of live) {
+    roll -= u.count;
+    if (roll < 0) return u;
+  }
+  return live[live.length - 1]!;
+}
+
+function fight(state: GameState, units: Unit[]): number {
+  const rng = state.rng;
+  let rounds = 0;
+  for (let round = 1; round <= MAX_ROUNDS; round++) {
+    const sideArmed = [0, 1].map((sd) => units.some((u) => u.side === sd && armed(u)));
+    const sideAlive = [0, 1].map((sd) => units.some((u) => u.side === sd && u.count > 0));
+    if (!sideAlive[0] || !sideAlive[1] || (!sideArmed[0] && !sideArmed[1])) break;
+    rounds = round;
+    // Best computers fire first; small ships before big ones on ties.
+    const order = units.filter((u) => u.count > 0)
+      .sort((a, b) => b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
+    for (const u of order) {
+      if (u.count <= 0) continue;
+      for (const g of u.guns) {
+        if (g.kind === "bomb") continue;
+        if ((g.kind === "missile" || g.kind === "torpedo") && u.key !== "planet" && round > MISSILE_ROUNDS) continue;
+        const shots = u.count * g.count;
+        for (let s = 0; s < shots; s++) {
+          const target = pickTarget(rng, units.filter((x) => x.side !== u.side));
+          if (!target) break;
+          if (!R.chance(rng, hitChance(g, u, target))) continue;
+          const raw = R.int(rng, g.min, g.max);
+          // Torpedoes punch through half of the shield.
+          const dmg = raw - (g.kind === "torpedo" ? Math.floor(target.shield / 2) : target.shield);
+          if (dmg <= 0 || target.invulnerable) continue;
+          target.hp -= dmg;
+          if (target.hp <= 0) {
+            // A ship dies; extra damage is wasted (no overkill), as in the classic game.
+            target.count--;
+            target.hp = target.maxHp;
+          }
+        }
+      }
+    }
+  }
+  return rounds;
+}
+
+function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+function lossText(units: Unit[], side: 0 | 1): string {
+  const parts = units.filter((u) => u.side === side && u.start > u.count).map((u) => plural(u.start - u.count, u.name));
+  return parts.length ? parts.join(", ") : "nothing";
+}
+
+/** Take losses off the fleets at a star. */
+function applyLosses(state: GameState, fleets: Fleet[], units: Unit[]): void {
+  for (const u of units) {
+    if (u.key === "planet") continue;
+    let lost = u.start - u.count;
+    for (const f of fleets) {
+      if (lost <= 0) break;
+      if (f.empireId !== u.empireId) continue;
+      const have = f.ships[u.key] ?? 0;
+      const take = Math.min(have, lost);
+      if (take > 0) { f.ships[u.key] = have - take; lost -= take; }
+    }
+  }
+}
+
+function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
+  const here = state.fleets.filter((f) => f.starId === s.id && (f.empireId === a.id || f.empireId === b.id));
+  const colony = state.colonies[s.id];
+  const units: Unit[] = [];
+  for (const [side, e] of [[0, a], [1, b]] as const) {
+    const counts = new Map<string, number>();
+    for (const f of here) {
+      if (f.empireId !== e.id) continue;
+      for (const [id, n] of Object.entries(f.ships)) if (n > 0) counts.set(id, (counts.get(id) ?? 0) + n);
+    }
+    for (const [id, n] of [...counts].sort((x, y) => x[0].localeCompare(y[0]))) {
+      units.push(shipUnit(state, side, e, shipDesign(state, id), n));
+    }
+    if (colony && colony.empireId === e.id) {
+      const p = planetUnit(state, side, e, colony);
+      if (p) units.push(p);
+    }
+  }
+  if (!units.some(armed)) return; // nobody here can shoot
+  if (!units.some((u) => u.side === 0) || !units.some((u) => u.side === 1)) return;
+
+  const rounds = fight(state, units);
+  applyLosses(state, here, units);
+  const planet = units.find((u) => u.key === "planet");
+  if (colony && planet) colony.missileBases = planet.count;
+
+  for (const [me, them, mine, theirs] of [[a, b, 0, 1], [b, a, 1, 0]] as const) {
+    state.events.push({
+      turn: state.turn, empireId: me.id, kind: "battle", starId: s.id,
+      text: `Battle at ${s.name} against the ${them.name} (${plural(rounds, "round")}). You lost ${lossText(units, mine)}; they lost ${lossText(units, theirs)}.`,
+    });
+  }
+}
+
+/** Fleets with bombs pound an enemy colony once its defenders are gone. */
+function bomb(state: GameState, s: Star, c: Colony, attacker: Empire, owner: Empire): void {
+  const fleets = state.fleets.filter((f) => f.starId === s.id && f.empireId === attacker.id);
+  const shield = techStats(owner).planetShield;
+  let dmg = 0;
+  for (const f of fleets) {
+    for (const [id, n] of Object.entries(f.ships)) {
+      if (n <= 0) continue;
+      for (const g of guns(shipDesign(state, id))) {
+        if (g.kind !== "bomb") continue;
+        for (let i = 0; i < n * g.count; i++) dmg += Math.max(0, R.int(state.rng, g.min, g.max) - shield);
+      }
+    }
+  }
+  if (dmg <= 0) return;
+  const popLost = Math.min(c.population, dmg / 10);
+  const facLost = Math.min(c.factories, dmg / 5);
+  c.population -= popLost;
+  c.factories -= facLost;
+  const text = `${s.name} bombed: ${popLost.toFixed(1)} population and ${Math.round(facLost)} factories destroyed.`;
+  state.events.push({ turn: state.turn, empireId: attacker.id, kind: "battle", starId: s.id, text });
+  state.events.push({ turn: state.turn, empireId: owner.id, kind: "battle", starId: s.id, text });
+  if (c.population < 0.5) {
+    delete state.colonies[s.id];
+    const t2 = `The colony on ${s.name} has been wiped out.`;
+    state.events.push({ turn: state.turn, empireId: attacker.id, kind: "battle", starId: s.id, text: t2 });
+    state.events.push({ turn: state.turn, empireId: owner.id, kind: "battle", starId: s.id, text: t2 });
+    if (owner.capitalStarId === s.id) moveCapital(state, owner);
+  }
+}
+
+function moveCapital(state: GameState, e: Empire): void {
+  const mine = Object.values(state.colonies).filter((c) => c.empireId === e.id).sort((x, y) => y.population - x.population || x.starId - y.starId);
+  const next = mine[0];
+  if (!next) return;
+  next.isCapital = true;
+  e.capitalStarId = next.starId;
+}
+
+/** Ground combat: one-on-one duels until one side is gone. Defenders get a small edge. */
+function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
+  const c = state.colonies[s.id];
+  const troops = f.ships.transport ?? 0;
+  if (!c || troops <= 0) return;
+  const owner = state.empires[c.empireId]!;
+  const atkBonus = empireRace(attacker).ground * 10 + (techStats(attacker).specials.includes("personal-shields") ? 10 : 0);
+  const defBonus = empireRace(owner).ground * 10 + (techStats(owner).specials.includes("personal-shields") ? 10 : 0) + 5;
+  let att = troops;
+  let def = Math.max(1, Math.round(c.population));
+  while (att > 0 && def > 0) {
+    if (R.next(state.rng) * 100 + atkBonus > R.next(state.rng) * 100 + defBonus) def--;
+    else att--;
+  }
+  f.ships.transport = 0;
+  if (att > 0) {
+    const old = c;
+    const captured = newColony(s.id, attacker.id, att, old.foundedTurn);
+    captured.factories = old.factories;
+    state.colonies[s.id] = captured;
+    const text = `The ${attacker.name} captured ${s.name} with ${plural(att, "surviving troop")}.`;
+    state.events.push({ turn: state.turn, empireId: attacker.id, kind: "invasion", starId: s.id, text });
+    state.events.push({ turn: state.turn, empireId: owner.id, kind: "invasion", starId: s.id, text });
+    if (owner.capitalStarId === s.id) moveCapital(state, owner);
+  } else {
+    c.population = Math.max(0.5, def);
+    const text = `Invasion of ${s.name} by the ${attacker.name} was thrown back (${plural(troops, "troop")} lost).`;
+    state.events.push({ turn: state.turn, empireId: attacker.id, kind: "invasion", starId: s.id, text });
+    state.events.push({ turn: state.turn, empireId: owner.id, kind: "invasion", starId: s.id, text });
+  }
+}
+
+/** Run every battle, bombing and invasion for this turn. Called after fleets move. */
+export function resolveCombat(state: GameState): void {
+  const stars = [...new Set(state.fleets.filter((f) => f.starId !== null).map((f) => f.starId as Id))].sort((x, y) => x - y);
+  for (const sid of stars) {
+    const s = state.stars[sid]!;
+    const ids = new Set(state.fleets.filter((f) => f.starId === sid).map((f) => f.empireId));
+    const colony = state.colonies[sid];
+    if (colony) ids.add(colony.empireId);
+    const list = [...ids].sort((x, y) => x - y).map((id) => state.empires[id]!);
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        if (atWar(list[i]!, list[j]!)) battle(state, s, list[i]!, list[j]!);
+      }
+    }
+    state.fleets = state.fleets.filter((f) => shipCount(f) > 0);
+
+    // Transports: reinforce your own colony, or invade an enemy one once its defenders are gone.
+    for (const f of state.fleets.filter((x) => x.starId === sid && (x.ships.transport ?? 0) > 0)) {
+      const c = state.colonies[sid];
+      const e = state.empires[f.empireId]!;
+      if (!c) continue;
+      if (c.empireId === e.id) {
+        const cap = s.planet ? s.planet.size + s.planet.terraform + techStats(e).terraform : 0;
+        c.population = Math.min(cap, c.population + (f.ships.transport ?? 0));
+        f.ships.transport = 0;
+        continue;
+      }
+      const owner = state.empires[c.empireId]!;
+      if (!atWar(e, owner)) continue;
+      const defended = c.missileBases > 0 || state.fleets.some((x) => x.starId === sid && x.empireId === owner.id &&
+        Object.entries(x.ships).some(([id, n]) => n > 0 && shipDesign(state, id).weapons.length > 0));
+      if (defended) continue; // wait in orbit until the defenders are beaten
+      invade(state, s, f, e);
+    }
+
+    // Bombing
+    const c = state.colonies[sid];
+    if (c && c.missileBases === 0) {
+      const owner = state.empires[c.empireId]!;
+      const attackers = [...new Set(state.fleets.filter((f) => f.starId === sid).map((f) => f.empireId))]
+        .map((id) => state.empires[id]!).filter((e) => atWar(e, owner));
+      for (const e of attackers) if (state.colonies[sid]) bomb(state, s, state.colonies[sid]!, e, owner);
+    }
+    state.fleets = state.fleets.filter((f) => shipCount(f) > 0);
+  }
+}
+
+export function declareWar(state: GameState, a: Empire, b: Empire): void {
+  a.atWar[b.id] = state.turn;
+  b.atWar[a.id] = state.turn;
+  a.peaceOffers = a.peaceOffers.filter((x) => x !== b.id);
+  b.peaceOffers = b.peaceOffers.filter((x) => x !== a.id);
+  state.events.push({ turn: state.turn, empireId: null, kind: "war", text: `The ${a.name} declared war on the ${b.name}!` });
+}
+
+/** Offer peace; if they already offered, the war ends now. Returns true if peace was made. */
+export function offerPeace(state: GameState, a: Empire, b: Empire): boolean {
+  if (a.peaceOffers.includes(b.id)) {
+    delete a.atWar[b.id];
+    delete b.atWar[a.id];
+    a.peaceOffers = a.peaceOffers.filter((x) => x !== b.id);
+    b.peaceOffers = b.peaceOffers.filter((x) => x !== a.id);
+    state.events.push({ turn: state.turn, empireId: null, kind: "war", text: `The ${a.name} and the ${b.name} have made peace.` });
+    return true;
+  }
+  if (!b.peaceOffers.includes(a.id)) b.peaceOffers.push(a.id);
+  state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: `The ${a.name} offer peace.` });
+  return false;
+}

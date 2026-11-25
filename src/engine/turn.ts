@@ -3,6 +3,7 @@
 import { ensureProject, learn, tech, techCost, techStats } from "./tech";
 import { MISSILE_BASE_COST } from "./data/ships";
 import { shipDesign } from "./designs";
+import { resolveCombat } from "./combat";
 import {
   colonyProduction, factoryCost, FIELD_NAMES, maxUsableFactories, planetCapacity,
   popCost, popGrowth,
@@ -155,6 +156,7 @@ export function endTurn(state: GameState): void {
 
   mergeFleets(state);
   moveFleets(state);
+  resolveCombat(state);
   updateVision(state);
   updateAlive(state);
   state.turn++;
