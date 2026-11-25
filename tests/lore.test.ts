@@ -274,3 +274,18 @@ describe("native peoples (Gemini)", () => {
     }
   });
 });
+
+import { DECREE } from "../src/engine/data/protectedWorlds";
+
+describe("protected worlds (Gemini)", () => {
+  it("three escalating stages, each with a way back, and a guardian reward; all in scale", () => {
+    expect(DECREE.stages.map((s) => s.offences)).toEqual([1, 2, 3]);
+    for (const ev of [...DECREE.stages.map((s) => s.warning), DECREE.guardianReward]) {
+      checkText(ev);
+      expect(ev.title).not.toMatch(/\{/);
+      expect(ev.choices.length).toBe(2);
+      for (const c of ev.choices) for (const fx of c.effects) expect(inScale(fx), `${ev.id} ${JSON.stringify(fx)}`).toBe(true);
+    }
+    for (const s of DECREE.stages) expect(s.punishment).toMatch(/pays?|fine|reparations|peace/);
+  });
+});
