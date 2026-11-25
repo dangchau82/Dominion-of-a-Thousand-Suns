@@ -124,14 +124,15 @@ function hitChance(g: Gun, shooter: Unit, target: Unit): number {
   return Math.min(1, Math.max(0.05, (7 + shooter.attack - target.missileDef) / 10));
 }
 
-/** Pick a target, weighted by how many of each enemy are left. */
+/** Pick a target, weighted by how many of each enemy are left. Unarmed one-hit ships (troop transports) draw only a quarter of the fire, so they can't act as a shield for a fleet. */
 function pickTarget(rng: R.RngState, enemies: Unit[]): Unit | null {
   const live = enemies.filter((u) => u.count > 0);
-  const total = live.reduce((a, u) => a + u.count, 0);
+  const weight = (u: Unit) => u.count * (u.guns.length === 0 && u.maxHp <= 1 ? 0.25 : 1);
+  const total = live.reduce((a, u) => a + weight(u), 0);
   if (total <= 0) return null;
   let roll = R.next(rng) * total;
   for (const u of live) {
-    roll -= u.count;
+    roll -= weight(u);
     if (roll < 0) return u;
   }
   return live[live.length - 1]!;
