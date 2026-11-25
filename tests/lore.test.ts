@@ -185,22 +185,26 @@ describe("money sinks (Gemini)", () => {
   });
 });
 
-import { CRISES } from "../src/engine/data/crises";
+import { TEN_TURN_CRISES } from "../src/engine/data/crises";
 
 describe("branching crises (Gemini)", () => {
-  it("6 crises; every choice leads to a real next stage; effects in scale", () => {
-    expect(CRISES.length).toBe(6);
-    for (const c of CRISES) {
+  it("6 crises; every path and fail path leads to a real next stage; every stage reachable; effects in scale", () => {
+    expect(TEN_TURN_CRISES.length).toBe(6);
+    for (const c of TEN_TURN_CRISES) {
       for (const s of c.stages) {
         expect(s.title).not.toMatch(/\{/);
         for (const ch of s.choices) {
-          if (s.stage === 3) expect(ch.nextPath).toBe("end");
-          else expect(c.stages.some((n) => n.stage === s.stage + 1 && n.path === ch.nextPath), `${c.id} ${s.path} -> ${ch.nextPath}`).toBe(true);
-          for (const fx of ch.effects) if (fx.kind !== "secedeColony" && fx.kind !== "planetSize") expect(inScale(fx), `${c.id} ${JSON.stringify(fx)}`).toBe(true);
+          for (const p of [ch.path, ch.failPath].filter((x): x is string => !!x)) {
+            if (s.stage === 3) expect(p).toBe("done");
+            else expect(c.stages.some((n) => n.stage === s.stage + 1 && n.requiresPath === p), `${c.id}: ${p}`).toBe(true);
+          }
+          if (ch.chance < 1) expect(ch.failEffects?.length, `${ch.label}`).toBeGreaterThan(0);
+          for (const fx of [...ch.effects, ...(ch.failEffects ?? [])]) if (fx.kind !== "planetSize") expect(inScale(fx), `${c.id} ${JSON.stringify(fx)}`).toBe(true);
         }
       }
-      // every stage path is reachable
-      for (const s of c.stages.filter((x) => x.stage > 1)) expect(c.stages.some((p) => p.stage === s.stage - 1 && p.choices.some((ch) => ch.nextPath === s.path)), `${c.id} unreachable ${s.path}`).toBe(true);
+      for (const s of c.stages.filter((x) => x.stage > 1)) {
+        expect(c.stages.some((p) => p.stage === s.stage - 1 && p.choices.some((ch) => ch.path === s.requiresPath || ch.failPath === s.requiresPath)), `${c.id} unreachable ${s.id}`).toBe(true);
+      }
     }
   });
 });
