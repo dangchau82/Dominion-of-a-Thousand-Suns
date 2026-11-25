@@ -171,13 +171,16 @@ export class GameScreen {
     const r = race(them.raceId);
     const goOn = () => this.showFirstContacts(rest, then);
     let talking = false;
+    // Use the turn of the contact itself so the words match the turn report.
+    const metTurn = [...this.state.events].reverse()
+      .find((e) => e.kind === "contact" && e.empireId === PLAYER && e.text.startsWith(`First contact with the ${them.name}.`))?.turn ?? this.state.turn;
     play("message");
     this.modal((box, close) => {
       box.innerHTML = `<div class="first-contact">${portraitHTML(them.raceId, 'class="fc-portrait"')}
         <div class="dim" style="letter-spacing:2px;text-transform:uppercase;font-size:12px">First contact</div>
         <h2 style="margin:4px 0;color:${them.color}">${esc(them.name)}</h2>
         <div class="dim">${esc(r.name)} · ${esc(r.style)}</div>
-        <div class="quote" style="margin:10px 0">${esc(say(this.state.turn, them, "firstContact", me))}</div>
+        <div class="quote" style="margin:10px 0">${esc(say(metTurn, them, "firstContact", me))}</div>
         <div class="dim" style="font-size:13px">${esc(r.unique)}</div></div>`;
       const row = el("div", { class: "row" });
       const talk = el("button", { class: "primary" }, "Talk now");
@@ -225,7 +228,7 @@ export class GameScreen {
         const all = this.state.events.filter((e) => e.turn >= startTurn && (e.empireId === PLAYER || e.empireId === null) && ["war", "invasion", "battle", "contact", "council", "culture", "colonized"].includes(e.kind));
         this.toast(stopReason || `Autopilot ran ${this.state.turn - startTurn} turns.`);
         const met = me.contacts.filter((id) => !knownAtStart.has(id));
-        const next = () => (all.length ? this.showReport(this.state.turn - 1, all.slice(-25)) : this.showProposals());
+        const next = () => (all.length ? this.showReport(this.state.turn - 1, all.slice(-25), startTurn) : this.showProposals());
         if (met.length) this.showFirstContacts(met, next);
         else next();
       }
@@ -1106,7 +1109,7 @@ export class GameScreen {
     });
   }
 
-  private showReport(turn: number, events: EmpireView["events"]): void {
+  private showReport(turn: number, events: EmpireView["events"], fromTurn?: number): void {
     const contact = events.find((e) => e.kind === "contact");
     const war = events.find((e) => e.kind === "war" || e.kind === "battle" || e.kind === "invasion");
     this.modal((box, close) => {
@@ -1114,7 +1117,7 @@ export class GameScreen {
         : war ? `<img class="event-pic" src="${art.event("crisis")}" alt="">` : "";
       const order = ["council", "war", "invasion", "battle", "contact", "diplomacy", "spy", "culture", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
       const sorted = [...events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
-      box.innerHTML = `${pic}<h2>Turn ${turn} report</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
+      box.innerHTML = `${pic}<h2>${fromTurn !== undefined && fromTurn < turn ? `Autopilot report · turns ${fromTurn}–${turn}` : `Turn ${turn} report`}</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
       const row = el("div", { class: "row" });
       const ok = el("button", { class: "primary" }, "Continue");
       ok.onclick = () => { close(); this.showProposals(); };

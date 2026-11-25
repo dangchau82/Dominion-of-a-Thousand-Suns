@@ -29,7 +29,7 @@ export function showMainMenu(root: HTMLElement, start: (g: GameState) => void): 
   ver.className = "tag";
   ver.style.marginTop = "18px";
   ver.style.fontSize = "12px";
-  ver.textContent = "Stage 1 preview: explore and expand";
+  ver.textContent = "A turn-based space strategy game · 18 races · free and open source";
   m.append(ver);
   root.append(m);
 }

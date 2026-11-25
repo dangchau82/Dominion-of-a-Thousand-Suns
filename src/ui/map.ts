@@ -1,6 +1,6 @@
 // The star map: a canvas you can drag, pinch/scroll to zoom, and tap.
 
-import type { EmpireView } from "../engine";
+import { CLIMATES, type EmpireView } from "../engine";
 import type { Fleet, Id, StarColor } from "../engine/types";
 import { art, img, ready } from "./assets";
 
@@ -43,11 +43,15 @@ export class StarMap {
   /** Where ship icons were drawn last frame, for tapping. */
   private fleetHits: (FleetTap & { x: number; y: number; r: number })[] = [];
   private pulseTimer = 0;
+  private tip: HTMLDivElement;
 
   constructor(parent: HTMLElement) {
     this.canvas = document.createElement("canvas");
     this.canvas.id = "map";
     parent.appendChild(this.canvas);
+    this.tip = document.createElement("div");
+    this.tip.className = "map-tip";
+    parent.appendChild(this.tip);
     const c = this.canvas.getContext("2d");
     if (!c) throw new Error("Canvas not supported");
     this.ctx = c;
@@ -62,6 +66,7 @@ export class StarMap {
   destroy(): void {
     cancelAnimationFrame(this.raf);
     this.canvas.remove();
+    this.tip.remove();
   }
 
   centerOn(x: number, y: number, scale?: number): void {
@@ -128,7 +133,8 @@ export class StarMap {
     });
     c.addEventListener("pointermove", (e) => {
       const prev = this.pointers.get(e.pointerId);
-      if (!prev) return;
+      if (!prev) { if (e.pointerType === "mouse") this.hover(e.clientX, e.clientY); return; }
+      this.tip.style.display = "none";
       const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (this.pointers.size === 2 && this.pinchStart) {
@@ -150,6 +156,7 @@ export class StarMap {
       if (wasTap) this.tap(e.clientX, e.clientY);
     };
     c.addEventListener("pointerup", end);
+    c.addEventListener("pointerleave", () => { this.tip.style.display = "none"; });
     c.addEventListener("pointercancel", (e) => { this.pointers.delete(e.pointerId); this.pinchStart = null; });
     c.addEventListener("wheel", (e) => {
       e.preventDefault();
@@ -163,6 +170,66 @@ export class StarMap {
     const [nx, ny] = this.toWorld(sx, sy);
     this.cx += wx - nx; this.cy += wy - ny;
     this.draw();
+  }
+
+  /** Mouse hover (PC): a small tooltip for the ship icon or star under the cursor. */
+  private hover(sx: number, sy: number): void {
+    const v = this.view;
+    const html = v ? this.tipFor(v, sx, sy) : null;
+    if (!html) { this.tip.style.display = "none"; this.canvas.style.cursor = ""; return; }
+    this.canvas.style.cursor = "pointer";
+    this.tip.innerHTML = html;
+    this.tip.style.display = "block";
+    const W = window.innerWidth;
+    const w = this.tip.offsetWidth;
+    this.tip.style.left = `${Math.min(sx + 16, W - w - 8)}px`;
+    this.tip.style.top = `${sy + 18}px`;
+  }
+
+  private tipFor(v: EmpireView, sx: number, sy: number): string | null {
+    const esc = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
+    const nameOf = (id: Id) => (id === v.me.id ? "You" : v.contacts.find((c) => c.id === id)?.name ?? "Unknown empire");
+    if (!this.overlay.moving) {
+      const hit = this.fleetHits.find((h) => Math.hypot(h.x - sx, h.y - sy) <= h.r);
+      if (hit) {
+        if (hit.mine) {
+          const f = v.fleets.find((x) => x.id === hit.fleetId);
+          if (!f) return null;
+          const list = Object.entries(f.ships).filter(([, n]) => n > 0)
+            .map(([id, n]) => `${n} ${esc(v.designs.find((d) => d.id === id)?.name ?? id)}`).join(", ");
+          const where = f.destStarId !== null ? `→ ${esc(v.stars[f.destStarId]!.name)}, ${v.turnsTo(f, f.destStarId) <= 1 ? "next turn" : `${v.turnsTo(f, f.destStarId)} turns`}` : "Click to give orders";
+          return `<b>Your fleet</b><br>${list}<br><span class="dim">${where}</span>`;
+        }
+        const sf = v.seenFleets.find((x) => x.empireId === hit.empireId && x.starId === hit.starId);
+        const war = v.contacts.find((c) => c.id === hit.empireId)?.warSince != null;
+        return `<b style="color:${war ? "#ff8a8a" : "inherit"}">${war ? "⚠ Enemy" : "Foreign"} fleet</b><br>${sf?.ships ?? "?"} ships of the ${esc(nameOf(hit.empireId))}`;
+      }
+    }
+    let best: Id | null = null;
+    let bestD = 22;
+    for (const s of v.stars) {
+      const [x, y] = this.toScreen(s.x, s.y);
+      const d = Math.hypot(x - sx, y - sy);
+      if (d < bestD) { bestD = d; best = s.id; }
+    }
+    if (best === null) return null;
+    const s = v.stars[best]!;
+    const k = v.knowledge[best];
+    const lines: string[] = [`<b>${esc(s.name)}</b> <span class="dim">${s.color} star</span>`];
+    if (!k?.explored) lines.push(`<span class="dim">Unexplored</span>`);
+    else if (!k.planet) lines.push(`<span class="dim">No habitable planet</span>`);
+    else {
+      lines.push(`${CLIMATES[k.planet.climate].name}, size ${k.planet.size + k.planet.terraform}`);
+      if (k.ownerId !== null) lines.push(`${esc(nameOf(k.ownerId))}${k.population !== null ? ` · pop ${Math.round(k.population)}` : ""}`);
+      else if (v.canSettle(best)) lines.push(`<span class="good">You can settle here</span>`);
+      else lines.push(`<span class="dim">Too harsh to settle yet</span>`);
+    }
+    const mv = this.overlay.moving;
+    if (mv) {
+      const ok = v.reachable(best, { ...mv.fleet, ships: { ...mv.fleet.ships } });
+      lines.push(ok ? `<span class="good">Click to send · ${v.turnsTo(mv.fleet, best)} turn(s)</span>` : `<span class="bad">Out of fuel range</span>`);
+    }
+    return lines.join("<br>");
   }
 
   private tap(sx: number, sy: number): void {
