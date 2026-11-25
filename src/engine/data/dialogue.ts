@@ -1,12 +1,17 @@
 // Diplomacy lines for the 18 races. Written by Gemini, reviewed and completed by Claude.
+// borderWarning lines: written by Gemini (coding test, 2026-11-25); Claude fixed the Orrun/Thraal swap and the Quorai and Seraphine voices.
 // Placeholders: {empire} = the listener's empire, {leader} = the speaker's empire, {star}, {tech}.
 
 export type DialogueSituation =
   | "firstContact" | "greeting" | "tradeOffer" | "accept" | "refuse" | "demandTribute" | "threaten"
-  | "spyCaught" | "declareWar" | "offerPeace" | "surrender" | "allyRequest" | "praise" | "defeated";
+  | "borderWarning" | "spyCaught" | "declareWar" | "offerPeace" | "surrender" | "allyRequest" | "praise" | "defeated";
 
 export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
   humans: {
+    borderWarning: [
+      "Your colony at {star} presses uncomfortably close to our borders, {empire}. Keep a respectful distance so peace endures.",
+      "Crowded borders breed needless friction, {empire}. Halt your expansion near our worlds before incidents strain our diplomacy.",
+    ],
     firstContact: [
       "Greetings from the {leader}, traveler. We believe the stars are wide enough for both of us to prosper in peace.",
       "On behalf of the {leader}, welcome. Let us open formal channels and chart a future built on mutual trust.",
@@ -65,6 +70,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   vossari: {
+    borderWarning: [
+      "Our telemetry shows your colony at {star} breaches our minimum safety buffer, {empire}. Please relocate your expansion to prevent border instability.",
+      "Empirical history confirms that overlapping frontiers cause avoidable conflict, {empire}. Maintain a wider separation from our research worlds.",
+    ],
     firstContact: [
       "Fascinating. Another nascent civilization has stumbled into interstellar flight. We are the {leader}; try not to contaminate our telemetry.",
       "Your vessel's propulsion signature is primitive, yet functional. The {leader} will observe your development with measured interest.",
@@ -123,6 +132,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   kethrak: {
+    borderWarning: [
+      "Your colony at {star} encroaches upon our brood-range, {empire}. Do not crowd the hive, or the swarm will defend its perimeter.",
+      "Our scent-markers already claim this sector, {empire}. Build no closer to our nests if you wish the hive to remain calm.",
+    ],
     firstContact: [
       "One mind speaks through millions of chitin shells. We are the {leader}, and your noisy individuality offends our silence.",
       "We taste your pheromones across the void, solitary creatures. Speak quickly before the swarm loses patience.",
@@ -181,6 +194,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   ashkari: {
+    borderWarning: [
+      "You build too close to our embers, {empire}. Step back from {star}, or your new colony will learn how fiercely we burn.",
+      "Our forge-worlds do not share the hearth with encroachers, {empire}. Pull your settlers back before sparks turn to war.",
+    ],
     firstContact: [
       "Stand tall when addressing the {leader}, stranger. We respect only strength, steel, and those who earn their place among the stars.",
       "I am High Legate of the {leader}. Show us you possess a warrior's spine, and we may speak as equals.",
@@ -239,6 +256,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   lumen: {
+    borderWarning: [
+      "Your outpost at {star} casts a long shadow across our frontier, {empire}. Keep your colonies distant so our light remains peaceful.",
+      "Even gentle radiance can sear those who press too near, {empire}. Respect our borders and halt your encroachment.",
+    ],
     firstContact: [
       "We heard your thoughts long before your ships breached the dark. Do not be afraid; the {leader} welcomes your noisy little minds.",
       "Your captains dreamed of silver light last night, did they not? That was the {leader} reaching out to say hello.",
@@ -297,6 +318,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   thraal: {
+    borderWarning: [
+      "You have planted your banner too near our bedrock at {star}, {empire}. Stand down from our border while words still suffice.",
+      "We do not yield ground once claimed, {empire}. Keep your settlers clear of our star-lanes and neighboring worlds.",
+    ],
     firstContact: [
       "Slowly... slowly the dust settles, and new pebbles roll into view. We are the {leader}, enduring since the mountains were young.",
       "Soft-fleshed travelers flicker like sparks across the dark. Speak unhurriedly; the {leader} measures words in centuries.",
@@ -355,6 +380,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   seraphine: {
+    borderWarning: [
+      "Your clumsy settlers at {star} clutter our flight lanes, {empire}. Give our pilots room, or watch how gracefully we escort you out.",
+      "We dance between the stars, {empire}; we do not care to trip over your colonies. Keep a respectful distance.",
+    ],
     firstContact: [
       "Look how clumsily your ships limp through the ether, yet we welcome you anyway. The {leader} graces the {empire} with our presence.",
       "Few ground-bound species ever learn to dance upon solar winds as we do. Still, the {leader} greets the {empire} from on high.",
@@ -413,6 +442,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   orrun: {
+    borderWarning: [
+      "You are choking our supply lanes near {star}, {empire}. Keep your colonies off our doorstep if you want smooth trade.",
+      "Every spacer knows not to crowd a neighbor's claim, {empire}. Back off from our border before trouble starts.",
+    ],
     firstContact: [
       "Welcome, prospective partner! The {leader} is always eager to open new markets—and we already see tremendous margin in the {empire}.",
       "Greetings from the {leader}! Let us skip the poetic nonsense and discuss what your worlds are buying and selling.",
@@ -471,6 +504,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   nyx: {
+    borderWarning: [
+      "Proximity alert: your colony at {star} violates our buffer threshold, {empire}. Recalibrate your expansion before defensive protocols engage.",
+      "Territorial overlap with the {empire} yields unacceptable friction projections. Cease settlement near our industrial perimeter immediately.",
+    ],
     firstContact: [
       "Organic signal detected. Designate: {empire}. We are the {leader}. Probability of peaceful coexistence: forty-six point eight percent.",
       "First contact logged. The {leader} has indexed your hull frequencies. Transmit purpose within thirty seconds.",
@@ -529,6 +566,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   velari: {
+    borderWarning: [
+      "Your crude outpost at {star} mars the symmetry of our frontier, {empire}. Keep a respectful distance from our great works.",
+      "True harmony requires open space between neighbors, {empire}. Do not crowd our borders with hasty settlements.",
+    ],
     firstContact: [
       "The constellations shifted three nights ago, whispering that the {empire} would arrive. We are the {leader}, keepers of the woven dark.",
       "Step softly across the starlight, travelers. The {leader} has already seen your faces in the embers of dying suns.",
@@ -587,6 +628,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   drovani: {
+    borderWarning: [
+      "Your settlement at {star} disturbs our outer currents, {empire}. Do not crowd our waters, lest the tide turn against you.",
+      "Even vast oceans have shores, {empire}. Keep your colonies clear of our depths before our patience ebbs away.",
+    ],
     firstContact: [
       "From the crushing dark beneath the waves, the {leader} rises to greet you. Speak slowly, surface-walkers of the {empire}.",
       "Your ships ripple the upper currents like silver minnows. The {leader} watches from the deep with calm eyes.",
@@ -645,6 +690,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   gorrath: {
+    borderWarning: [
+      "You stake claims across our clan migration lanes at {star}, {empire}. Respect our roaming space, or face the wrath of our worldships.",
+      "Our clans never tolerate outsiders fencing in our hunting grounds, {empire}. Leave wide sky between your worlds and ours.",
+    ],
     firstContact: [
       "Hold your fire and state your name, stranger. Our worldships have roamed the dark for ages, and the {leader} fears no one.",
       "Well met across the long void, {empire}. Share bread with the {leader} in peace, or cross us and earn a blood-grudge.",
@@ -703,6 +752,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   ixil: {
+    borderWarning: [
+      "Your presence at {star} ripples too loudly through our phase-space, {empire}. Withdraw your frontier before shadows answer your intrusion.",
+      "We watch quietly from between the stars, {empire}, yet your encroaching borders force our hand. Trespass no closer.",
+    ],
     firstContact: [
       "How fascinating your pulse sounds across the void, {empire}. The {leader} longs to know how your minds and bodies intertwine.",
       "We are the {leader}, two lives beating as one. Come closer, {empire}, so we may learn the rhythm of your kind.",
@@ -761,6 +814,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   verdane: {
+    borderWarning: [
+      "Your colony at {star} encroaches on our sunlit groves, {empire}. Give our roots room to breathe, or thorns will answer.",
+      "Even the forest clears space around rival trees, {empire}. Halt your expansion near our worlds before our patience withers.",
+    ],
     firstContact: [
       "New shoots appear even in the coldest dark of space. The {leader} welcomes the {empire} beneath our canopy.",
       "We have stood rooted for ten thousand springs, yet we are glad to see fresh life blooming. Greetings from the {leader}.",
@@ -819,6 +876,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   quorai: {
+    borderWarning: [
+      "Your dim little lights at {star} flicker far too close to our furnaces, {empire}. Move them before our corona takes notice.",
+      "Cold mud should keep its distance from the children of the sun, {empire}. Settle somewhere our light does not reach.",
+    ],
     firstContact: [
       "Look, a flicker of cold mud drifting between the furnaces of creation. We are the {leader}, born in the hearts of stars.",
       "How brief and dim your little sparks appear to our corona. Yet the {leader} deigns to notice the {empire}.",
@@ -877,6 +938,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   raxxan: {
+    borderWarning: [
+      "Fat colonies like {star} sitting right on our doorstep tempt our raiders, {empire}. Back off before we strip your border clean.",
+      "You are breathing down our necks, {empire}. Pull your settlers out of our reach, or we will claim that world ourselves.",
+    ],
     firstContact: [
       "Well, well, look at the shiny hull plating on you! I am Captain of the {leader}, and we are totally legitimate salvage operators.",
       "Nice engines you have there, {empire}—be a real shame if something happened to them. Relax, the {leader} just wants to chat!",
@@ -935,6 +1000,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   ruuvak: {
+    borderWarning: [
+      "Your colony at {star} crowds our brood-sprawl, {empire}. Give our swarms room to multiply before our numbers overflow your border.",
+      "Too many outsiders nesting beside our hatcheries strains the peace, {empire}. Keep your settlers well back from our frontier.",
+    ],
     firstContact: [
       "So much empty space on your worlds, and so few mouths to fill it! We are the {leader}, and our spawning pools are always hungry.",
       "Millions of hatchlings squeal in greeting to the {empire}! Tell us, do your planets have plenty of room to spare?",
@@ -993,6 +1062,10 @@ export const DIALOGUE: Record<string, Record<DialogueSituation, string[]>> = {
     ],
   },
   tarkhan: {
+    borderWarning: [
+      "Your colony at {star} sits inside our artillery range, {empire}. Withdraw your expansion beyond our perimeter before we treat it as hostile.",
+      "A soldier recognizes a flanking move when he sees one, {empire}. Halt your border encroachment immediately.",
+    ],
     firstContact: [
       "Crosshairs steady, range calibrated—and yet you appear worthy of parley rather than shot. We are the {leader}; name yourself, {empire}.",
       "Every star system is a hunting ground, and every ship either stalker or quarry. Welcome to the range, {empire}.",

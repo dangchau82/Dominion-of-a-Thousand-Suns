@@ -9,7 +9,7 @@ import { rollEvents } from "./events";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
-import { applyTreaties, processEspionage, researchPactBonus, spendingShare, updateRelations } from "./diplomacy";
+import { applyTreaties, borderWarnings, processEspionage, researchPactBonus, spendingShare, updateRelations } from "./diplomacy";
 import {
   colonyProduction, factoryCost, FIELD_NAMES, maxUsableFactories, planetCapacity,
   popCost, popGrowth,
@@ -208,6 +208,7 @@ export function endTurn(state: GameState): void {
   resolveCombat(state);
   updateVision(state);
   updateRelations(state);
+  borderWarnings(state);
   updateAlive(state);
   resolveCouncil(state);
   checkVictory(state);

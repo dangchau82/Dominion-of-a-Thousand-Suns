@@ -206,7 +206,11 @@ export function giveGift(state: GameState, from: Empire, to: Empire, bc: number,
   const warmth = Math.min(20, bc / 10 + (techId ? tech(techId).tier * 3 : 0));
   adjustRelation(to, from, warmth);
   event(state, to.id, "diplomacy", `The ${from.name} sent a gift: ${[bc > 0 ? `${Math.round(bc)} BC` : "", techId ? tech(techId).name : ""].filter(Boolean).join(" and ")}.`);
-  if (!to.isPlayer) event(state, from.id, "diplomacy", say(state.turn, to, "praise", from));
+  if (!from.isPlayer && from.atWar[to.id] !== undefined) {
+    event(state, to.id, "diplomacy", say(state.turn, from, "surrender", to));
+  } else if (!to.isPlayer) {
+    event(state, from.id, "diplomacy", say(state.turn, to, "praise", from));
+  }
   return null;
 }
 
@@ -235,6 +239,52 @@ export function updateRelations(state: GameState): void {
       base -= Math.min(6, friction) * 5;
       if (Object.keys(a.atWar).some((id) => b.atWar[Number(id)] !== undefined)) base += 15;
       a.relations[b.id] = clamp(relation(a, b) + (base - relation(a, b)) * 0.05, -100, 100);
+    }
+  }
+}
+
+// Written by Gemini (coding test, 2026-11-25), checked by Claude.
+/** AI empires warn neighbors with colonies within 4 ly, at most once every 30 turns per pair. */
+export function borderWarnings(state: GameState): void {
+  const byEmpire = new Map<Id, { id: Id; name: string; x: number; y: number }[]>();
+  for (const c of Object.values(state.colonies)) {
+    const s = state.stars[c.starId]!;
+    let list = byEmpire.get(c.empireId);
+    if (!list) {
+      list = [];
+      byEmpire.set(c.empireId, list);
+    }
+    list.push(s);
+  }
+
+  for (const a of state.empires) {
+    if (!a.alive || a.isPlayer) continue;
+    const colsA = byEmpire.get(a.id);
+    if (!colsA?.length) continue;
+    for (const bid of a.contacts) {
+      const b = state.empires[bid];
+      if (!b || !b.alive || a.atWar[b.id] !== undefined) continue;
+      const lastWarned = a.borderWarned?.[b.id];
+      if (lastWarned !== undefined && state.turn - lastWarned < 30) continue;
+      const colsB = byEmpire.get(b.id);
+      if (!colsB?.length) continue;
+
+      let closeStar: { id: Id; name: string } | null = null;
+      for (const sa of colsA) {
+        for (const sb of colsB) {
+          if (distance(sa.x, sa.y, sb.x, sb.y) < 4) {
+            closeStar = sb;
+            break;
+          }
+        }
+        if (closeStar) break;
+      }
+
+      if (closeStar) {
+        (a.borderWarned ??= {})[b.id] = state.turn;
+        adjustRelation(a, b, -3);
+        event(state, b.id, "diplomacy", say(state.turn, a, "borderWarning", b, { star: closeStar.name }), closeStar.id);
+      }
     }
   }
 }

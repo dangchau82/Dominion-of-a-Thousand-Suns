@@ -87,6 +87,11 @@ export function deserialize(json: string): GameState {
     for (const c of Object.values(s.colonies)) c.missileBases = Math.min(c.missileBases, maxMissileBases(c.population));
     s.version = 9;
   }
+  if (data.version === 9) {
+    const s = data as GameState;
+    for (const e of s.empires) e.borderWarned ??= {};
+    s.version = 10;
+  }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

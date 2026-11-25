@@ -144,11 +144,22 @@ function nearestColony(ctx: Ctx, p: { x: number; y: number }): ColonyInfo | unde
 function diplomacy(ctx: Ctx): void {
   const { view, cmds } = ctx;
   const mine = myPop(ctx);
+  let availableTreasury = view.me.treasury;
   for (const c of view.contacts) {
     if (!c.alive) continue;
     const theirs = knownPop(ctx, c.id);
     if (c.warSince !== null) {
       const length = view.turn - c.warSince;
+      // Losing badly: sue for peace with a gift (Gemini, coding test 2026-11-25).
+      if (!c.weOfferedPeace && length >= 10 && theirs > mine * 2.5) {
+        const giftBc = Math.max(50, Math.floor(availableTreasury * 0.2));
+        if (availableTreasury >= giftBc) {
+          cmds.push({ type: "gift", to: c.id, bc: giftBc });
+          availableTreasury -= giftBc;
+        }
+        cmds.push({ type: "offerPeace", targetId: c.id });
+        continue;
+      }
       const losing = theirs > mine * 1.2;
       if (c.id === ctx.threat) continue;
       if (c.offersPeace && (length >= 10 + Math.round(ctx.aggression * 20) || losing)) cmds.push({ type: "offerPeace", targetId: c.id });

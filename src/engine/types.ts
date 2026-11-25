@@ -138,6 +138,8 @@ export interface Empire {
   focus?: AutopilotFocus;
   /** Player option: idle scouts explore on their own each turn. */
   autoExplore?: boolean;
+  /** Last turn this empire warned another empire about nearby colonies. */
+  borderWarned?: Record<Id, number>;
 }
 
 export interface Leader {
@@ -305,4 +307,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
