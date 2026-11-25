@@ -12,6 +12,7 @@ How the balance numbers are made: computer-vs-computer games, 8 empires each, la
 - New `tests/lore.test.ts`: scale limits, wording, every new choice resolves, chain order. 76 tests pass.
 - Note for the elder-powers stage: the Conclave/Wardens/Spindle descriptions mention mechanics that don't exist (morale as a stat, war weariness, sensor range, "+30% spying"); treat those as design notes, not numbers.
 - Gemini given its next job: `gemini-task-storylines.md` (Ashkari, Quorai, Terran Accord; 5 chapters, 2 forks, data format fixed in advance). In Drive under "Source for Gemini".
+- **Gemini's race storylines added as data** (`src/engine/data/storylines.ts`: Ashkari, Quorai, Terran Accord, 6 chapters each). Passed every check first time: format, sizes, "the {rival}" wording, word limits, endings matching the chapter-3 fork. Only fix: a quoted `"count"` key. Engine not built yet. Notes for the engine: play chapters strictly in order (chapter 2's "3 colonies" usually comes before chapter 1's turn 20-26); Ashkari chapter 3 waits for a first war, so give it a fallback turn (e.g. 150) for peaceful games; goldenAge chapters wait for the first golden age.
 - **Not pushed:** GitHub isn't connected for this account. Master AI groundwork (Master difficulty, per-empire AI choice, basic AI internals exported; basic AI plays identical games, checked by fingerprint) is saved as a patch, not committed yet.
 
 ## 2026-11-24 — evening session

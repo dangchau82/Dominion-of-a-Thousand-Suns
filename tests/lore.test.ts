@@ -4,6 +4,7 @@ import { newGame } from "../src/engine";
 import { EVENTS, type EventEffect, type GameEventDef } from "../src/engine/data/events";
 import { AWAKENING_CHAIN, BLIGHT_CRISIS, ELDER_POWERS, STATION } from "../src/engine/data/lateGameLore";
 import { resolveEvent } from "../src/engine/events";
+import { STORYLINES } from "../src/engine/data/storylines";
 
 const NEW_EVENTS = ["precursor-dreadnought", "void-stowaway", "ace-defector", "orbital-elevator-collapse",
   "galactic-olympiad", "rogue-terraforming-fleet", "phantom-beacon", "privateer-letter"];
@@ -62,5 +63,21 @@ describe("Gemini events and lore", () => {
     expect(AWAKENING_CHAIN.filter((e) => e.branch).map((e) => e.branch).sort()).toEqual(["chaos", "neutral", "order"]);
     expect(ELDER_POWERS.map((p) => p.alignment).sort()).toEqual(["chaos", "order"]);
     expect(STATION.sponsorVoteShare).toBeLessThanOrEqual(0.2);
+  });
+
+  it("race storylines: 6 chapters per race, 2 forks each, in scale", () => {
+    for (const race of ["ashkari", "quorai", "humans"]) {
+      const chapters = STORYLINES.filter((c) => c.raceId === race).map((c) => c.chapter);
+      expect(chapters).toEqual([1, 2, 3, 4, "5A", "5B"]);
+    }
+    expect(new Set(STORYLINES.map((c) => c.id)).size).toBe(STORYLINES.length);
+    for (const c of STORYLINES) {
+      expect(c.choices.length).toBe(2);
+      checkText(c);
+      for (const ch of c.choices) for (const fx of ch.effects) {
+        expect(inScale(fx), `${c.id}: ${JSON.stringify(fx)}`).toBe(true);
+        if (fx.kind === "ships") expect(fx.count).toBeLessThanOrEqual(3);
+      }
+    }
   });
 });
