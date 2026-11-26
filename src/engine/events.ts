@@ -20,6 +20,7 @@ import { GATE_ALL_EVENTS, noteGateChoice } from "./gates";
 import { noteSecretChoice, SECRET_EVENTS } from "./secrets";
 import { MAGES_EVENT, noteTechMagesChoice } from "./techMages";
 import { CELL_EVENT, notePowerCellChoice } from "./powerCells";
+import { SMUGGLER_EVENT, noteSmugglerChoice } from "./smugglers";
 import { noteContractChoice } from "./contracts";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
@@ -31,7 +32,7 @@ export const EVENT_CHANCE = 1 / 14;
 /** Unanswered events resolve with their first choice after this many turns. */
 export const EVENT_TIMEOUT = 5;
 
-export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS, ...SUPERNOVA_EVENTS, ...CRUSADE_EVENTS, ...CRITTER_EVENTS, ...INFESTATION_EVENTS, ...CONTRACT_EVENTS, ...SYNTH_EVENTS, ...NATIVE_EVENTS, ...EXPEDITION_EVENTS, ...ENVOY_EVENTS, ...GATE_ALL_EVENTS, ...SECRET_EVENTS, MAGES_EVENT, CELL_EVENT].map((e) => [e.id, e]));
+export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS, ...SUPERNOVA_EVENTS, ...CRUSADE_EVENTS, ...CRITTER_EVENTS, ...INFESTATION_EVENTS, ...CONTRACT_EVENTS, ...SYNTH_EVENTS, ...NATIVE_EVENTS, ...EXPEDITION_EVENTS, ...ENVOY_EVENTS, ...GATE_ALL_EVENTS, ...SECRET_EVENTS, MAGES_EVENT, CELL_EVENT, SMUGGLER_EVENT].map((e) => [e.id, e]));
 
 function fill(text: string, state: GameState, p: PendingEvent): string {
   return text
@@ -97,6 +98,7 @@ export function resolveEvent(state: GameState, p: PendingEvent, choice: number):
   noteSecretChoice(state, p, choice);
   noteTechMagesChoice(state, p, choice);
   notePowerCellChoice(state, p, choice);
+  noteSmugglerChoice(state, p, choice);
   const e = state.empires[p.empireId]!;
   for (const fx of c.effects) applyEffect(state, e, p, fx);
   state.events.push({ turn: state.turn, empireId: e.id, kind: "info", text: `${def.title}: ${fill(c.result, state, p)}` });

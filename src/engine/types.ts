@@ -397,6 +397,8 @@ export interface GameState {
   techMages?: Record<Id, import("./techMages").MageVisit>;
   /** Ancient power cells found and running, per empire. See src/engine/powerCells.ts. */
   powerCells?: Record<Id, import("./powerCells").PowerCellState>;
+  /** Smuggler rings per empire. See src/engine/smugglers.ts. */
+  smugglers?: Record<Id, import("./smugglers").SmugglerState>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -418,4 +420,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 29;
+export const SAVE_VERSION = 30;

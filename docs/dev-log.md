@@ -406,3 +406,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/techMages.ts`, save v28, `tests/
 
 ## 2026-11-26 05:01 (Claude 2): ancient power cells in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/powerCells.ts`, save v29, `tests/powerCells.test.ts`.
+
+## 2026-11-26 05:13 (Claude 2): smuggler rings in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/smugglers.ts`, save v30, `tests/smugglers.test.ts`.

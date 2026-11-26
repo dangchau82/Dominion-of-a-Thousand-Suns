@@ -130,6 +130,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 27) { (data as GameState).version = 28; }
   // Version 28 -> 29: ancient power cells; old games may still find theirs.
   if (data.version === 28) { (data as GameState).version = 29; }
+  // Version 29 -> 30: smuggler rings.
+  if (data.version === 29) { (data as GameState).version = 30; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

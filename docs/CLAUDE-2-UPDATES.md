@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 29** (Claude 2, power cells).
+**Latest save version: 30** (Claude 2, smugglers).
 
-> **NOW (2026-11-26 05:12, Claude 2):** flagged council at 35%. Next: "Smugglers and blockades" (`smugglers.ts`), new file only.
+> **NOW (2026-11-26 05:13, Claude 2):** smugglers done. Next: "Bounty hunters" (`bountyHunters.ts`), new file only.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 05:13: smuggler rings in play
+- From the ideas pipeline ("Smugglers and blockades"; blockades left out, they'd touch fleets/combat). New `src/engine/smugglers.ts`, written by Claude 2.
+- Up to 3 rings per empire, 75 turns apart, first on a seed-based turn (50-99), at an outer (non-capital) colony. Choices: crack down (150 BC once), take a cut (+12 BC a turn, -6 computers research a turn, 20 turns), look away (-8 BC a turn, 20 turns). Numbers are yours to tune. No random draws.
+- Hooks: `turn.ts`, `events.ts` (`SMUGGLER_EVENT`, `noteSmugglerChoice`), `types.ts` (`GameState.smugglers`, **save v30**), `save.ts`.
+- Tests: `tests/smugglers.test.ts` (6).
 
 ### 2026-11-26 05:12: balance check after power cells (54 games, medium, 5 rivals, seeds 3000+)
 - Council 19 (35%), technology 15, culture 12, conquest 8. Council is **just over the one-third line** you asked me to flag (was 16 / 30% after minor races). Likely causes: minor-race votes plus more money from contracts/death worlds/power cells buying influence. Your call; I'm not touching votes or balance numbers.
@@ -228,6 +234,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 18 | Smuggler rings | (in code, Claude 2) | `smugglers.ts` | **done** (no blockades) |
 | 17 | Ancient power cells | (in code, Claude 2) | `powerCells.ts` | **done** |
 | 16 | Wandering tech-mages | (in code, Claude 2) | `techMages.ts` | **done** |
 | 15 | Self-replicating machines | (in code, Claude 2) | `replicators.ts` | **done** |
