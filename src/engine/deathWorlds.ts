@@ -21,7 +21,7 @@ const PREFIX = "death:";
 /** About one death world per this many stars. */
 export const STARS_PER_WORLD = 30;
 /** Share of the extra production that becomes money (the riches). Kept modest: balance is the main Claude's call. */
-export const RICHES_SHARE = 0.5;
+export const RICHES_SHARE = 0.3; // main Claude 2026-11-26: 0.5 gave one empire up to 5% of its gross output as free cash (12-game playtest)
 
 const BY_ID = new Map(DEATH_WORLDS.map((d) => [d.id, d]));
 

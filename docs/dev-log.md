@@ -329,3 +329,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 - **Governing distance** (`turn.ts` `distanceCost`): a colony more than 8 ly from its capital loses 1% of output per extra light-year, up to 20%. Claude 2's "upkeep by distance" idea, taken as output instead of money because treasuries no longer hoard (median 1-4k BC, swinging +-1k a turn; measured at T150/T250).
 - **Subject peoples vote at half** (`victory.ts` `votingPopulation`): another race living under an empire (conquered or handed over) counts 50% for council votes. Without it, peace terms piled population into the leaders and council wins rose to 21 of 54.
 - **54 games (seeds 3000+):** council 17, culture 15, technology 12, conquest 10, no winner 0, median T304; 284 peace treaties handed over worlds (5 a game). Before tonight: technology 23, council 15, culture 10, conquest 6 (T326). All four ways to win now matter. Tests: `tests/grudges.test.ts` (4), `tests/governing.test.ts` (2).
+
+## 2026-11-26 04:10 Playtest of Claude 2's eight new features (12 AI games)
+- Crusade, critters, infestation, job board, android leaders, natives, expeditions: all run in every game with no errors and small effects (details in the playtest queue in `docs/MAIN-CLAUDE-UPDATES.md`).
+- Death worlds: riches reached up to 5% of one empire's whole gross output as free cash; `RICHES_SHARE` 0.5 -> 0.3.
