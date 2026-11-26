@@ -87,7 +87,7 @@ export interface EmpireView {
   };
   winner: Winner | null;
   /** Random events waiting for our choice, with names filled in. */
-  pendingEvents: { id: number; title: string; art: string; text: string; choices: { label: string; result: string; effects: EventEffect[] }[] }[];
+  pendingEvents: { id: number; title: string; art: string; text: string; subtitle: string | null; choices: { label: string; result: string; effects: EventEffect[] }[] }[];
   keepPlaying: boolean;
   /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
   standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean }[];

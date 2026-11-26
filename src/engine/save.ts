@@ -94,6 +94,8 @@ export function deserialize(json: string): GameState {
   }
   // Version 10 -> 11: leaders gained an optional trait; old leaders simply have none.
   if (data.version === 10) { (data as GameState).version = 11; }
+  // Version 11 -> 12: empires gained an optional race story; old games simply start theirs from chapter 1.
+  if (data.version === 11) { (data as GameState).version = 12; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

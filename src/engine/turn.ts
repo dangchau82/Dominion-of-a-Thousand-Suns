@@ -6,6 +6,7 @@ import { colonyShipCount, shipDesign } from "./designs";
 import { recordChronicle } from "./chronicle";
 import { resolveCombat } from "./combat";
 import { rollEvents } from "./events";
+import { processStorylines } from "./storylines";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -211,6 +212,8 @@ export function endTurn(state: GameState): void {
   processPrisons(state);
   processDecrees(state);
   processMoneySinks(state);
+  // Story chapters come before random events, so a race's story is never crowded out.
+  processStorylines(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

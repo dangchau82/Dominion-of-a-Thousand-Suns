@@ -180,6 +180,8 @@ export interface Empire {
   proclamationReady?: Record<string, number>;
   /** Rebel empires: the empire they broke away from in a civil war. */
   rebelOf?: Id;
+  /** This race's own story (see src/engine/storylines.ts): chapters played, the chapter 3 fork, when the last one came. */
+  story?: { played: string[]; fork?: "A" | "B"; lastTurn: number };
 }
 
 export interface Leader {
@@ -359,4 +361,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;

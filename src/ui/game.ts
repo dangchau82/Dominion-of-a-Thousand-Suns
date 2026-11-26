@@ -858,7 +858,7 @@ export class GameScreen {
     if (!ev) return this.showMessages();
     play("message");
     this.modal((box, close) => {
-      box.innerHTML = `<img class="event-pic" src="${art.event(ev.art)}" alt=""><h2>${esc(ev.title)}</h2><p>${esc(ev.text)}</p>`;
+      box.innerHTML = `<img class="event-pic" src="${art.event(ev.art)}" alt="">${ev.subtitle ? `<div class="dim" style="font-size:12px;letter-spacing:0.05em">${esc(ev.subtitle)}</div>` : ""}<h2>${esc(ev.title)}</h2><p>${esc(ev.text)}</p>`;
       const col = el("div", { style: "display:flex;flex-direction:column;gap:8px" });
       ev.choices.forEach((c, i) => {
         const fx = c.effects.map(effectText).filter(Boolean).join(", ");

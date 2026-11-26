@@ -4,6 +4,7 @@
 import { EVENTS, type EventEffect, type GameEventDef } from "./data/events";
 import { UNREST_EVENTS } from "./data/unrest";
 import { PRISON_EVENTS } from "./data/hazardWorlds";
+import { ALL_STORY_CHAPTERS, noteStoryChoice, storyLabel } from "./storylines";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
 import { distance } from "./formulas";
@@ -14,7 +15,7 @@ export const EVENT_CHANCE = 1 / 14;
 /** Unanswered events resolve with their first choice after this many turns. */
 export const EVENT_TIMEOUT = 5;
 
-export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS].map((e) => [e.id, e]));
+export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS].map((e) => [e.id, e]));
 
 function fill(text: string, state: GameState, p: PendingEvent): string {
   return text
@@ -27,7 +28,7 @@ function fill(text: string, state: GameState, p: PendingEvent): string {
 export function describeEvent(state: GameState, p: PendingEvent) {
   const def = EVENT_BY_ID.get(p.eventId)!;
   return {
-    title: def.title, art: def.art, text: fill(def.text, state, p),
+    title: def.title, art: def.art, text: fill(def.text, state, p), subtitle: storyLabel(p.eventId),
     choices: def.choices.map((c) => ({ label: fill(c.label, state, p), result: fill(c.result, state, p), effects: c.effects })),
   };
 }
@@ -67,6 +68,7 @@ export function resolveEvent(state: GameState, p: PendingEvent, choice: number):
   const c = def?.choices[choice];
   if (!def || !c) return "No such choice";
   state.pendingEvents = state.pendingEvents.filter((x) => x.id !== p.id);
+  noteStoryChoice(state, p, choice);
   const e = state.empires[p.empireId]!;
   for (const fx of c.effects) applyEffect(state, e, p, fx);
   state.events.push({ turn: state.turn, empireId: e.id, kind: "info", text: `${def.title}: ${fill(c.result, state, p)}` });

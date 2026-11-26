@@ -247,3 +247,9 @@ Danny asked for fewer culture wins and more technology wins. 54 medium games eac
 - Raising the culture target does not help technology: those wins go to the council and more games stall. The Gate's price is the lever, and it is steep (60,000 already gives tech 29).
 - Quorai 6 of 22 in every row except 45,000 (4): the victory mix is not their problem.
 - Conquest still 0 of 54.
+
+## 2026-11-25 22:30 (Claude 2): race storylines in play
+- New `src/engine/storylines.ts`: every race now lives through its own 6-chapter story (Gemini's text in `data/storylines*.ts`). Chapters 1-4 in order, then ending 5A or 5B, picked by the answer to chapter 3. Each chapter starts when its own condition comes true (a turn, N colonies, first war, first golden age, a council session), or by a fallback turn (40 / 110 / 160 / 210 / 260) so nobody misses theirs. At least 12 turns between chapters; waits while the empire has another event open; a chapter naming a rival waits for one to be met (up to 40 turns past its fallback). {colony} = capital, {star} = nearest explored star, {rival} = current enemy, else the contact liked least. Rebel empires don't get the story.
+- **No random draws**, so seeds and galaxies are unchanged; but story choices change how games go (one test game ended in an early council win at T151). `tests/resolutions.test.ts` council test moved from seed 14 to 15 for that reason.
+- Story events go through the normal event screen and AI; the screen shows "Your people's story: chapter N of 5" above the title (`subtitle` on view events). Chapter 3's answer is remembered in `resolveEvent` via `noteStoryChoice`.
+- `Empire.story` + **save version 12** (v11 games start their story at chapter 1). `tests/storylines.test.ts` (8 tests). 170 tests pass.

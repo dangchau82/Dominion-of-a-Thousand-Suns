@@ -62,7 +62,7 @@ describe("council resolutions", () => {
 
   it("AI empires vote, some resolutions pass in long games, and games stay deterministic", () => {
     const run = () => {
-      const g = newGame(settings({ seed: 14, rivals: 5, size: "medium" }));
+      const g = newGame(settings({ seed: 15, rivals: 5, size: "medium" }));
       for (const e of g.empires) e.isPlayer = false;
       let debated = 0, passed = 0;
       for (let t = 0; t < 300 && !g.winner; t++) {
