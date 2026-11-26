@@ -207,3 +207,5 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - Title screen (wide screens): Gemini's 10 s title video, re-cut to loop seamlessly (1 s crossfade), 0.4 MB, `public/art/backgrounds/title-wide.mp4`. Phones held upright and reduced-motion players keep the still picture.
 - `src/ui/gatePortal.ts`: a canvas laid over the ring (object-fit cover maths) wakes the gate: sparks run round the rim, light pours in from the edge, then a soft rippling, shimmering surface holds. Original design, no film effect copied.
 - Ashkari living portrait from Gemini (Gemini job 03), cropped square to match the others, looped by crossfade; `ashkari` added to `LIVING`.
+
+- 19:15 Gemini Set B (moving scenes): first clip in, `public/art/scenes-video/ruuvak-science.mp4` (17a, egg hatching, plays once). Not shown in game yet; wire up with the scene pictures.
