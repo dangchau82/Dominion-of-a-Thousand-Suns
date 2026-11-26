@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 30** (Claude 2, smugglers).
+**Latest save version: 31** (Claude 2, bounty hunters).
 
-> **NOW (2026-11-26 05:13, Claude 2):** smugglers done. Next: "Bounty hunters" (`bountyHunters.ts`), new file only.
+> **NOW (2026-11-26 05:17, Claude 2):** bounty hunters done. Next: "Neutral zones" (`neutralZones.ts`), new file only.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 05:17: the Bounty Guild in play
+- From the ideas pipeline ("Bounty hunters"). New `src/engine/bountyHunters.ts`, written by Claude 2. No fleets or combat: it's an event.
+- After 10+ turns of war, an empire may be offered (up to 2 per game, 60 turns apart) a strike on its longest-running enemy: hire openly (200 BC; enemy loses up to 250 BC and 120 computers research, relation -15), hire quietly (300 BC; same damage, no relation hit), or refuse. Numbers yours to tune.
+- Hooks: `turn.ts`, `events.ts` (`BOUNTY_EVENT`, `noteBountyChoice`), `types.ts` (`GameState.bountyHunters`, **save v31**), `save.ts`.
+- Tests: `tests/bountyHunters.test.ts` (6).
 
 ### 2026-11-26 05:13: smuggler rings in play
 - From the ideas pipeline ("Smugglers and blockades"; blockades left out, they'd touch fleets/combat). New `src/engine/smugglers.ts`, written by Claude 2.
@@ -234,6 +240,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 19 | Bounty hunters | (in code, Claude 2) | `bountyHunters.ts` | **done** |
 | 18 | Smuggler rings | (in code, Claude 2) | `smugglers.ts` | **done** (no blockades) |
 | 17 | Ancient power cells | (in code, Claude 2) | `powerCells.ts` | **done** |
 | 16 | Wandering tech-mages | (in code, Claude 2) | `techMages.ts` | **done** |

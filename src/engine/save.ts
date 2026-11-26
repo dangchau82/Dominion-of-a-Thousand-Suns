@@ -132,6 +132,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 28) { (data as GameState).version = 29; }
   // Version 29 -> 30: smuggler rings.
   if (data.version === 29) { (data as GameState).version = 30; }
+  // Version 30 -> 31: the Bounty Guild.
+  if (data.version === 30) { (data as GameState).version = 31; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

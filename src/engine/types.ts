@@ -399,6 +399,8 @@ export interface GameState {
   powerCells?: Record<Id, import("./powerCells").PowerCellState>;
   /** Smuggler rings per empire. See src/engine/smugglers.ts. */
   smugglers?: Record<Id, import("./smugglers").SmugglerState>;
+  /** Bounty Guild offers per empire. See src/engine/bountyHunters.ts. */
+  bountyHunters?: Record<Id, import("./bountyHunters").BountyState>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -420,4 +422,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 30;
+export const SAVE_VERSION = 31;
