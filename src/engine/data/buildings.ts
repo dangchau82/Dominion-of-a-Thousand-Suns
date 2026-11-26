@@ -70,7 +70,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
     effects: { culture: 2 }, wonder: { empire: { attack: 1 } } },
   { id: "w-whisper", name: "Whispering Spire", cost: 3250, requires: ["computers", 3], description: "Wonder. Your spies are far better (+1 spying), +2 culture.",
     effects: { culture: 2 }, wonder: { empire: { spying: 1 } } },
-  { id: "w-ascension", name: "Ascension Gate", cost: 90000, description: "Wonder and technology victory: a gate beyond the stars. Needs top-tier (10) tech in all six fields. Cannot be bought.",
+  { id: "w-ascension", name: "Ascension Gate", cost: 70000, description: "Wonder and technology victory: a gate beyond the stars. Needs top-tier (10) tech in all six fields. Cannot be bought.",
     effects: { culture: 20 }, wonder: { empire: {} } },
   { id: "w-chorus", name: "Eternal Chorus", cost: 6250, requires: ["planetology", 5], description: "Wonder. +60% culture across your empire, +10 culture.",
     effects: { culture: 10 }, wonder: { empire: { culture: 0.6 } } },

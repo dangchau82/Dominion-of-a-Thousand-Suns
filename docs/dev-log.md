@@ -230,3 +230,20 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - **AI:** proclaims the best-scoring option for its personality and situation when a slot is free; issues at most one edict a turn (relief for a world at unrest 40+, else a boost for its biggest producer from real surplus). Master AI counts edict spending.
 - **UI:** Empire screen "Imperial proclamations" (Proclaim / Withdraw); colony panel "Issue an edict" list.
 - No save bump (optional fields). Tests: `tests/decrees.test.ts` (10).
+
+## 2026-11-25 22:15 Ascension Gate 90,000 -> 70,000 (more technology wins, fewer culture wins)
+Danny asked for fewer culture wins and more technology wins. 54 medium games each, seeds 3000+ (`tools/why-won.test.ts`):
+
+| Culture target | Gate cost | Culture | Council | Tech | No winner | Median end |
+| --- | --- | --- | --- | --- | --- | --- |
+| 90,000 | 90,000 (before) | 27 | 17 | 6 | 4 | T335 |
+| 95,000 | 90,000 | 19 | 22 | 6 | 7 | T341 |
+| 100,000 | 90,000 | 16 | 23 | 8 | 7 | T348 |
+| 95,000 | 60,000 | 7 | 18 | 29 | 0 | T311 |
+| 95,000 | 45,000 | 0 | 12 | 42 | 0 | T278 |
+| 90,000 | 75,000 | 20 | 17 | 15 | 2 | T329 |
+| **90,000** | **70,000 (now)** | **16** | **16** | **20** | 2 | T327 |
+
+- Raising the culture target does not help technology: those wins go to the council and more games stall. The Gate's price is the lever, and it is steep (60,000 already gives tech 29).
+- Quorai 6 of 22 in every row except 45,000 (4): the victory mix is not their problem.
+- Conquest still 0 of 54.

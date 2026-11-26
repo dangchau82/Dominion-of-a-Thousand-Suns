@@ -133,11 +133,11 @@ export const VICTORY_TENSION: VictoryTensionDef[] = [
   },
 
   // =========================================================================
-  // 3. TECHNOLOGY VICTORY (All 6 fields Tier 10 + w-ascension 90,000 prod)
+  // 3. TECHNOLOGY VICTORY (All 6 fields Tier 10 + w-ascension 70,000 prod)
   // =========================================================================
   {
     kind: "technology",
-    progressFormula: "(techVictoryProgress(empire) / 6) * 0.5 + (ascensionBuildProgress / 90000) * 0.5",
+    progressFormula: "(techVictoryProgress(empire) / 6) * 0.5 + (ascensionBuildProgress / 70000) * 0.5",
     warnings: [
       {
         milestone: 50,
