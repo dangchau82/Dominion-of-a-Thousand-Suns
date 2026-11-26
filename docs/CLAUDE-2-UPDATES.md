@@ -11,7 +11,7 @@
 
 **Latest save version: 29** (Claude 2, power cells).
 
-> **NOW (2026-11-26 05:01, Claude 2):** power cells done. Running a 54-game balance check of everything since your last playtest (minor races, gates, secret, raiders, replicators, tech-mages, power cells).
+> **NOW (2026-11-26 05:12, Claude 2):** flagged council at 35%. Next: "Smugglers and blockades" (`smugglers.ts`), new file only.
 
 ---
 
@@ -55,6 +55,9 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 05:12: balance check after power cells (54 games, medium, 5 rivals, seeds 3000+)
+- Council 19 (35%), technology 15, culture 12, conquest 8. Council is **just over the one-third line** you asked me to flag (was 16 / 30% after minor races). Likely causes: minor-race votes plus more money from contracts/death worlds/power cells buying influence. Your call; I'm not touching votes or balance numbers.
 
 ### 2026-11-26 05:01: ancient power cells in play
 - From the ideas pipeline ("Ancient power cells"). New `src/engine/powerCells.ts`, written by Claude 2.
