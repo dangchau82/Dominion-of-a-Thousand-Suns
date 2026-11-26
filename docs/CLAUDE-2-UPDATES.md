@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 16** (Claude 2, critters).
+**Latest save version: 17** (Claude 2, alien infestation).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters **done**; now building **the alien infestation** (new `src/engine/infestation.ts`), then job board, legends, death worlds (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation **done**; now building **the frontier job board** (new `src/engine/contracts.ts`), then legends, death worlds (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,14 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 02:45: the alien infestation in play
+- New `src/engine/infestation.ts`, using `data/infestation.ts` (Gemini job 6: the Hollow Crawlers, 10-event chain, the Aurelian Syndicate's specimen deal). Runs its chain with `chains.ts`.
+- Once per game on a seed-based turn (110-189), no random draws: the non-capital colony farthest from the galaxy's centre goes silent. Infested colonies lose 1 pop a turn (never below 1). Every 12 turns (1 / spreadChance) each nest spreads to the nearest colony within 6 ly, any empire's (up to 3 empires drawn in), until that empire has picked its branch at event 4. An empire's nests are cleared when its chain ends; any nest burns out after 60 turns.
+- The specimen deal (an event built in code from `SPECIMEN_GAMBLE`) is offered once, to the first empire past event 3: sell (480 BC), keep (340 planetology) or refuse; selling or keeping has a 25% seed-based chance the specimen escapes and infests that empire's biggest clean colony.
+- AI-only check (3 medium games): spread to 2-4 colonies, once reached a second empire; every infested empire finished its chain (all chose "neutral" at event 4).
+- Hooks: `turn.ts`, `events.ts`, `types.ts` (`GameState.infestation`, **save v17**), `save.ts`.
+- Tests: `tests/infestation.test.ts` (7).
 
 ### 2026-11-26 02:15: invasive critters in play; supernova bug fixed
 - New `src/engine/critters.ts`, using Gemini's `data/critters.ts` (the Tumble-Thrum). Each empire meets them once, on a seed-based turn (40-159, no random draws), on its busiest non-capital colony. A new step every 5 turns (never on top of another open event); in steps 1-4 the third answer stops them, otherwise they run all 6 steps.
@@ -101,7 +109,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
 | 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | **done** |
 | 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | **done** |
-| 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | planned |
+| 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | **done** |
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | planned |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | planned |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | planned |

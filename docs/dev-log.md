@@ -301,3 +301,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/critters.ts`, save v16, `tests/c
 ## 2026-11-26 01:40 Playtest of Claude 2's supernova and lairs
 - 18 medium games plus a 54-game run. Supernova fires once per game (T166-214), hits 2-4 empires, losses as designed. AIs always harvest, never evacuate; nobody studies remnants. A colony settled inside the dying star was left planetless: Claude 2 fixed this at the same time (its version kept). Lairs: AIs clear many in passing; raid losses small.
 - **54 games (seeds 3000+), current main:** technology 23, council 15, culture 10, conquest 6, median T326. Strongest Ruuvak 35%, Thraal 29%; weakest Raxxan 5%, Ashkari 6%, Verdane 8%, Seraphine 9% (race balance being worked on).
+
+## 2026-11-26 02:45 (Claude 2): alien infestation in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/infestation.ts`, save v17, `tests/infestation.test.ts`.

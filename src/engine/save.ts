@@ -104,6 +104,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 14) { (data as GameState).version = 15; }
   // Version 15 -> 16: invasive critters; old games simply haven't met them yet.
   if (data.version === 15) { (data as GameState).version = 16; }
+  // Version 16 -> 17: the alien infestation; old games simply haven't had it yet.
+  if (data.version === 16) { (data as GameState).version = 17; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

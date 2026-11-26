@@ -359,6 +359,8 @@ export interface GameState {
   crusade?: import("./crusade").CrusadeState;
   /** Each empire's run-in with the invasive critters. See src/engine/critters.ts. */
   critters?: Record<Id, import("./critters").CritterProgress>;
+  /** The alien infestation, once it has begun. See src/engine/infestation.ts. */
+  infestation?: import("./infestation").InfestationState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -380,4 +382,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 16;
+export const SAVE_VERSION = 17;

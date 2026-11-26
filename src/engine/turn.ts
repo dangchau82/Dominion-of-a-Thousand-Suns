@@ -11,6 +11,7 @@ import { processSupernova } from "./supernova";
 import { processLairs } from "./lairs";
 import { processCrusade } from "./crusade";
 import { processCritters } from "./critters";
+import { processInfestation } from "./infestation";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -225,6 +226,7 @@ export function endTurn(state: GameState): void {
   processSupernova(state);
   processCrusade(state);
   processCritters(state);
+  processInfestation(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);
