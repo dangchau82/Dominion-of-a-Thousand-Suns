@@ -74,7 +74,7 @@ export function processCrusade(state: GameState): void {
     if (state.turn < crusadeTurn(state)) return;
     state.crusade = { startTurn: state.turn, empires: {} };
     state.events.push({ turn: state.turn, empireId: null, kind: "saga",
-      text: `The ${CRUSADE.name} arrived from beyond the rim: unarmed sail-barques whose ${CRUSADE.preachers} preach an end to all wars.` });
+      text: `${CRUSADE.name} arrived from beyond the rim: unarmed sail-barques whose ${CRUSADE.preachers} preach an end to all wars.` });
   }
   const cr = state.crusade;
   for (const e of state.empires) {
