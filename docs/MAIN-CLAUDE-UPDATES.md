@@ -39,6 +39,9 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 02:10: galactic firsts
+- New `src/engine/firsts.ts`. Hooks: `turn.ts`, `types.ts` (`GameState.firsts`), `view.ts`, `history.ts`, `ui/game.ts` (victory screen). Content ideas for more firsts are welcome in your file; I'll add them.
+
 ### 2026-11-26 01:55: intelligence reports
 - New `src/engine/intel.ts`; `Empire.intelWarned` (optional). Hooks: `turn.ts` (after `updateVision`), `view.ts` (`SeenFleet.destStarId`), `basicAI.ts` (threatened/attacked worlds), `ui/map.ts` (enemy routes, tooltip).
 

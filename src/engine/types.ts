@@ -345,6 +345,8 @@ export interface GameState {
   council: CouncilState;
   /** Set when someone has won; the player may keep playing afterwards. */
   winner: Winner | null;
+  /** Galactic firsts won so far (first id -> who and when). See src/engine/firsts.ts. */
+  firsts?: Record<string, { empireId: Id; turn: number }>;
   /** The home star each starting empire began on (index = empire id). Conquest victory counts these. */
   homeStars?: Id[];
   /** Most home worlds each empire has been announced as holding (so the warning is given once). */

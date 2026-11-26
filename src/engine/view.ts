@@ -11,6 +11,7 @@ import { techVictoryProgress, votesOf, homeWorldsHeld, homeWorldsNeeded } from "
 import { canSettleStarless } from "./abilities";
 import { sinkOptions, type SinkOption } from "./moneySinks";
 import { reportedDestination } from "./intel";
+import { firstsWon } from "./firsts";
 import { edictOptions, proclamationOptions, proclamationSlots, type EdictOption, type ProclamationOption } from "./decrees";
 import { describeEvent, eventsFor } from "./events";
 import type { EventEffect } from "./data/events";
@@ -96,6 +97,8 @@ export interface EmpireView {
   keepPlaying: boolean;
   /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
   standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean; homeWorlds: number }[];
+  /** Galactic firsts won so far (public: they are announced to everyone). */
+  firsts: { id: string; name: string; deed: string; empireId: Id; turn: number }[];
   /** Home worlds needed for a conquest victory (0 = not in this game), out of how many. */
   homeWorldsNeeded: number;
   homeWorldsTotal: number;
@@ -192,6 +195,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     winner: state.winner ? { ...state.winner } : null,
     pendingEvents: eventsFor(state, empireId).map((p) => ({ id: p.id, eventId: p.eventId, starId: p.starId ?? null, ...structuredClone(describeEvent(state, p)) })),
     keepPlaying: !!state.keepPlaying,
+    firsts: firstsWon(state),
     homeWorldsNeeded: homeWorldsNeeded(state),
     homeWorldsTotal: state.homeStars?.length ?? 0,
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({

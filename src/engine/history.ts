@@ -75,6 +75,8 @@ export function galaxyHistory(state: GameState): HistoryChapter[] {
     if (captured || ceded) lines.push(`${plural(Math.round(captured / 2), "world")} fell to invasion${ceded ? ` and ${plural(ceded, "treaty")} handed worlds to the victors` : ""}.`);
     const golden = evs.filter((e) => /golden age begins/i.test(e.text)).map((e) => e.text.match(/for the (.+?)!/)?.[1]).filter(Boolean);
     if (golden.length) lines.push(`Golden ages lit the ${[...new Set(golden)].join(", the ")}.`);
+    const firsts = evs.filter((e) => /^Galactic first/.test(e.text)).map((e) => e.text.replace(/^Galactic first, "([^"]+)": the (.+?) were the first to (.+?)\. \(.*$/, "the $2 were the first to $3"));
+    if (firsts.length) lines.push(`Firsts: ${firsts.join("; ")}.`);
     const nova = evs.find((e) => /has exploded/.test(e.text));
     if (nova) lines.push(`In turn ${nova.t}, ${nova.text.split("!")[0]}!`);
     for (const [id, t] of fell) if (t >= from && t <= to) lines.push(`The ${name(state, id)} fell in turn ${t}.`);

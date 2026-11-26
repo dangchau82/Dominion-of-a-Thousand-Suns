@@ -345,3 +345,8 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 - New `src/engine/intel.ts`. With at least one agent inside a rival, an empire learns the destination of that rival's fleets it can already see (`SeenFleet.destStarId` in the view; red dotted line and tooltip on the map). A hostile fleet (at war, or relations -40 or worse) of 3+ ships within 8 turns of one of our worlds raises one warning ("Our agents report 12 Kethrak ships heading for Vos IV, about 4 turns away"), at most once per fleet and target per 10 turns.
 - AI: worlds its spies say are targeted count as threatened, so it moves defenders and builds defences before the attack lands.
 - Gives spying a clear everyday use (Into the Breach's lesson: show what the enemy will do). Fair: only seen fleets, only through the empire's own agents. Tests: `tests/intel.test.ts` (3).
+
+## 2026-11-26 02:10 Galactic firsts
+- New `src/engine/firsts.ts`: nine milestones, each won once per game by the first empire to reach it (ties to the lower id), announced to everyone, worth 800-2000 culture: ten worlds, a truly hostile world, meet every people, tier 5 in any science, a golden age, a wonder, 1,000 population, tier 10 in any science, worlds of three peoples.
+- Shown on the Paths to victory screen (won by whom, when) and in the galaxy's story. `EmpireView.firsts`; `GameState.firsts` (optional, no save bump). Tests: `tests/firsts.test.ts` (2).
+- 54 games (with intel reports too): technology 16, culture 18, council 12, conquest 8, median T308. Culture up from 10 (firsts add about 10k culture a game in total); watch it in the 162-game check.

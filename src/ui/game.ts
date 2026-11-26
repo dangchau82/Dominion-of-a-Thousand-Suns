@@ -31,6 +31,7 @@ import { PRISON_COLONY } from "../engine/data/hazardWorlds";
 import { EDICT_BY_ID } from "../engine/decrees";
 import { CULTURE_VICTORY } from "../engine/victory";
 import { galaxyHistory, galaxyHistoryText } from "../engine/history";
+import { FIRSTS } from "../engine/firsts";
 import { MAX_CEDED } from "../engine/diplomacy";
 import { growsByMigrants } from "../engine/migrants";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
@@ -1004,7 +1005,10 @@ export class GameScreen {
           <li><b>Technology</b>: reach tier 10 in all six fields, then build the Ascension Gate.</li>
         </ul>
         <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th><th>Home worlds</th></tr>${rows}</table>
-        <p class="dim">Shows you and the empires you have met. Total votes among them: ${total}.</p>`;
+        <p class="dim">Shows you and the empires you have met. Total votes among them: ${total}.</p>
+        <h3 style="margin:10px 0 4px">🏅 Galactic firsts</h3>
+        ${FIRSTS.map((f) => { const w = v.firsts.find((x) => x.id === f.id); const who = w ? this.state.empires[w.empireId]! : null;
+          return `<div style="font-size:13px">${w ? "🏅" : "○"} <b>${esc(f.name)}</b>: first to ${esc(f.deed)} <span class="dim">· +${f.culture} culture${who ? ` · won by <span style="color:${who.color}">${esc(who.name)}</span>, turn ${w!.turn}` : " · not yet won"}</span></div>`; }).join("")}`;
       const row = el("div", { class: "row" });
       const ok = el("button", { class: "primary" }, "Close");
       ok.onclick = close;
