@@ -28,7 +28,7 @@ export interface Chronicle {
   events: ChronicleEvent[];
 }
 
-const KEY_KINDS = new Set(["contact", "war", "invasion", "colonized", "council", "culture", "diplomacy", "battle", "research", "spy"]);
+const KEY_KINDS = new Set(["contact", "war", "invasion", "colonized", "council", "culture", "diplomacy", "battle", "research", "spy", "saga"]);
 const MAX_EVENTS = 8000;
 
 /** Called at the end of every turn. Pure and deterministic. */

@@ -371,3 +371,8 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 | lumen | 11/59 19% | | ashkari | 2/51 4% |
 
 - **Noise warning:** one small change reshuffles every game; the same race on the same seeds moved 0% -> 40% between production 1.05 and 1.08. Read single 54-game numbers as +-10%. Next: Orrun and Ashkari.
+
+## 2026-11-26 04:05 Five more firsts (Claude 2's), a "saga" event kind for the history page
+- `firsts.ts`: lair breaker, death world tamed, watchers of a dead star, first natives met, a people's story told (14 firsts in all).
+- New event kind `"saga"`: recorded by the chronicle, shown once per chapter on the galaxy's story. Claude 2 will move its big galaxy-news lines to it.
+- Test fix: the grudges test now checks three seeds (one seed stayed peaceful after the race changes; that test failure was pushed briefly in the previous commit and is fixed here).

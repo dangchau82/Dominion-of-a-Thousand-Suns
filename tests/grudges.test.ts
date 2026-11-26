@@ -45,14 +45,15 @@ describe("grudges", () => {
     expect(g.empires[0]!.relations[1]!).toBeLessThan(twin.empires[0]!.relations[1]! - 20);
   });
   it("real AI games build grudges and stay deterministic", () => {
-    const run = () => {
-      const g = newGame(settings({ seed: 122, size: "medium", rivals: 4 }));
+    const run = (seed: number) => {
+      const g = newGame(settings({ seed, size: "medium", rivals: 4 }));
       for (const e of g.empires) e.isPlayer = false;
-      for (let t = 0; t < 200 && !g.winner; t++) { runAITurns(g, true); endTurn(g); }
+      for (let t = 0; t < 250 && !g.winner; t++) { runAITurns(g, true); endTurn(g); }
       return JSON.stringify(g.empires.map((e) => e.grudges ?? {}));
     };
-    const a = run();
-    expect(a).toBe(run());
-    expect(a).toContain("reasons");
-  }, 120_000);
+    const a = run(122);
+    expect(a).toBe(run(122));
+    // Some wars happen in any handful of games (one seed alone can stay peaceful).
+    expect([a, run(123), run(124)].some((x) => x.includes("reasons"))).toBe(true);
+  }, 180_000);
 });

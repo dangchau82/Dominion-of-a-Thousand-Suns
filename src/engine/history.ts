@@ -79,6 +79,8 @@ export function galaxyHistory(state: GameState): HistoryChapter[] {
     if (firsts.length) lines.push(`Firsts: ${firsts.join("; ")}.`);
     const nova = evs.find((e) => /has exploded/.test(e.text));
     if (nova) lines.push(`In turn ${nova.t}, ${nova.text.split("!")[0]}!`);
+    // Story moments marked "saga" by the content code, once each.
+    for (const t of [...new Set(evs.filter((e) => e.kind === "saga").map((e) => e.text))]) if (!/has exploded/.test(t)) lines.push(t);
     for (const [id, t] of fell) if (t >= from && t <= to) lines.push(`The ${name(state, id)} fell in turn ${t}.`);
     const council = evs.filter((e) => e.kind === "council" && /now hold \d+ of the galaxy's/.test(e.text));
     for (const c of council) lines.push(c.text);

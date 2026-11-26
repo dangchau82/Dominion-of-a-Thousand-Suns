@@ -321,7 +321,9 @@ export interface GameEvent {
   kind:
     | "explored" | "colonized" | "shipBuilt" | "research" | "growth" | "contact"
     | "baseBuilt" | "factoriesDone" | "popMaxed" | "arrived" | "info" | "battle" | "war" | "invasion"
-    | "diplomacy" | "spy" | "culture" | "council" | "unrest";
+    | "diplomacy" | "spy" | "culture" | "council" | "unrest"
+    /** Big story moments for the galaxy's history page (supernova, crusade, lairs, ...). */
+    | "saga";
   text: string;
   starId?: Id;
 }

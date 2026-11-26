@@ -5,6 +5,7 @@
 
 import { CLIMATES } from "./data/planets";
 import { fieldTier } from "./tech";
+import { countered, deathWorldOf } from "./deathWorlds";
 import { FIELDS, type Empire, type GameState, type Id } from "./types";
 
 export interface FirstDef {
@@ -34,6 +35,15 @@ export const FIRSTS: readonly FirstDef[] = [
     reached: (_s, e) => FIELDS.some((f) => fieldTier(e.research, f) >= 10) },
   { id: "many-peoples", name: "Empire of Many Peoples", deed: "rule worlds of three different peoples", culture: 1200,
     reached: (s, e) => new Set(coloniesOf(s, e).map((c) => c.peopleRaceId ?? e.raceId)).size >= 3 },
+  // Firsts for Claude 2's content (its wording, 2026-11-26).
+  { id: "lair-breaker", name: "Lair Breaker", deed: "clear a guarded lair", culture: 1000, reached: (s, e) => (s.lairs ?? []).some((l) => l.clearedBy === e.id) },
+  { id: "death-world-tamed", name: "Mastering the Deadly", deed: "make a death world safe", culture: 1200,
+    reached: (s, e) => coloniesOf(s, e).some((c) => { const d = deathWorldOf(s.stars[c.starId]!); return !!d && countered(e, d); }) },
+  { id: "star-watchers", name: "Watchers of a Dead Star", deed: "station ships at a supernova remnant", culture: 1000,
+    reached: (s, e) => (s.supernovae ?? []).some((n) => n.remnantId !== null && s.fleets.some((f) => f.empireId === e.id && f.starId === n.starId)) },
+  { id: "first-natives", name: "Strangers Under Our Sky", deed: "meet a native people", culture: 800, reached: (s, e) => Object.values(s.natives?.met ?? {}).includes(e.id) },
+  { id: "story-ending", name: "The Tale Is Told", deed: "reach the ending of its people's story", culture: 800,
+    reached: (_s, e) => (e.story?.played ?? []).some((k) => k === "5A" || k === "5B") },
 ];
 
 export const FIRST_BY_ID: ReadonlyMap<string, FirstDef> = new Map(FIRSTS.map((f) => [f.id, f]));
