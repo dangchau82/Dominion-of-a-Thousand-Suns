@@ -255,7 +255,7 @@ export interface SpyNetwork {
   agents: number;
 }
 
-export type ProposalKind = "trade" | "research" | "nap" | "alliance" | "techSwap" | "tribute" | "joinWar";
+export type ProposalKind = "trade" | "research" | "nap" | "alliance" | "techSwap" | "tribute" | "joinWar" | "cede";
 export interface Proposal {
   id: number;
   from: Id;
@@ -269,6 +269,8 @@ export interface Proposal {
   bc?: number;
   /** joinWar: empire to fight. */
   targetId?: Id;
+  /** cede (peace terms): the responder's colonies handed to the proposer in exchange for peace. */
+  stars?: Id[];
   turn: number;
   /** What the proposer says, filled in for AI proposers. */
   says?: string;

@@ -40,9 +40,14 @@ it("why-won", () => {
     // ONLY=<race id>: play just the games that race is in (quick check of one race).
     if (process.env.ONLY && !s.empires.some((e) => e.raceId === process.env.ONLY)) continue;
     let t = 0;
-    while (!s.winner && t < 400) { runAITurns(s, true); endTurn(s); t++; }
+    let ceded = 0;
+    while (!s.winner && t < 400) {
+      runAITurns(s, true); endTurn(s); t++;
+      ceded += s.events.filter((e) => e.turn === s.turn - 1 && e.kind === "war" && e.text.includes("handing over")).length;
+    }
     const turns = s.chronicle?.turns ?? [];
-    const row: any = { g, seed: SEED0 + g, turns: t, races: s.empires.map((e) => e.raceId) };
+    const row: any = { g, seed: SEED0 + g, turns: t, races: s.empires.map((e) => e.raceId),
+      ceded };
     if (!s.winner) { rows.push({ ...row, winner: null }); console.log(`game ${g}: no winner by T${t}`); continue; }
     const w = s.winner.empireId;
     const leads: Record<string, number | null> = {};
@@ -72,6 +77,7 @@ it("why-won", () => {
   for (const [id, n] of Object.entries(played).sort((a, b) => (wins[b[0]] ?? 0) / b[1] - (wins[a[0]] ?? 0) / a[1]))
     console.log(`  ${id.padEnd(10)} ${String(wins[id] ?? 0).padStart(2)}/${String(n).padStart(2)}  ${Math.round(((wins[id] ?? 0) / n) * 100)}%`);
   console.log("wins by type:", JSON.stringify(by((r) => r.how)));
+  console.log("peace treaties that handed over worlds:", rows.reduce((a, r) => a + (r.ceded ?? 0), 0), "in", rows.length, "games");
   console.log("first stat locked:", JSON.stringify(by((r) => r.tipped?.stat ?? "none")));
   const gaps = won.filter((r) => r.tipped).map((r) => r.wonAt - r.tipped.from).sort((a, b) => a - b);
   console.log("turns between locking the lead and winning (median):", gaps[gaps.length >> 1] ?? "-");

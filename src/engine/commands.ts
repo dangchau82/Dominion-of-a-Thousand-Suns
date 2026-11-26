@@ -6,7 +6,7 @@ import { castResolutionVote, underRule } from "./resolutions";
 import { investSink } from "./moneySinks";
 import { issueEdict, proclaim, revokeProclamation } from "./decrees";
 import { researchChoices } from "./tech";
-import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
+import { atWar, cedeColonies, crackPlanet, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
 import { castVote, councilVerdict, fightOn } from "./victory";
 import { resolveEvent } from "./events";
@@ -174,7 +174,7 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "respond": {
       const p = state.proposals.find((x) => x.id === cmd.proposalId && x.to === empireId);
       if (!p) return fail("That offer has expired");
-      const err = answerProposal(state, e, p, cmd.accept, (a, b) => declareWar(state, a, b));
+      const err = answerProposal(state, e, p, cmd.accept, (a, b) => declareWar(state, a, b), (w, l, stars) => cedeColonies(state, w, l, stars));
       return err ? fail(err) : { ok: true };
     }
     case "gift": {

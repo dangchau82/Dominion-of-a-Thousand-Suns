@@ -225,6 +225,15 @@ function answers(ctx: Ctx): void {
       case "alliance": ok = rel >= 45; break;
       case "techSwap": ok = rel >= -20 && tierOf(p.offerTech!) >= tierOf(p.wantTech!) - (rel >= 30 ? 1 : 0); break;
       case "tribute": ok = theirs > mine * 1.5 && ctx.aggression < 0.6 && (!p.bc || p.bc <= view.me.treasury * 0.5); break;
+      case "cede": {
+        // Peace terms: hand over a few worlds to end a war we are losing, but never most of the empire.
+        const given = view.colonies.filter((x) => p.stars?.includes(x.starId)).reduce((a, x) => a + x.population, 0);
+        const share = given / Math.max(1, mine);
+        const length = c.warSince === null ? 0 : view.turn - c.warSince;
+        ok = c.warSince !== null && length >= 8 && p.from !== ctx.threat
+          && ((theirs > mine * 1.4 && share <= 0.3) || (theirs > mine * 2.5 && share <= 0.5));
+        break;
+      }
       case "joinWar": {
         const target = p.targetId !== undefined ? knownPop(ctx, p.targetId) : 0;
         ok = ctx.wars.length < 2 && (p.targetId === ctx.threat || ((rel >= 35 || c.treaties.includes("alliance")) && mine >= target * 0.8));
@@ -259,6 +268,18 @@ function deals(ctx: Ctx): void {
       // Bullies demand tribute from much weaker neighbours.
       if (ctx.aggression > 0.55 && rel < 10 && c.theirTechs.length && mine > knownPop(ctx, c.id) * 1.8 && coin(view, 7 + c.id) < 0.3) {
         ask({ kind: "tribute", wantTech: [...c.theirTechs].sort((a, b) => tierOf(b) - tierOf(a))[0]! });
+      }
+    }
+    // Winning a war: offer peace in exchange for their worlds nearest ours (never what looks like their capital).
+    if (c.warSince !== null && view.turn - c.warSince >= 12) {
+      const theirs = knownPop(ctx, c.id);
+      if (theirs > 0 && mine > theirs * 1.6) {
+        const cols = enemyColonies(ctx, c.id);
+        const biggest = [...cols].sort((x, y) => y.pop - x.pop)[0]?.star.id;
+        const n = mine > theirs * 3 ? 3 : mine > theirs * 2.2 ? 2 : 1;
+        const near = (s: { x: number; y: number }) => { const m = nearestColony(ctx, s); return m ? dist(ctx.starById.get(m.starId)!, s) : 99; };
+        const stars = cols.filter((x) => x.star.id !== biggest).sort((x, y) => near(x.star) - near(y.star) || x.star.id - y.star.id).slice(0, n).map((x) => x.star.id);
+        if (stars.length) ask({ kind: "cede", stars });
       }
     }
     // Ask friends to join our wars; ask everyone to stop a runaway leader.

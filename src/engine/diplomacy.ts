@@ -31,7 +31,7 @@ export const TREATY_NAMES: Record<TreatyKind, string> = {
 };
 export const PROPOSAL_NAMES: Record<ProposalKind, string> = {
   trade: "trade agreement", research: "research pact", nap: "non-aggression pact", alliance: "alliance",
-  techSwap: "technology exchange", tribute: "demand for tribute", joinWar: "call to war",
+  techSwap: "technology exchange", tribute: "demand for tribute", joinWar: "call to war", cede: "peace terms",
 };
 
 export function relation(a: Empire, b: Empire): number {
@@ -118,6 +118,17 @@ export function checkProposal(state: GameState, from: Empire, to: Empire, p: Pro
       if (!p.wantTech && !(p.bc && p.bc > 0)) return "Ask for something";
       if (p.wantTech && !tradeableTechs(to, from).includes(p.wantTech)) return "They don't have that";
       return null;
+    case "cede": {
+      if (!war) return "You are not at war with them";
+      const stars = p.stars ?? [];
+      if (stars.length < 1 || stars.length > MAX_CEDED || new Set(stars).size !== stars.length) return `Ask for 1 to ${MAX_CEDED} of their worlds`;
+      for (const id of stars) {
+        const c = state.colonies[id];
+        if (!c || c.empireId !== to.id) return "That world is not theirs";
+        if (id === to.capitalStarId) return "They will never hand over their capital";
+      }
+      return null;
+    }
     case "joinWar": {
       const t = p.targetId !== undefined ? state.empires[p.targetId] : undefined;
       if (!t || from.atWar[t.id] === undefined) return "You aren't at war with them";
@@ -128,10 +139,13 @@ export function checkProposal(state: GameState, from: Empire, to: Empire, p: Pro
   }
 }
 
+/** Most worlds one peace treaty can hand over. */
+export const MAX_CEDED = 3;
+
 export function makeProposal(state: GameState, from: Empire, to: Empire, p: ProposalInput): Proposal {
   const prop: Proposal = { ...p, id: state.nextProposalId++, from: from.id, to: to.id, turn: state.turn };
   if (!from.isPlayer) {
-    const sit = p.kind === "tribute" ? "demandTribute" : p.kind === "joinWar" || p.kind === "alliance" ? "allyRequest" : "tradeOffer";
+    const sit = p.kind === "tribute" || p.kind === "cede" ? "demandTribute" : p.kind === "joinWar" || p.kind === "alliance" ? "allyRequest" : "tradeOffer";
     prop.says = say(state.turn, from, sit, to, { tech: p.wantTech ? tech(p.wantTech).name : undefined });
   }
   state.proposals.push(prop);
@@ -144,12 +158,18 @@ export function describeProposal(state: GameState, p: Proposal): string {
     case "techSwap": return `The ${from.name} offer ${tech(p.offerTech!).name} in exchange for your ${tech(p.wantTech!).name}.`;
     case "tribute": return `The ${from.name} demand ${p.wantTech ? tech(p.wantTech).name : `${p.bc} BC`} as tribute.`;
     case "joinWar": return `The ${from.name} ask you to declare war on the ${state.empires[p.targetId!]!.name}.`;
+    case "cede": {
+      const names = (p.stars ?? []).map((id) => state.stars[id]!.name);
+      const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0] ?? "";
+      return `The ${from.name} offer peace if you hand over ${list}.`;
+    }
     default: return `The ${from.name} propose a ${TREATY_NAMES[p.kind]}.`;
   }
 }
 
 /** Accept or refuse. Returns an error, or null. */
-export function answerProposal(state: GameState, responder: Empire, p: Proposal, accept: boolean, declareWar: (a: Empire, b: Empire) => void): string | null {
+export function answerProposal(state: GameState, responder: Empire, p: Proposal, accept: boolean, declareWar: (a: Empire, b: Empire) => void,
+  cede?: (winner: Empire, loser: Empire, stars: Id[]) => void): string | null {
   const from = state.empires[p.from]!;
   state.proposals = state.proposals.filter((x) => x.id !== p.id);
   if (accept) {
@@ -173,6 +193,9 @@ export function answerProposal(state: GameState, responder: Empire, p: Proposal,
         adjustRelation(from, responder, 10);
         event(state, from.id, "diplomacy", `The ${responder.name} paid your tribute.`);
         break;
+      case "cede":
+        cede?.(from, responder, p.stars ?? []);
+        break;
       case "joinWar": {
         const t = state.empires[p.targetId!]!;
         if (responder.atWar[t.id] === undefined) declareWar(responder, t);
@@ -181,7 +204,7 @@ export function answerProposal(state: GameState, responder: Empire, p: Proposal,
       }
     }
   } else {
-    adjustRelation(from, responder, p.kind === "tribute" ? -15 : p.kind === "joinWar" ? -8 : -3);
+    adjustRelation(from, responder, p.kind === "tribute" ? -15 : p.kind === "joinWar" ? -8 : p.kind === "cede" ? -5 : -3);
   }
   // Tell the proposer, in the responder's own words if it's an alien leader.
   const verdict = `The ${responder.name} ${accept ? "accepted" : "refused"} your ${PROPOSAL_NAMES[p.kind]}.`;

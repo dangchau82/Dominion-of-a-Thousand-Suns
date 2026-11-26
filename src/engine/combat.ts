@@ -465,6 +465,29 @@ export function declareWar(state: GameState, a: Empire, b: Empire): void {
   state.events.push({ turn: state.turn, empireId: null, kind: "war", text: `The ${a.name} declared war on the ${b.name}!` });
 }
 
+/** Peace terms accepted: the loser hands these worlds to the winner (people, factories and buildings stay; the
+ *  people resent it as an occupation), and the war between them ends. */
+export function cedeColonies(state: GameState, winner: Empire, loser: Empire, stars: Id[]): void {
+  const names: string[] = [];
+  for (const id of stars) {
+    const old = state.colonies[id];
+    if (!old || old.empireId !== loser.id || id === loser.capitalStarId) continue;
+    const c = newColony(id, winner.id, old.population, old.foundedTurn);
+    c.factories = old.factories;
+    c.buildings = [...old.buildings];
+    onCapture(state, c, old, loser, winner);
+    transferWonders(state, id, winner);
+    state.colonies[id] = c;
+    names.push(state.stars[id]!.name);
+  }
+  delete winner.atWar[loser.id];
+  delete loser.atWar[winner.id];
+  winner.peaceOffers = winner.peaceOffers.filter((x) => x !== loser.id);
+  loser.peaceOffers = loser.peaceOffers.filter((x) => x !== winner.id);
+  const what = names.length ? `, handing over ${names.join(", ")}` : "";
+  state.events.push({ turn: state.turn, empireId: null, kind: "war", text: `The ${loser.name} have made peace with the ${winner.name}${what}.` });
+}
+
 /** Offer peace; if they already offered, the war ends now. Returns true if peace was made. */
 export function offerPeace(state: GameState, a: Empire, b: Empire): boolean {
   if (a.peaceOffers.includes(b.id)) {

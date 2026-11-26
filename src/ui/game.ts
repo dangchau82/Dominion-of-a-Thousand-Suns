@@ -30,6 +30,7 @@ import { LEADER_TRAITS } from "../engine/data/leaderTraits";
 import { PRISON_COLONY } from "../engine/data/hazardWorlds";
 import { EDICT_BY_ID } from "../engine/decrees";
 import { CULTURE_VICTORY } from "../engine/victory";
+import { MAX_CEDED } from "../engine/diplomacy";
 import { growsByMigrants } from "../engine/migrants";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
@@ -1059,6 +1060,29 @@ export class GameScreen {
           peace.disabled = o.weOfferedPeace && !o.offersPeace;
           peace.onclick = () => { this.cmd({ type: "offerPeace", targetId: id }); draw(); };
           tr.append(peace);
+          // Peace terms: ask for some of their worlds (nearest ours first) in exchange for peace.
+          const mineStars = v.colonies.map((c) => this.state.stars[c.starId]!);
+          const nearOurs = (sid: number) => { const s = this.state.stars[sid]!; return Math.min(99, ...mineStars.map((m) => Math.hypot(m.x - s.x, m.y - s.y))); };
+          const theirWorlds = Object.entries(v.knowledge).filter(([, k]) => k.ownerId === id && k.planet)
+            .map(([sid, k]) => ({ sid: Number(sid), pop: k.population ?? 0 })).sort((a, b) => nearOurs(a.sid) - nearOurs(b.sid)).slice(0, 6);
+          if (theirWorlds.length) {
+            const terms = el("div", { style: "margin-top:8px" }, `<div class="dim">Peace terms: ask for up to ${MAX_CEDED} of their worlds (never their capital). The people of handed-over worlds resent it at first.</div>`);
+            const picked = new Set<number>();
+            for (const w of theirWorlds) {
+              const lab = el("label", { style: "display:inline-block;margin:2px 8px 2px 0" });
+              const box2 = el("input", { type: "checkbox" });
+              box2.onchange = () => { if (box2.checked) picked.add(w.sid); else picked.delete(w.sid); };
+              lab.append(box2, document.createTextNode(` ${this.state.stars[w.sid]!.name} (${fmt(w.pop, 0)} pop)`));
+              terms.append(lab);
+            }
+            const demand = el("button", { class: "small" }, "Offer peace for these worlds");
+            demand.onclick = () => {
+              if (!picked.size || picked.size > MAX_CEDED) { this.toast(`Pick 1 to ${MAX_CEDED} worlds.`); return; }
+              ask({ kind: "cede", stars: [...picked] });
+            };
+            terms.append(demand);
+            tr.append(terms);
+          }
         } else {
           for (const k of ["trade", "research", "nap", "alliance"] as const) {
             const has = o.treaties.includes(k);
