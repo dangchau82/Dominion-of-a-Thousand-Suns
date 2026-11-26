@@ -1,7 +1,7 @@
 // Why-won report: plays AI-only games and, for each one, finds WHEN the winner pulled ahead and WHAT tipped it,
 // using the game's own chronicle (per-turn stats of every empire). Tools only: reads state, changes no rules.
 // Run: TOOL=tools/why-won.test.ts GAMES=18 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts
-// Output: OUT (default /tmp/why-won.json) plus a plain summary printed at the end.
+// ONLY=quorai plays only the games with that race. Output: OUT (default /tmp/why-won.json) plus a plain summary printed at the end.
 import { it } from "vitest";
 import { writeFileSync } from "node:fs";
 import { newGame, endTurn } from "../src/engine";
@@ -37,6 +37,8 @@ it("why-won", () => {
   for (let g = 0; g < GAMES; g++) {
     const s = newGame({ seed: SEED0 + g, size: SIZE, shape: "ellipse", rivals: RIVALS, playerRaceId: ids[g % ids.length]!, playerName: "P", difficulty: process.env.DIFF ?? "normal" } as never);
     for (const e of s.empires) e.isPlayer = false;
+    // ONLY=<race id>: play just the games that race is in (quick check of one race).
+    if (process.env.ONLY && !s.empires.some((e) => e.raceId === process.env.ONLY)) continue;
     let t = 0;
     while (!s.winner && t < 400) { runAITurns(s, true); endTurn(s); t++; }
     const turns = s.chronicle?.turns ?? [];
@@ -63,6 +65,12 @@ it("why-won", () => {
   console.log("\n=== WHY-WON SUMMARY ===");
   console.log(`games ${rows.length}, with a winner ${won.length}`);
   console.log("wins by race:", JSON.stringify(by((r) => r.winner)));
+  const played: Record<string, number> = {};
+  for (const r of rows) for (const id of r.races) played[id] = (played[id] ?? 0) + 1;
+  const wins = by((r) => r.winner);
+  console.log("win rate by race (wins/games, fair share = 1 in " + (RIVALS + 1) + "):");
+  for (const [id, n] of Object.entries(played).sort((a, b) => (wins[b[0]] ?? 0) / b[1] - (wins[a[0]] ?? 0) / a[1]))
+    console.log(`  ${id.padEnd(10)} ${String(wins[id] ?? 0).padStart(2)}/${String(n).padStart(2)}  ${Math.round(((wins[id] ?? 0) / n) * 100)}%`);
   console.log("wins by type:", JSON.stringify(by((r) => r.how)));
   console.log("first stat locked:", JSON.stringify(by((r) => r.tipped?.stat ?? "none")));
   const gaps = won.filter((r) => r.tipped).map((r) => r.wonAt - r.tipped.from).sort((a, b) => a - b);

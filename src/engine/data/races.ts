@@ -29,6 +29,9 @@ export interface Race {
   colonizeBonus: number;
   /** Ignores climate growth penalties (living-stone and energy races). */
   ignoresEnvironment: boolean;
+  /** Migrant people: colonies do not grow on their own. Each turn the capital sends out this share of its people,
+   *  split among the colonies that have room (see src/engine/migrants.ts). */
+  homeMigrants?: number;
   shipAttack: number;
   shipDefense: number;
   ground: number;
@@ -94,8 +97,8 @@ export const RACES: readonly Race[] = [
     growth: 1.2, production: 1.1, travel: "lanes", unique: "Grow 50% faster around white, yellow and blue stars.",
     personality: p(0.2, 0.8, 0.3, 0.5, 0.7) },
   { ...base, id: "quorai", name: "Quorai", style: "Energy beings", color: "#f5c542", homeClimate: "radiated",
-    ignoresEnvironment: true, colonizeBonus: 4, growth: 0.6, travel: "phase", // 2026-11-25: bonus 8 -> 4 (won 36%, 25%, 50% of three 54-game samples); balance 2026-11-24: was bonus 12, growth 0.7, research 1.15 (won 6 of 18 test games)
-    unique: "Live inside stars: can settle stars that have no habitable planet.",
+    ignoresEnvironment: true, colonizeBonus: 8, growth: 0.6, travel: "phase", homeMigrants: 0.03, // 2026-11-25: migrant rule; bonus 4 -> 8 with it (0 of 22 wins without, 4 of 22 with) // 2026-11-25: bonus 8 -> 4 (won 36%, 25%, 50% of three 54-game samples); balance 2026-11-24: was bonus 12, growth 0.7, research 1.15 (won 6 of 18 test games)
+    unique: "Live inside stars: can settle stars that have no habitable planet. Colonies do not grow on their own: new Quorai come from the home star as migrants, so every new colony thins the stream.",
     personality: p(0.4, 0.5, 0.2, 0.9, 0.4) },
   { ...base, id: "raxxan", name: "Raxxan Reavers", style: "Scavengers", color: "#c45a2a", homeClimate: "minimal",
     research: 0.95, production: 1.1, colonizeBonus: 1, travel: "tunnels", unique: "Salvagers: a 35% chance to take a technology from every battle they win.",

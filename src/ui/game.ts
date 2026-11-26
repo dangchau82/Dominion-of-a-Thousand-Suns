@@ -29,6 +29,7 @@ import { autosave } from "./storage";
 import { LEADER_TRAITS } from "../engine/data/leaderTraits";
 import { PRISON_COLONY } from "../engine/data/hazardWorlds";
 import { EDICT_BY_ID } from "../engine/decrees";
+import { growsByMigrants } from "../engine/migrants";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
@@ -546,7 +547,9 @@ export class GameScreen {
       defense: c.missileBases >= maxMissileBases(c.population) ? `${c.missileBases} bases: the most this colony can hold (extra goes to the treasury)`
         : b.defense > 0 ? `Next missile base (${fmt(missileBaseCost(c.missileBases), 0)} BC) in ${Math.max(1, Math.ceil((missileBaseCost(c.missileBases) - c.defenseProgress) / b.defense))} turn(s)` : "",
       industry: c.factories >= c.maxFactories - 0.5 ? "Factories full; extra goes half to treasury" : `+${fmt(b.industry / v.stats.factoryCost)} factories/turn`,
-      ecology: c.population >= c.capacity - 0.01 ? "Population full" : `+${fmt(growth + b.ecology / 20)} pop/turn`,
+      ecology: c.population >= c.capacity - 0.01 ? "Population full"
+        : growsByMigrants(v.me, c) ? `No natural growth: home-star migrants, plus +${fmt(b.ecology / 20)} pop/turn bought here`
+        : `+${fmt(growth + b.ecology / 20)} pop/turn`,
       research: `+${fmt(b.research)} research/turn`,
     };
     // While dragging, only the numbers update (rebuilding the panel mid-drag

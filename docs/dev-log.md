@@ -255,3 +255,23 @@ Danny asked for fewer culture wins and more technology wins. 54 medium games eac
 - `Empire.story` + **save version 12** (v11 games start their story at chapter 1). `tests/storylines.test.ts` (8 tests). 170 tests pass.
 - **Newer rival voices in play** (Gemini's `data/dialogue2.ts`): `sayMoment` in dialogue.ts (no random draws). Battle reports now end with the rival leader's words (gloating if their side lost less, defiant if more); a rival whose treaties we break says so once (`breakTreaty`); an empire down to its last 2 worlds pleads ("begging") instead of its normal peace line (`offerPeace`); when a council resolution passes, the biggest AI "yes" voter gloats to each "no" voter. Not used yet: the "prophecy" lines (for when allies share prophecies). `tests/voices.test.ts` (4 tests). 174 tests pass.
 
+
+## 2026-11-25 23:35 Quorai migrant rule; 162-game win table for all 18 races
+- **Rule** (`src/engine/migrants.ts`, race field `homeMigrants`): Quorai colonies no longer grow on their own. Each turn the capital sends 3% of its people, split evenly among colonies with room, and regrows what it sent. Ecology spending still buys people. Colony panel says so.
+- **Tuning** (22 Quorai games of the 54, seeds 3000+): pure rule at 2% or 3%, no buying: 0 of 22. Buying allowed: 1. Growth 1.0, share 5%, bonus 8, no buying: 1. **Buying allowed + colonizeBonus 4 -> 8: 4 of 22 (kept).**
+- `tools/why-won.test.ts` now prints a win rate for every race, and `ONLY=<race>` plays just that race's games.
+- **162 medium games** (6 empires each, seeds 3000+, 4000+, 5000+; each race in 45-60 games; fair share 17%): technology 55, council 56, culture 48, no winner 3, conquest 0.
+
+| Race | Wins | | Race | Wins |
+| --- | --- | --- | --- | --- |
+| nyx | 21/60 35% | | lumen | 8/59 14% |
+| thraal | 15/57 26% | | orrun | 7/55 13% |
+| gorrath | 13/56 23% | | tarkhan | 7/55 13% |
+| drovani | 13/58 22% | | kethrak | 7/56 12% |
+| quorai | 11/52 21% | | velari | 6/54 11% |
+| ruuvak | 9/49 18% | | seraphine | 5/56 9% |
+| humans | 10/55 18% | | verdane | 4/45 9% |
+| ashkari | 8/51 16% | | raxxan | 4/48 8% |
+| vossari | 8/53 15% | | ixil | 3/53 6% |
+
+- **Next:** Nyx are now the strongest (35%); Ixil, Raxxan, Verdane and Seraphine are under 10%. With ~55 games a race, about +-6% is noise.

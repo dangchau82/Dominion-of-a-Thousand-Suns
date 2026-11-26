@@ -22,6 +22,7 @@ import { processProphecies } from "./prophecy";
 import { processResolutions } from "./resolutions";
 import { processPrisons } from "./prison";
 import { edictShare, processDecrees } from "./decrees";
+import { growsByMigrants, processMigrants } from "./migrants";
 import { PRISON_COLONY } from "./data/hazardWorlds";
 import { updateVision } from "./knowledge";
 import { mergeFleets, moveFleets } from "./movement";
@@ -138,7 +139,9 @@ function processColony(state: GameState, c: Colony): number {
   // A conquered world may hold more people than its new owner's tech supports.
   if (c.population > cap) c.population = cap;
   const wasFull = c.population >= cap - 1e-9;
-  c.population = Math.min(cap, c.population + popGrowth(c.population, s.planet, r, e) * growthMultiplier(e, s) * (1 + edictShare(c, "growth")));
+  // A migrant people's colonies do not grow on their own (migrants.ts); ecology spending can still add people.
+  const migrant = growsByMigrants(e, c);
+  if (!migrant) c.population = Math.min(cap, c.population + popGrowth(c.population, s.planet, r, e) * growthMultiplier(e, s) * (1 + edictShare(c, "growth")));
   const space = Math.max(0, cap - c.population);
   const pc = popCost(e);
   const bought = Math.min(space, b.ecology / pc);
@@ -207,6 +210,7 @@ export function endTurn(state: GameState): void {
     if (e.alive) e.treasury = Math.max(0, e.treasury - imperialUpkeep(colonyCount.get(e.id) ?? 0));
   }
 
+  processMigrants(state);
   processCivilization(state);
   processUnrest(state);
   processPrisons(state);
