@@ -56,7 +56,7 @@ export const RACES: readonly Race[] = [
     unique: "Born brokers: trade agreements pay 50% more, and others forgive them twice as fast.",
     personality: p(0.4, 0.7, 0.5, 0.6, 0.4) },
   { ...base, id: "vossari", name: "Vossari", style: "Scientists", color: "#8fd3f0", homeClimate: "arid",
-    research: 1.25, growth: 0.9, travel: "warp", // 2026-11-26: research 1.2 -> 1.25 (8% of 162 after the first round); growth 0.85 -> 0.9 (won 4 of 34 = 12% in 108 test games; 10 of 53 = 19% of 162 after)
+    research: 1.3, growth: 1.0, travel: "warp", // 2026-11-26: growth 0.9 -> 1.0 and research 1.25 -> 1.3 (9% of two 270-game checks); research 1.2 -> 1.25 (8% of 162 after the first round); growth 0.85 -> 0.9 (won 4 of 34 = 12% in 108 test games; 10 of 53 = 19% of 162 after)
     unique: "See the whole tech tree: no random gaps.",
     personality: p(0.3, 0.6, 0.3, 0.9, 0.6) },
   { ...base, id: "kethrak", name: "Kethrak Hive", style: "Hive", color: "#e0a030", homeClimate: "jungle",
@@ -92,7 +92,8 @@ export const RACES: readonly Race[] = [
     unique: "Master builders: wonders cost 35% less.",
     personality: p(0.3, 0.7, 0.4, 0.8, 0.8) },
   { ...base, id: "drovani", name: "Drovani", style: "Aquatic", color: "#2fb5b5", homeClimate: "ocean",
-    travel: "warp", unique: "Ocean worlds hold 50% more population.",
+    travel: "warp", // 2026-11-26: ocean bonus 50% -> 35% (27-29% of two 270-game checks)
+    unique: "Ocean worlds hold 35% more population.",
     personality: p(0.2, 0.7, 0.4, 0.4, 0.5) },
   { ...base, id: "gorrath", name: "Gorrath Clans", style: "Nomads", color: "#a0703a", homeClimate: "tundra",
     colonizeBonus: 1, travel: "warp", // 2026-11-26: colonize bonus 2 -> 1 (won 27% and 30% of two 162-game checks)
@@ -103,7 +104,7 @@ export const RACES: readonly Race[] = [
     unique: "Bond with conquered peoples: their symbiote soldiers are fearsome invaders, and they absorb a technology from every world they capture.",
     personality: p(0.6, 0.4, 0.5, 0.7, 0.3) },
   { ...base, id: "verdane", name: "Verdane", style: "Plant beings", color: "#6fbf3a", homeClimate: "jungle",
-    growth: 1.5, production: 1.1, colonizeBonus: 2, travel: "lanes", // 2026-11-26: growth 1.2 -> 1.5, colonize bonus 0 -> 2 (won 2 of 26 = 8% in 108 test games; 10 of 45 = 22% of 162 after)
+    growth: 1.35, production: 1.1, colonizeBonus: 2, travel: "lanes", // 2026-11-26: 1.5 -> 1.35 (29% of 270 games); growth 1.2 -> 1.5, colonize bonus 0 -> 2 (won 2 of 26 = 8% in 108 test games; 10 of 45 = 22% of 162 after)
     unique: "Spreading seeds: they grow fast, 50% faster still around white, yellow and blue stars, and take root on harsher worlds than most.",
     personality: p(0.2, 0.8, 0.3, 0.5, 0.7) },
   { ...base, id: "quorai", name: "Quorai", style: "Energy beings", color: "#f5c542", homeClimate: "radiated",
@@ -112,7 +113,7 @@ export const RACES: readonly Race[] = [
     personality: p(0.4, 0.5, 0.2, 0.9, 0.4) },
   { ...base, id: "raxxan", name: "Raxxan Reavers", style: "Scavengers", color: "#c45a2a", homeClimate: "minimal",
     research: 0.95, production: 1.1, colonizeBonus: 2, travel: "tunnels", // 2026-11-26: colonize bonus 1 -> 2, scrap-world dwellers (won 1 of 34 = 3% in 108 test games; 7 of 48 = 15% of 162 after)
-    unique: "Salvagers: a 35% chance to take a technology from every battle they win.",
+    unique: "Salvagers: a 50% chance to take a technology from every battle they win.", // 2026-11-26: 35% -> 50% (8% of 270 games)
     personality: p(0.8, 0.2, 0.8, 0.4, 0.5) },
   { ...base, id: "ruuvak", name: "Ruuvak Brood", style: "Breeders", color: "#7f9a3a", homeClimate: "steppe",
     growth: 2, ground: 1, production: 1.07, travel: "warp", // 2026-11-26: production 1.1 -> 1.07 (1.05: 0-16% of their games; 1.08: 40% of 20; very sensitive), breeders not builders (won 11 of 33 = 33% in 108 test games; 8 of 49 = 16% of 162 after)

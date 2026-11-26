@@ -16,7 +16,7 @@ export function tradeMultiplier(e: Empire): number {
 
 /** Drovani: ocean worlds hold 50% more population. */
 export function capacityMultiplier(p: Planet, owner?: Empire): number {
-  return owner && is(owner, "drovani") && p.climate === "ocean" ? 1.5 : 1;
+  return owner && is(owner, "drovani") && p.climate === "ocean" ? 1.35 : 1; // 2026-11-26: 1.5 -> 1.35
 }
 
 /** Nyx Collective: build population in factories, at half the cost. */
@@ -76,7 +76,7 @@ export function afterBattle(state: GameState, winner: Empire, loser: Empire, ene
     winner.treasury += spoils;
     return `Our warriors claimed ${spoils} BC in spoils.`;
   }
-  if (is(winner, "raxxan") && R.chance(state.rng, 0.35)) return stealOne(state, winner, loser, "salvaged");
+  if (is(winner, "raxxan") && R.chance(state.rng, 0.5)) return stealOne(state, winner, loser, "salvaged");
   return null;
 }
 

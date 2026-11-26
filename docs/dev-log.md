@@ -412,3 +412,8 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/smugglers.ts`, save v30, `tests/
 
 ## 2026-11-26 05:17 (Claude 2): the Bounty Guild in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/bountyHunters.ts`, save v31, `tests/bountyHunters.test.ts`.
+## 2026-11-26 05:20 Longer balance checks (270 games each)
+- **Measured (no change) at 04:15's settings, 270 games (seeds 3000-7000):** technology 60, culture 77, council 87, conquest 46. Races 8-29%: Verdane 29%, Drovani 27% high; Raxxan 8%, Vossari 9% low.
+- **Changes:** Verdane growth 1.5 -> 1.35; Raxxan salvage chance 35% -> 50%; Vossari research 1.3 and growth 1.0; Drovani ocean worlds +35% people (was +50%).
+- **After, 270 games:** council 106, technology 60, culture 57, conquest 46, no winner 1, median T296. **Every race between 10% and 26%** (Verdane 26, Quorai 25, Nyx 22 ... Humans 11, Vossari 10). Fair share 17%; noise at ~90 games a race is about +-6%.
+- **Watch:** council wins rose to 39% (Orrun's cheaper votes and more Vossari people). If it climbs past 40%, raise Orrun's vote price back toward 300 BC.
