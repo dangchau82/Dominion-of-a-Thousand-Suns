@@ -36,7 +36,8 @@ import { growsByMigrants, processMigrants } from "./migrants";
 import { fadeGrudges } from "./grudges";
 import { distance as lightYears } from "./formulas";
 import { PRISON_COLONY } from "./data/hazardWorlds";
-import { updateVision } from "./knowledge";
+import { canSee, updateVision } from "./knowledge";
+import { intelReports } from "./intel";
 import { mergeFleets, moveFleets } from "./movement";
 import { FIELDS, type Colony, type Empire, type GameEvent, type GameState, type Star } from "./types";
 
@@ -263,6 +264,7 @@ export function endTurn(state: GameState): void {
   resolveCombat(state);
   processLairs(state);
   updateVision(state);
+  intelReports(state, (e, x, y) => canSee(state, e, x, y));
   processProphecies(state);
   updateRelations(state);
   borderWarnings(state);

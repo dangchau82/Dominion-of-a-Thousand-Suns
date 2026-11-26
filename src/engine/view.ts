@@ -10,6 +10,7 @@ import { buildable, buyCost } from "./civ";
 import { techVictoryProgress, votesOf, homeWorldsHeld, homeWorldsNeeded } from "./victory";
 import { canSettleStarless } from "./abilities";
 import { sinkOptions, type SinkOption } from "./moneySinks";
+import { reportedDestination } from "./intel";
 import { edictOptions, proclamationOptions, proclamationSlots, type EdictOption, type ProclamationOption } from "./decrees";
 import { describeEvent, eventsFor } from "./events";
 import type { EventEffect } from "./data/events";
@@ -36,6 +37,8 @@ export interface PublicStar {
 
 export interface SeenFleet {
   id: Id; empireId: Id; x: number; y: number; starId: Id | null; ships: number;
+  /** Where it is heading, if our spies inside its empire report it (see src/engine/intel.ts). */
+  destStarId: Id | null;
 }
 
 export interface KnownEmpire {
@@ -151,7 +154,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
   const fleets = structuredClone(state.fleets.filter((f) => f.empireId === empireId));
   const seenFleets: SeenFleet[] = state.fleets
     .filter((f) => f.empireId !== empireId && canSee(state, e, f.x, f.y))
-    .map((f) => ({ id: f.id, empireId: f.empireId, x: f.x, y: f.y, starId: f.starId, ships: shipCount(f) }));
+    .map((f) => ({ id: f.id, empireId: f.empireId, x: f.x, y: f.y, starId: f.starId, ships: shipCount(f), destStarId: reportedDestination(e, f) }));
   const contacts: KnownEmpire[] = e.contacts.map((id) => {
     const o = state.empires[id]!;
     return {

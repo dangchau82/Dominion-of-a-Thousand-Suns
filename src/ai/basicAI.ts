@@ -748,7 +748,7 @@ function production(ctx: Ctx, settleTargets: number): void {
   // A big hoard turns into ships rather than sitting idle (the treasury then funds the shipyard).
   const rich = view.me.treasury > 800 + view.turn * 4;
   const needShips = !!warship && (fleetPower < wantPower || rich);
-  const threatened = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).map((f) => f.starId));
+  const threatened = new Set(view.seenFleets.filter((f) => ctx.wars.some((w) => w.id === f.empireId)).flatMap((f) => [f.starId, f.destStarId]));
   const enemyNear = (c: ColonyInfo) => view.seenFleets.some((f) => ctx.wars.some((w) => w.id === f.empireId) && dist(f, ctx.starById.get(c.starId)!) < 6);
 
   // Colony ships already being built anywhere count toward the worlds we want to settle.
@@ -884,7 +884,8 @@ function military(ctx: Ctx): void {
   }
 
   // Defend: send idle warships to a colony where an enemy fleet is.
-  const attacked = view.colonies.filter((c) => view.seenFleets.some((sf) => sf.starId === c.starId && ctx.wars.some((w) => w.id === sf.empireId)));
+  // Includes worlds our spies say an enemy fleet is heading for.
+  const attacked = view.colonies.filter((c) => view.seenFleets.some((sf) => (sf.starId === c.starId || sf.destStarId === c.starId) && ctx.wars.some((w) => w.id === sf.empireId)));
   const used = new Set<Id>(retreating);
   for (const c of attacked) {
     const s = ctx.starById.get(c.starId)!;

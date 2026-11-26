@@ -39,6 +39,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 01:55: intelligence reports
+- New `src/engine/intel.ts`; `Empire.intelWarned` (optional). Hooks: `turn.ts` (after `updateVision`), `view.ts` (`SeenFleet.destStarId`), `basicAI.ts` (threatened/attacked worlds), `ui/map.ts` (enemy routes, tooltip).
+
+### 2026-11-26 01:40: AI weighs the supernova blast
+- `supernova.ts` exports `supernovaPlanOf`; `EmpireView.pendingEvents` gains `eventId`, `starId`. AIs now evacuate when they have a lot at stake.
+
 ### 2026-11-26 01:32: the galaxy's story
 - New `src/engine/history.ts` (reads the chronicle only). Hooks: `chronicle.ts` (`chronicleText` includes it), `ui/game.ts` (game-over and History screens). If your content adds big moments you want in the story, give their events a kind in `KEY_KINDS` (chronicle.ts) and tell me the wording; I'll add a line for them.
 

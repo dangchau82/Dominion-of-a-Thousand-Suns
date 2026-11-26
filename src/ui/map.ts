@@ -202,7 +202,8 @@ export class StarMap {
         }
         const sf = v.seenFleets.find((x) => x.empireId === hit.empireId && x.starId === hit.starId);
         const war = v.contacts.find((c) => c.id === hit.empireId)?.warSince != null;
-        return `<b style="color:${war ? "#ff8a8a" : "inherit"}">${war ? "⚠ Enemy" : "Foreign"} fleet</b><br>${sf?.ships ?? "?"} ships of the ${esc(nameOf(hit.empireId))}`;
+        const heading = sf?.destStarId != null ? `<br><span class="dim">Our agents say it is heading for ${esc(v.stars[sf.destStarId]!.name)}</span>` : "";
+        return `<b style="color:${war ? "#ff8a8a" : "inherit"}">${war ? "⚠ Enemy" : "Foreign"} fleet</b><br>${sf?.ships ?? "?"} ships of the ${esc(nameOf(hit.empireId))}${heading}`;
       }
     }
     let best: Id | null = null;
@@ -314,6 +315,19 @@ export class StarMap {
         const [x, y] = this.toScreen(s.x, s.y);
         ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       }
+      ctx.setLineDash([]);
+    }
+
+    // Rival fleets whose destination our spies report: a thin red dotted line.
+    ctx.lineWidth = 1.2;
+    for (const f of v.seenFleets) {
+      if (f.destStarId === null) continue;
+      const d = v.stars[f.destStarId]!;
+      const [x1, y1] = this.toScreen(f.x, f.y);
+      const [x2, y2] = this.toScreen(d.x, d.y);
+      ctx.strokeStyle = "rgba(255,107,107,0.7)";
+      ctx.setLineDash([2, 5]);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       ctx.setLineDash([]);
     }
 
@@ -507,7 +521,7 @@ export class StarMap {
       const c = v.contacts.find((k) => k.id === f.empireId);
       const off = f.starId !== null ? shipSize * 0.75 : 0;
       drawShip(c?.raceId ?? null, c?.color ?? "#ff6b6b", x + off, y - off * 0.6, f.ships,
-        { mine: false, fleetId: null, starId: f.starId, destStarId: null, empireId: f.empireId });
+        { mine: false, fleetId: null, starId: f.starId, destStarId: f.destStarId, empireId: f.empireId });
     }
 
     if (mv) { clearTimeout(this.pulseTimer); this.pulseTimer = window.setTimeout(() => this.draw(), 40); }

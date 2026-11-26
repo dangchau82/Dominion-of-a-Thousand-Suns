@@ -340,3 +340,8 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 
 ## 2026-11-26 01:40 AI weighs the supernova blast
 - The AI's event scoring now subtracts what each supernova plan would cost its colonies in the blast (public rules: `BLAST_LOSS`, inner 2 ly, reach 4 ly). 8 games: 23 evacuations, 2 harvests (before: always harvest). `EmpireView.pendingEvents` now carries `eventId` and `starId`; `supernovaPlanOf` exported from `supernova.ts`.
+
+## 2026-11-26 01:55 Intelligence reports: spies show where enemy fleets are heading
+- New `src/engine/intel.ts`. With at least one agent inside a rival, an empire learns the destination of that rival's fleets it can already see (`SeenFleet.destStarId` in the view; red dotted line and tooltip on the map). A hostile fleet (at war, or relations -40 or worse) of 3+ ships within 8 turns of one of our worlds raises one warning ("Our agents report 12 Kethrak ships heading for Vos IV, about 4 turns away"), at most once per fleet and target per 10 turns.
+- AI: worlds its spies say are targeted count as threatened, so it moves defenders and builds defences before the attack lands.
+- Gives spying a clear everyday use (Into the Breach's lesson: show what the enemy will do). Fair: only seen fleets, only through the empire's own agents. Tests: `tests/intel.test.ts` (3).
