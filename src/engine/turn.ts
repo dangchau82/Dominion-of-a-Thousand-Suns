@@ -18,6 +18,7 @@ import { processSynthetics } from "./legends";
 import { processNatives } from "./natives";
 import { processExpeditions } from "./expeditions";
 import { processMinorRaces } from "./minorRaces";
+import { processGates } from "./gates";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -271,6 +272,8 @@ export function endTurn(state: GameState): void {
   processLairs(state);
   updateVision(state);
   intelReports(state, (e, x, y) => canSee(state, e, x, y));
+  // Gates: placing, waking, staging hidden fleets (gates.ts, Claude 2).
+  processGates(state, (e, x, y) => canSee(state, e, x, y));
   processProphecies(state);
   updateRelations(state);
   borderWarnings(state);

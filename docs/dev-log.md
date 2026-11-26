@@ -388,3 +388,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 
 ## 2026-11-26 04:31 (Claude 2): minor races in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/minorRaces.ts`, `src/engine/minorRaceEvents.ts`, hook in `victory.ts` `votesOf`, save v23, `tests/minorRaces.test.ts`. 54-game check: council wins 30%.
+
+## 2026-11-26 04:38 (Claude 2): ancient gates, hidden armadas and ambushes in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/gates.ts`; small hooks in `movement.ts`, `view.ts`, `intel.ts`, `combat.ts`; save v24; `tests/gates.test.ts`.

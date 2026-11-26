@@ -5,6 +5,7 @@ import { extraRange } from "./abilities";
 import { distance, fuelRange, shipSpeed } from "./formulas";
 import { exploreStar } from "./knowledge";
 import type { Empire, Fleet, GameState, Star } from "./types";
+import { gateJump } from "./gates";
 
 /** Extra range a fleet gets: the smallest bonus among its ships (a fleet moves as one). */
 export function fleetExtraRange(state: GameState, f: Fleet): number {
@@ -37,6 +38,8 @@ export function turnsToArrive(e: Empire, f: Fleet, s: Star): number {
 export function moveFleets(state: GameState): void {
   for (const f of state.fleets) {
     if (f.destStarId === null) continue;
+    // Ancient gates: a jump between two gates the empire holds (gates.ts, Claude 2).
+    if (gateJump(state, f)) continue;
     const e = state.empires[f.empireId] as Empire;
     const dest = state.stars[f.destStarId] as Star;
     const speed = shipSpeed(e);

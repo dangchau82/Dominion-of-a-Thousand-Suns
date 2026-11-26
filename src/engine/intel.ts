@@ -6,6 +6,7 @@
 import { turnsToArrive } from "./movement";
 import { shipCount } from "./game";
 import type { Empire, Fleet, GameState, Id } from "./types";
+import { hiddenFrom } from "./gates";
 
 /** Smallest fleet worth a warning. */
 export const WARN_SHIPS = 3;
@@ -35,7 +36,8 @@ export function intelReports(state: GameState, canSee: (e: Empire, x: number, y:
     for (const f of state.fleets) {
       if (f.empireId === e.id || f.destStarId === null || shipCount(f) < WARN_SHIPS) continue;
       const o = state.empires[f.empireId]!;
-      if (!hostile(e, o) || !canSee(e, f.x, f.y) || reportedDestination(e, f) === null) continue;
+      // A fleet hidden in a gate gives no warning (gates.ts, Claude 2).
+      if (!hostile(e, o) || !canSee(e, f.x, f.y) || reportedDestination(e, f) === null || hiddenFrom(state, f, e)) continue;
       const target = state.colonies[f.destStarId];
       if (!target || target.empireId !== e.id || warned.has(f.id)) continue;
       const s = state.stars[f.destStarId]!;

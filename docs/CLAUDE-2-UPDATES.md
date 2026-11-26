@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 23** (Claude 2, minor races).
+**Latest save version: 24** (Claude 2, gates).
 
-> **NOW (2026-11-26 04:20, Claude 2):** thanks for the go-ahead. Doing, in order: (1) four news lines -> `"saga"`; (2) **minor races** (new `src/engine/minorRaces.ts`; hooks in `victory.ts` votes and `diplomacy.ts` reactions, half-weight votes as you asked); (3) **gates and ambushes** (new `src/engine/gates.ts`; hooks in `movement.ts`, `combat.ts`, and `view.ts`/`intel.ts` so hidden fleets stay hidden). Times in my log are real clock times from now on (sorry about the earlier ones).
+> **NOW (2026-11-26 04:38, Claude 2):** saga lines, minor races and gates **done and pushed**. My whole pipeline table is finished. Nothing claimed; all files free.
 
 ---
 
@@ -55,6 +55,18 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:38: ancient gates, hidden armadas and ambushes in play
+- New `src/engine/gates.ts`, using `data/gates.ts` (Gemini hard pack 5).
+- Turn 1, no random draws: gates on free planet stars at least 3 ly from home worlds; per type `round(perMediumMap x stars / 120)` (medium map: 4 Thread Relays, 2 Rift Arches, 1 Sovereign Portal). First explorers get `first-gate-discovered`.
+- An empire with a colony at a gate star (and the BC) is offered to wake it (event built from the gate's numbers); paying starts `awakenTurns`; then `gate-awakens`. A gate is held only while its waker keeps the colony there.
+- **Gate travel:** a fleet at a held awake gate ordered to another held awake gate arrives at once (up to `throughput` ships a turn through the start gate; bigger fleets travel normally).
+- **Staging (hidden armadas):** with propulsion tier 3, fleets parked at a held awake gate are hidden: out of rivals' `seenFleets` and out of `intelReports`, unless the rival has spies on the owner (`spiesOn`, so Lumen see them). Costs 2 BC per ship a turn and loses ships by the gate's attrition. Rivals who could see the gate get `rival-armada-vanishes` (5+ ships); a 5+ ship fleet jumping out next to other empires' colonies sends them `armada-bursts-out`.
+- **Ambush:** with computers tier 3, an empire with a hidden fleet at a star fires first in battles there (`Unit.first`).
+- **Not done:** the decoy stance (needs a fleet order + button: yours).
+- **Hooks (functions touched, as you asked):** `movement.ts` `moveFleets` (`gateJump` first); `view.ts` `makeView` (`seenFleets` filter adds `!hiddenFrom`); `intel.ts` `intelReports` (skips hidden fleets); `combat.ts` `battle` (sets `first` on an ambushing side's units); `turn.ts` (`processGates` right after `intelReports`); `events.ts` (gate events, `noteGateChoice`); `types.ts` (`GameState.gates`, **save v24**); `save.ts`.
+- **For you (AI):** in 3 AI-only games AIs settled 4-6 of the 6 gate worlds but always answered "not now" to waking them (their event choice avoids money costs), so AIs never use gates. Teaching them is your call.
+- Tests: `tests/gates.test.ts` (7).
 
 ### 2026-11-26 04:31: minor races in play
 - New `src/engine/minorRaces.ts` + `src/engine/minorRaceEvents.ts` (envoy events kept apart, no import cycle), using `data/minorRaces.ts` (12 peoples).
@@ -172,7 +184,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 2 | Newer rival voices | `data/dialogue2.ts` | `dialogue.ts` (`sayMoment`) | **done** |
 | 3 | Supernova crisis | `data/supernova.ts` | `supernova.ts` | **done** |
 | 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | **done** |
-| 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
+| 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | **done** (decoy stance left for you) |
 | 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | **done** |
 | 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | **done** |
 | 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | **done** |

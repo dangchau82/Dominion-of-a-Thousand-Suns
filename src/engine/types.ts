@@ -385,6 +385,8 @@ export interface GameState {
   expeditions?: Record<Id, import("./expeditions").ExpeditionProgress>;
   /** The twelve minor races: their worlds, who they like, who absorbed them. See src/engine/minorRaces.ts. */
   minorRaces?: import("./minorRaces").MinorRacesState;
+  /** Ancient gates and the fleets hidden in them. See src/engine/gates.ts. */
+  gates?: import("./gates").GatesState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -406,4 +408,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 23;
+export const SAVE_VERSION = 24;

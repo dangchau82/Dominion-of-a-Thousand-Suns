@@ -20,6 +20,7 @@ import { addGrudge, GRUDGE } from "./grudges";
 import * as R from "./rng";
 import { techStats } from "./tech";
 import type { Colony, Empire, Fleet, GameState, Id, Star } from "./types";
+import { ambushing } from "./gates";
 
 export const BASE_HP = 25;
 /** Carrier tuning (see tools/carrier-duel.test.ts): fighters' share of incoming fire vs ships (1 = at most half), and their toughness. */
@@ -277,6 +278,8 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
       const wing = fighterUnit(state, side, e, d, ships);
       if (wing) units.push(wing);
     }
+    // Ambush: a fleet lying hidden in its gate fires first (gates.ts, Claude 2).
+    if (ambushing(state, e, s.id)) for (const u of units) if (u.side === side) u.first = true;
     if (colony && colony.empireId === e.id) {
       const p = planetUnit(state, side, e, colony);
       if (p) units.push(p);

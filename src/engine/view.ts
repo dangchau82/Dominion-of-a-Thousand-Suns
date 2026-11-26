@@ -31,6 +31,7 @@ import {
   type Colony, type Empire, type Fleet, type Id, type GameEvent, type GameState, type ResearchField,
   type StarColor, type StarKnowledge, type Difficulty, type Proposal, type SpyNetwork, type TreatyKind, type Winner,
 } from "./types";
+import { hiddenFrom } from "./gates";
 
 export interface PublicStar {
   id: Id; name: string; x: number; y: number; color: StarColor; nebula: boolean;
@@ -156,7 +157,8 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     });
   const fleets = structuredClone(state.fleets.filter((f) => f.empireId === empireId));
   const seenFleets: SeenFleet[] = state.fleets
-    .filter((f) => f.empireId !== empireId && canSee(state, e, f.x, f.y))
+    // Fleets staged inside a gate stay hidden from rivals without spies on their owner (gates.ts, Claude 2).
+    .filter((f) => f.empireId !== empireId && canSee(state, e, f.x, f.y) && !hiddenFrom(state, f, e))
     .map((f) => ({ id: f.id, empireId: f.empireId, x: f.x, y: f.y, starId: f.starId, ships: shipCount(f), destStarId: reportedDestination(e, f) }));
   const contacts: KnownEmpire[] = e.contacts.map((id) => {
     const o = state.empires[id]!;
