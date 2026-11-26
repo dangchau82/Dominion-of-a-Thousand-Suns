@@ -10,7 +10,7 @@ import { tech } from "./tech";
 import { empireBonus, transferWonders } from "./civ";
 import { edictShare, EDICT_DEFENSE_POINTS } from "./decrees";
 import { afterBattle, afterCapture, capturedPopulation, damageBonus } from "./abilities";
-import { say } from "./dialogue";
+import { say, sayMoment } from "./dialogue";
 import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
 import { bestBeam, fighterStats, fightersPerShip, shipDesign } from "./designs";
 import { beamHitChance } from "./formulas";
@@ -295,9 +295,13 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
   if (colony && planet) colony.missileBases = planet.count;
 
   for (const [me, them, mine, theirs] of [[a, b, 0, 1], [b, a, 1, 0]] as const) {
+    // A rival leader speaks after a real fight: gloating if their side lost less, defiant if more.
+    const ourLoss = lossValue(mine), theirLoss = lossValue(theirs);
+    const words = !them.isPlayer && ourLoss + theirLoss > 0
+      ? ` ${sayMoment(state.turn, them, theirLoss < ourLoss ? "battleWon" : "battleLost", me, { star: s.name })}` : "";
     state.events.push({
       turn: state.turn, empireId: me.id, kind: "battle", starId: s.id,
-      text: `Battle at ${s.name} against the ${them.name} (${plural(rounds, "round")}). You lost ${lossText(units, mine)}; they lost ${lossText(units, theirs)}.`,
+      text: `Battle at ${s.name} against the ${them.name} (${plural(rounds, "round")}). You lost ${lossText(units, mine)}; they lost ${lossText(units, theirs)}.${words}`,
     });
   }
 }
@@ -470,6 +474,9 @@ export function offerPeace(state: GameState, a: Empire, b: Empire): boolean {
     return true;
   }
   if (!b.peaceOffers.includes(a.id)) b.peaceOffers.push(a.id);
-  state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: `The ${a.name} offer peace.${!a.isPlayer ? ` ${say(state.turn, a, "offerPeace", b)}` : ""}` });
+  // An empire down to its last worlds pleads rather than bargains.
+  const lastWorlds = Object.values(state.colonies).filter((c) => c.empireId === a.id).length <= 2;
+  const words = a.isPlayer ? "" : ` ${lastWorlds ? sayMoment(state.turn, a, "begging", b) : say(state.turn, a, "offerPeace", b)}`;
+  state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: `The ${a.name} offer peace.${words}` });
   return false;
 }

@@ -12,6 +12,7 @@ import type { EmpireBonus } from "./data/buildings";
 import { votesOf } from "./victory";
 import * as R from "./rng";
 import type { Empire, GameState, Id } from "./types";
+import { sayMoment } from "./dialogue";
 
 export const RESOLUTION_FIRST = 112;
 export const RESOLUTION_EVERY = 25;
@@ -106,6 +107,10 @@ export function processResolutions(state: GameState): void {
     const passed = yes * 2 > total;
     say(state, `${def.name}: ${passed ? fill(state, def.passedText, s.targetId) : fill(state, def.failedText, s.targetId)} (${yes} of ${total} votes for)`);
     if (passed) {
+      // The strongest "yes" voter gloats to everyone who voted against.
+      const winners = alive(state).filter((e) => s.votes[e.id] === true && !e.isPlayer).sort((x, y) => votesOf(state, y) - votesOf(state, x) || x.id - y.id);
+      const leader = winners[0];
+      if (leader) for (const e of alive(state)) if (s.votes[e.id] === false) say(state, sayMoment(state.turn, leader, "councilWin", e), e.id);
       const until = state.turn + def.duration;
       (state.activeResolutions ??= []).push({ id: def.id, targetId: s.targetId, until });
       for (const e of alive(state)) {

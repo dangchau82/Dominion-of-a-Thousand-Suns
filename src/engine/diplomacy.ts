@@ -5,7 +5,7 @@
 import { underRule } from "./resolutions";
 import { race } from "./data/races";
 import { SPY_MISSION_TEXTS } from "./data/unrest";
-import { say } from "./dialogue";
+import { say, sayMoment } from "./dialogue";
 import { empireBonus } from "./civ";
 import { tradeMultiplier } from "./abilities";
 import { colonyProduction, distance } from "./formulas";
@@ -64,6 +64,9 @@ export function breakTreaty(state: GameState, a: Empire, b: Empire, k: TreatyKin
   delete b.treaties[a.id]![k];
   adjustRelation(b, a, k === "alliance" ? -35 : k === "nap" ? -25 : -10);
   event(state, null, "diplomacy", `The ${a.name} broke their ${TREATY_NAMES[k]} with the ${b.name}.`);
+  // The betrayed side tells the betrayer what it thinks of them, once (war breaks every treaty at once).
+  const anyLeft = Object.keys(a.treaties[b.id] ?? {}).length > 0;
+  if (!b.isPlayer && !anyLeft) event(state, a.id, "diplomacy", sayMoment(state.turn, b, "betrayed", a));
 }
 
 /** Total production of an empire's colonies, before any spending. */
