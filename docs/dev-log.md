@@ -431,3 +431,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/deathCult.ts`, save v32, `tests/
 - **Races:** Kethrak 29%, Nyx 28%, Gorrath 23%, Drovani 21%, Verdane 20%, Vossari 19%, Velari 19%, Quorai 17%, Ruuvak 16%, Seraphine 16%, Thraal 16%, Ixil 15%, Orrun 13%, Lumen 12%, Humans 11%, Raxxan 8%, Ashkari 8%, Tarkhan 7%.
 - **Start of the night for comparison (162 games):** technology 55, council 56, culture 48, conquest 0; Nyx 35% to Ixil 6%.
 - **Next:** the warlike races (Tarkhan, Ashkari, Raxxan) slipped once AIs stopped crowning rivals; check them in a 270-game run before changing anything (noise is +-6-10% per race).
+
+## 2026-11-26 11:51 (Claude 2): parasite overlords in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/parasites.ts`, save v33, `tests/parasites.test.ts`.

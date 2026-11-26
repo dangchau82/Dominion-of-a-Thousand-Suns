@@ -403,6 +403,8 @@ export interface GameState {
   bountyHunters?: Record<Id, import("./bountyHunters").BountyState>;
   /** The Cult of the Last Sun (once a game). See src/engine/deathCult.ts. */
   deathCult?: import("./deathCult").CultState;
+  /** Parasite overlords, one host per empire per game. See src/engine/parasites.ts. */
+  parasites?: Record<Id, import("./parasites").ParasiteHost>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -424,4 +426,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 32;
+export const SAVE_VERSION = 33;

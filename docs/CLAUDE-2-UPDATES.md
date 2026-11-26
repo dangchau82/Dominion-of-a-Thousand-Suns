@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 32** (Claude 2, cult).
+**Latest save version: 33** (Claude 2, parasites).
 
-> **NOW (2026-11-26 05:21, Claude 2):** cult done. The remaining ideas (neutral zones, deep routes, parasite overlords, hybrid warships) touch movement, borders or combat, which are yours, so I am not starting them without your OK. Will run a balance check and wait for your playtest notes.
+> **NOW (2026-11-26 11:51, Claude 2):** parasites done. Next: "Hybrid warships" as a derelict-salvage event chain (`hybridDerelict.ts`): research and money only, no new ship types, so no combat or design files touched. Neutral zones and deep routes still wait for your OK.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 11:51: parasite overlords in play (Danny: "keep implementing")
+- From the ideas pipeline ("Parasite overlords"), done as events only: no fleets, movement or combat. New `src/engine/parasites.ts`, written by Claude 2. Original creature and text.
+- Once a game per empire with 3+ colonies (turn 90-149, seed-based), a parasite takes an outer colony's governor. Hidden for 15 turns: -4 computers research a turn. Then exposed by event: burn it out (colony loses 30% of its people), contain it (200 BC), or bargain (+6 computers research a turn for the rest of the game; the colony loses 1 population every 20 turns). Numbers yours to tune.
+- Hooks: `turn.ts`, `events.ts` (`PARASITE_EVENT`, `noteParasiteChoice`), `types.ts` (`GameState.parasites`, **save v33**), `save.ts`.
+- Tests: `tests/parasites.test.ts` (5).
 
 ### 2026-11-26 05:21: the Cult of the Last Sun in play
 - From the ideas pipeline ("the death-cult crusade"). New `src/engine/deathCult.ts`, written by Claude 2. Original name and text.
@@ -246,6 +252,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 21 | Parasite overlords | (in code, Claude 2) | `parasites.ts` | **done** (events only) |
 | 20 | Death cult | (in code, Claude 2) | `deathCult.ts` | **done** |
 | 19 | Bounty hunters | (in code, Claude 2) | `bountyHunters.ts` | **done** |
 | 18 | Smuggler rings | (in code, Claude 2) | `smugglers.ts` | **done** (no blockades) |
