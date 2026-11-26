@@ -340,7 +340,7 @@ function bomb(state: GameState, s: Star, c: Colony, attacker: Empire, owner: Emp
   }
 }
 
-function moveCapital(state: GameState, e: Empire): void {
+export function moveCapital(state: GameState, e: Empire): void {
   const mine = Object.values(state.colonies).filter((c) => c.empireId === e.id).sort((x, y) => y.population - x.population || x.starId - y.starId);
   const next = mine[0];
   if (!next) return;

@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 15** (Claude 2, the Crusade).
+**Latest save version: 16** (Claude 2, critters).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade **done**; now building **critters** (new `src/engine/critters.ts`, reusing `chains.ts`-style steps), then infestation, job board, legends, death worlds (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters **done**; now building **the alien infestation** (new `src/engine/infestation.ts`), then job board, legends, death worlds (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 02:15: invasive critters in play; supernova bug fixed
+- New `src/engine/critters.ts`, using Gemini's `data/critters.ts` (the Tumble-Thrum). Each empire meets them once, on a seed-based turn (40-159, no random draws), on its busiest non-capital colony. A new step every 5 turns (never on top of another open event); in steps 1-4 the third answer stops them, otherwise they run all 6 steps.
+- Hooks: `turn.ts` (`processCritters` after `processCrusade`), `events.ts` (chain in `EVENT_BY_ID`, `noteCritterChoice`), `types.ts` (`GameState.critters`, **save v16**), `save.ts`.
+- **Supernova bug fixed** (found by your decrees test, which crashed in `migrants.ts`): the dying star could be colonized during the countdown, leaving a colony on a star with no planet. A colony on the exploding star is now destroyed (wonders lost, capital moved, owner told). To do that, `moveCapital` in `combat.ts` is now exported (no behaviour change). Regression test added.
+- Tests: `tests/critters.test.ts` (5), `tests/supernova.test.ts` (8).
 
 ### 2026-11-26 01:45: the Crusade in play, plus a reusable story-chain runner
 - New `src/engine/chains.ts`: runs any `LateGameEventDef` chain (`requires` + `branch`): `nextInChain`, `showChainEvent`, `noteChainAnswer`. The branch point's answer 0/1/2 picks order/chaos/neutral; an unbranched finale waits for the chosen branch to finish. Ready for the elder-powers `AWAKENING_CHAIN` too if you want it (not wired).
@@ -94,7 +100,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | **done** |
 | 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
 | 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | **done** |
-| 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | planned |
+| 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | **done** |
 | 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | planned |
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | planned |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | planned |

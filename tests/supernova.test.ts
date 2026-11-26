@@ -104,6 +104,18 @@ describe("the supernova crisis", () => {
     }
   });
 
+  it("a colony founded on the dying star during the countdown is destroyed with it (no colony left on a star without a planet)", () => {
+    const g = setup();
+    processSupernova(g);
+    const nova = g.supernovae![0]!;
+    const home = g.colonies[g.empires[1]!.capitalStarId]!;
+    g.colonies[nova.starId] = { ...home, starId: nova.starId, isCapital: false, population: 5, buildings: [] };
+    g.turn = nova.blowTurn;
+    processSupernova(g);
+    expect(g.colonies[nova.starId]).toBeUndefined();
+    for (const c of Object.values(g.colonies)) expect(g.stars[c.starId]!.planet).not.toBeNull();
+  });
+
   it("a fleet parked at the remnant earns research every turn", () => {
     const g = setup();
     processSupernova(g);

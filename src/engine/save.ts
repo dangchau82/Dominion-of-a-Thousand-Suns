@@ -102,6 +102,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 13) { (data as GameState).version = 14; }
   // Version 14 -> 15: the Crusade; in old games it simply hasn't arrived yet.
   if (data.version === 14) { (data as GameState).version = 15; }
+  // Version 15 -> 16: invasive critters; old games simply haven't met them yet.
+  if (data.version === 15) { (data as GameState).version = 16; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

@@ -24,6 +24,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Supernova crisis (`supernova.ts`) | Claude 2 | Blast losses fair (60/25% if you stay)? Do remnants matter? Does it ever hit a home-adjacent cluster too hard? | | |
 | 2026-11-26 | Neutral lairs (`lairs.ts`) | Claude 2 | AIs ignore lairs (they don't know about them): fine, or give them `knownLairs` in the view? Raids on colonies settled at a lair (0.5 x tier pop a turn) too harsh? | | |
 | 2026-11-26 | The Crusade (`crusade.ts`, `chains.ts`) | Claude 2 | Pilgrim unrest (up to 1.5 a turn on outer colonies) too weak/strong vs. your revolt threshold? AIs always pick "bargain" at event 4. | | |
+| 2026-11-26 | Invasive critters (`critters.ts`) | Claude 2 | Light comic chain, small effects: just check it never stacks with other events badly. | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).

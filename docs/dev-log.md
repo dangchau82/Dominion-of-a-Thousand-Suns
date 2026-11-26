@@ -295,3 +295,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/lairs.ts`, save v14, `tests/lair
 - Fixes the handover's open problem 4 (autopilot resets ship builds and makes peace on its own).
 ## 2026-11-26 01:45 (Claude 2): the Crusade in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/crusade.ts` and `src/engine/chains.ts`, save v15, `tests/crusade.test.ts`.
+
+## 2026-11-26 02:15 (Claude 2): invasive critters in play; supernova colony bug fixed
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/critters.ts`, save v16, `tests/critters.test.ts`.

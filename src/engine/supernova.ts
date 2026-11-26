@@ -7,6 +7,8 @@
 
 import { QUORAI_SUPERNOVA, REMNANTS, SUPERNOVA_AFTERMATH, SUPERNOVA_WARNINGS } from "./data/supernova";
 import { distance } from "./formulas";
+import { transferWonders } from "./civ";
+import { moveCapital } from "./combat";
 import type { Empire, GameState, Id, PendingEvent } from "./types";
 
 export type SupernovaPlan = "evacuated" | "harvested" | "stayed";
@@ -148,6 +150,15 @@ function blow(state: GameState, nova: SupernovaState): void {
   state.fleets = state.fleets.filter((f) => f.starId !== s.id);
   for (const f of lost) {
     state.events.push({ turn: state.turn, empireId: f.empireId, kind: "battle", starId: s.id, text: `Our fleet at ${s.name} was lost in the supernova.` });
+  }
+  // A colony founded on the dying star's own planet during the countdown is lost with it.
+  const onStar = state.colonies[s.id];
+  if (onStar) {
+    const owner = state.empires[onStar.empireId]!;
+    delete state.colonies[s.id];
+    transferWonders(state, s.id, null);
+    if (owner.capitalStarId === s.id) moveCapital(state, owner);
+    state.events.push({ turn: state.turn, empireId: owner.id, kind: "battle", starId: s.id, text: `Our colony on ${s.name} was destroyed when the star exploded.` });
   }
   // The blast: colonies keep at least one population so no world vanishes outright.
   for (const c of coloniesNear(state, s.id, REACH)) {

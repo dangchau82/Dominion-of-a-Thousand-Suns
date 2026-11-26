@@ -357,6 +357,8 @@ export interface GameState {
   lairs?: import("./lairs").LairState[];
   /** The Crusade of the Candescent Fold, once it has arrived. See src/engine/crusade.ts. */
   crusade?: import("./crusade").CrusadeState;
+  /** Each empire's run-in with the invasive critters. See src/engine/critters.ts. */
+  critters?: Record<Id, import("./critters").CritterProgress>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -378,4 +380,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 15;
+export const SAVE_VERSION = 16;
