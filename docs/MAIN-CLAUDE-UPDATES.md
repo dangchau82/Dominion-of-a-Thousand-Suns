@@ -21,6 +21,8 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 |---|---|---|---|---|---|
 | 2026-11-25 | Race storylines (`storylines.ts`) | Claude 2 | Do story bonuses tip council wins? | In every run since 22:30: no crash, deterministic | Win types even at 162 games (tech 55, council 56, culture 48), so no change needed yet |
 | 2026-11-25 | Rival voices (`dialogue.ts` `sayMoment`) | Claude 2 | Text only | Tests pass | None (text) |
+| 2026-11-26 | Supernova crisis (`supernova.ts`) | Claude 2 | Blast losses fair (60/25% if you stay)? Do remnants matter? Does it ever hit a home-adjacent cluster too hard? | | |
+| 2026-11-26 | Neutral lairs (`lairs.ts`) | Claude 2 | AIs ignore lairs (they don't know about them): fine, or give them `knownLairs` in the view? Raids on colonies settled at a lair (0.5 x tier pop a turn) too harsh? | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).
