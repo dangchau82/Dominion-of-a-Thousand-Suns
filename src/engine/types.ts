@@ -4,6 +4,7 @@ import type { ShipDesign } from "./data/ships";
 // so a whole game can be saved, copied for AI simulation, or sent anywhere.
 
 import type { RngState } from "./rng";
+import type { Fate } from "./prophecy";
 
 export type Id = number;
 
@@ -162,6 +163,8 @@ export interface Empire {
   bonds?: { sinkId: string; amount: number; matures: number }[];
   /** Extra council votes from lobbying, until a turn. */
   councilBoost?: { votes: number; until: number };
+  /** Prophecies this empire has heard (last 20), and how they turned out. */
+  prophecies?: { turn: number; kind: string; text: string; due: number; starId: Id | null; outcome: "waiting" | "fulfilled" | "averted" }[];
   /** Rebel empires: the empire they broke away from in a civil war. */
   rebelOf?: Id;
 }
@@ -317,6 +320,8 @@ export interface GameState {
   keepPlaying?: boolean;
   /** A rival's win the player refused to accept ("Fight on"). Only the player can win from then on. */
   rivalWin?: Winner | null;
+  /** Fates decided ahead of time (prophecies come true). See src/engine/prophecy.ts. */
+  fates?: Fate[];
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;

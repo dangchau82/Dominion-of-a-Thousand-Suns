@@ -371,6 +371,15 @@ function treasuryProject(ctx: Ctx, spare: number): number {
   return choice.cost;
 }
 
+/** A seer named a world about to be struck by plague: quarantine it (ecology 30%+) when the time comes. */
+function prophecies(ctx: Ctx): void {
+  const { view } = ctx;
+  for (const p of view.me.prophecies ?? []) {
+    if (p.kind !== "plague" || p.outcome !== "waiting" || p.starId === null || p.due - view.turn > 2) continue;
+    if (view.colonies.some((c) => c.starId === p.starId)) ctx.cmds.push({ type: "setSlider", starId: p.starId, slider: "ecology", value: 35 });
+  }
+}
+
 // ---------- random events ----------
 
 function randomEvents(ctx: Ctx): void {
@@ -898,5 +907,6 @@ export function basicAITurn(view: EmpireView): Command[] {
   const openTargets = expansion(ctx);
   production(ctx, openTargets);
   military(ctx);
+  prophecies(ctx);
   return ctx.cmds;
 }

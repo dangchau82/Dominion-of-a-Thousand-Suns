@@ -1445,6 +1445,16 @@ export class GameScreen {
         }
         for (const b of me.bonds ?? []) sinks.append(el("div", { class: "dim", style: "margin-top:4px" }, `Bond of ${b.amount} BC pays out on turn ${b.matures}.`));
         box.append(sinks);
+        // Prophecies heard, and how they turned out.
+        const proph = el("div", { class: "tech-card" });
+        proph.innerHTML = `<b>🔮 Prophecies</b> <span class="dim">· seers foretell what fate holds; ${["velari", "lumen"].includes(me.raceId) ? "your seers speak plainly" : "decode the star colour, direction and turns"}</span>`;
+        const heard = [...(me.prophecies ?? [])].reverse();
+        if (!heard.length) proph.append(el("div", { class: "dim" }, "No prophecies yet."));
+        for (const p of heard) {
+          const mark = p.outcome === "fulfilled" ? `<span class="good">came true</span>` : p.outcome === "averted" ? `<span class="dim">did not come to pass</span>` : `<span>due around turn ${p.due}</span>`;
+          proph.append(el("div", { style: "margin:4px 0" }, `<span class="dim">Turn ${p.turn}:</span> ${esc(p.text)} · ${mark}`));
+        }
+        box.append(proph);
         const won = el("div", { class: "tech-card" });
         won.innerHTML = `<b>Wonders of the galaxy</b>`;
         for (const b of BUILDINGS.filter((x) => x.wonder)) {

@@ -175,3 +175,16 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - **UI:** Empire screen, "Treasury projects" with costs, reasons and Buy buttons; bonds listed with their pay-out turn.
 - **Result** (54 medium games, seeds 3000+): AIs buy 150-200 projects a game (`tools/treasury-probe.test.ts`). Median final treasury 2243 -> 2017; wins culture 24, council 18, tech 7, none 5, median end T334 (before 26/18/5/5, T330). **The hoard is only a little smaller:** AI income swings by thousands a turn late in the game, which a few cooldown-limited projects can't absorb. The real fix is in the economy (e.g. leftover-to-treasury 50% -> 30%, or upkeep on fleets); not done, needs a balance round of its own.
 - Tests: `tests/moneySinks.test.ts`.
+
+## 2026-11-25 17:40 Prophecies in play (Danny's favourite), from Gemini's `data/prophecies.ts`
+- **Rules** (`src/engine/prophecy.ts`): fates are decided ahead by the seeded RNG and then happen; seers may foretell them. Velari and Lumen hear plain words naming the world; everyone else hears riddles with the star colour, the direction from their capital and the number of turns.
+  - **Plague:** about 1 in 150 turns per empire from turn 40, 6-12 turns of warning (70% foretold, seers always): -25% people on that colony, only -8% if it spends 30%+ on ecology when it hits (quarantine).
+  - **Golden age:** foretold 6-15 turns ahead when the culture curve says so (seers always, others 15%); it then arrives no later than foretold.
+  - **Invasion:** an unseen enemy fleet heading for one of our worlds 3+ turns out (seers 50% a turn, others 15%); "came true" if it arrives or the world falls, otherwise "did not come to pass".
+  - Supernova, elder-awakening and betrayal texts wait for those systems.
+- **Log:** `Empire.prophecies` (last 20, with outcome); Empire screen has a "🔮 Prophecies" list. AI quarantines a named plague world 2 turns before it hits.
+- No save bump (optional fields). Tests: `tests/prophecy.test.ts`.
+
+### Quorai investigation, round 2 (54 medium games each, seeds 3000+, current code)
+- Baseline 7 wins in their games; ignoresEnvironment off: 8/22; average personality: 6/22; no starless settling: 6/22. None alone is the driver.
+- They win by **culture** (24 of 27 wins). At turn 220 they hold 67k culture vs 30-45k for others, 19 colonies, 7 golden ages (others 5-6): an early expansion lead that compounds through culture and golden ages.
