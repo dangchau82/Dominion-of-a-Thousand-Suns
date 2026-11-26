@@ -13,6 +13,7 @@ import { PRISON_COLONY } from "./data/hazardWorlds";
 import { race } from "./data/races";
 import { colonyEffects, transferWonders } from "./civ";
 import { distance } from "./formulas";
+import { edictUnrest, proclamationUnrest } from "./decrees";
 import { exploreStar } from "./knowledge";
 import * as R from "./rng";
 import type { Colony, Empire, GameState, Id, PendingEvent } from "./types";
@@ -62,6 +63,9 @@ export function unrestBreakdown(state: GameState, c: Colony): UnrestPart[] {
   add("War weariness", Math.min(12, weariness));
   add("Foreign agitators", Math.min(40, c.agitation ?? 0));
   if (c.prison) add("Prison colony", PRISON_COLONY.unrestPerTurn * 5);
+  for (const p of proclamationUnrest(e)) add(`Proclamation: ${p.label}`, p.amount);
+  const ed = edictUnrest(c);
+  if (ed) add(`Edict: ${ed.label}`, ed.amount);
   add("Internal security", -e.security * 2);
   add("Culture buildings", -colonyEffects(c).culture * 2);
   if (e.goldenAge) add("Golden age", -15);

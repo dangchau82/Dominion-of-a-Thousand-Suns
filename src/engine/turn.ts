@@ -20,6 +20,7 @@ import { processMoneySinks } from "./moneySinks";
 import { processProphecies } from "./prophecy";
 import { processResolutions } from "./resolutions";
 import { processPrisons } from "./prison";
+import { edictShare, processDecrees } from "./decrees";
 import { PRISON_COLONY } from "./data/hazardWorlds";
 import { updateVision } from "./knowledge";
 import { mergeFleets, moveFleets } from "./movement";
@@ -50,14 +51,14 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   const ce = colonyEffects(c);
   const eb = empireBonus(e);
   // Unrest cuts output (up to 25% at open revolt).
-  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1);
+  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1) * (1 + edictShare(c, "production"));
   // Spies and internal security are paid first, out of every colony's output.
   const net = boosted * (1 - spendingShare(e));
   const part = (pct: number) => (net * pct) / 100;
   return {
     production: boosted,
     ship: part(c.sliders.ship) * (1 + ce.ships), defense: part(c.sliders.defense), industry: part(c.sliders.industry),
-    ecology: part(c.sliders.ecology), research: part(c.sliders.research) * (1 + ce.research + eb.research),
+    ecology: part(c.sliders.ecology), research: part(c.sliders.research) * (1 + ce.research + eb.research + edictShare(c, "research")),
   };
 }
 
@@ -136,7 +137,7 @@ function processColony(state: GameState, c: Colony): number {
   // A conquered world may hold more people than its new owner's tech supports.
   if (c.population > cap) c.population = cap;
   const wasFull = c.population >= cap - 1e-9;
-  c.population = Math.min(cap, c.population + popGrowth(c.population, s.planet, r, e) * growthMultiplier(e, s));
+  c.population = Math.min(cap, c.population + popGrowth(c.population, s.planet, r, e) * growthMultiplier(e, s) * (1 + edictShare(c, "growth")));
   const space = Math.max(0, cap - c.population);
   const pc = popCost(e);
   const bought = Math.min(space, b.ecology / pc);
@@ -208,6 +209,7 @@ export function endTurn(state: GameState): void {
   processCivilization(state);
   processUnrest(state);
   processPrisons(state);
+  processDecrees(state);
   processMoneySinks(state);
   rollEvents(state);
   processEspionage(state);

@@ -28,6 +28,7 @@ import { StarMap, type FleetTap } from "./map";
 import { autosave } from "./storage";
 import { LEADER_TRAITS } from "../engine/data/leaderTraits";
 import { PRISON_COLONY } from "../engine/data/hazardWorlds";
+import { EDICT_BY_ID } from "../engine/decrees";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
@@ -593,6 +594,24 @@ export class GameScreen {
       pr.onclick = () => { if (confirm(`${PRISON_COLONY.description}\n\nCosts ${PRISON_COLONY.setupCost} BC and some culture. Go ahead?`) && this.cmd({ type: "declarePrison", starId: c.starId })) { autosave(this.state); this.refresh(); } };
       wrap.append(pr);
     } else if (c.prison) wrap.append(el("div", { class: "dim" }, `⛓️ Prison colony: +${Math.round(PRISON_COLONY.productionBonus * 100)}% output, restless, breakouts.`));
+    // Edicts: a one-off imperial order for this colony.
+    {
+      const ed = el("details", { style: "margin-top:8px" });
+      const cur = c.edict ? EDICT_BY_ID.get(c.edict.id) : undefined;
+      ed.append(el("summary", {}, cur ? `📜 Edict in force: <b>${esc(cur.name)}</b> <span class="dim">until turn ${c.edict!.until}</span>` : "📜 Issue an edict <span class='dim'>· a one-off order for this colony</span>"));
+      for (const o of v.edicts(c.starId)) {
+        const fx = Object.entries(o.colony).map(([k, n]) => `${k === "defense" ? "ground defence" : k} +${Math.round((n ?? 0) * 100)}%`);
+        if (o.unrest) fx.push(`unrest ${o.unrest > 0 ? "+" : ""}${o.unrest}`);
+        if (o.populationCost) fx.push(`loses ${Math.round(o.populationCost * 100)}% of its people`);
+        const row = el("div", { class: "design-row", style: "margin-top:6px" }, `<span style="flex:1"><b>${esc(o.name)}</b> <span class="dim">· ${o.duration} turns${o.why ? ` · ${esc(o.why)}` : ""}</span><div class="dim" style="font-size:12px">${esc(o.description)}</div><div style="font-size:12px">${esc(fx.join(" · "))}</div></span>`);
+        const bt = el("button", { class: "small primary" }, `Issue (${o.cost} BC)`);
+        bt.disabled = !!o.why;
+        bt.onclick = () => { if (this.cmd({ type: "issueEdict", starId: c.starId, edictId: o.id })) { autosave(this.state); this.refresh(); } };
+        row.append(bt);
+        ed.append(row);
+      }
+      wrap.append(ed);
+    }
     if (c.buildTemplate && v.me.treasury >= 50) {
       const t = this.tpl(c.buildTemplate);
       const need = Math.max(0, Math.ceil(t.cost - c.shipProgress));
@@ -1476,6 +1495,26 @@ export class GameScreen {
         }
         for (const b of me.bonds ?? []) sinks.append(el("div", { class: "dim", style: "margin-top:4px" }, `Bond of ${b.amount} BC pays out on turn ${b.matures}.`));
         box.append(sinks);
+        // Imperial proclamations: standing policies for the whole empire, each with a gain and a price.
+        const procl = el("div", { class: "tech-card" });
+        const inForce = vNow.proclamations.options.filter((o) => o.activeUntil !== null);
+        procl.innerHTML = `<b>📜 Imperial proclamations</b> <span class="dim">· ${inForce.length} of ${vNow.proclamations.slots} in force · a 2nd slot after two golden ages, a 3rd while the empire is calm</span>`;
+        const sorted = [...vNow.proclamations.options].sort((a, b) => Number(b.activeUntil !== null) - Number(a.activeUntil !== null) || Number(b.raceOnly) - Number(a.raceOnly));
+        for (const o of sorted) {
+          const on = o.activeUntil !== null;
+          const bits = [bonusText(o.bonus), o.unrest ? `unrest ${o.unrest > 0 ? "+" : ""}${o.unrest} on every colony` : "", o.upkeep ? `${o.upkeep} BC a turn` : "no upkeep", `${o.duration} turns`].filter(Boolean).join(" · ");
+          const state = on ? ` <span style="color:var(--good,#7c7)">· in force until turn ${o.activeUntil}</span>` : o.why && o.why !== "No free proclamation slot" ? ` <span class="dim">· ${esc(o.why)}</span>` : "";
+          const row = el("div", { class: "design-row", style: "margin-top:6px" }, `<span style="flex:1"><b>${esc(o.name)}</b>${o.raceOnly ? ` <span class="dim">· ${esc(vNow.race.name)} only</span>` : ""}${state}<div class="dim" style="font-size:12px">${esc(o.description)}</div><div style="font-size:12px">${esc(bits)}</div></span>`);
+          const bt = el("button", { class: on ? "small" : "small primary" }, on ? "Withdraw" : "Proclaim");
+          bt.disabled = !on && !!o.why;
+          bt.onclick = () => {
+            if (on && !confirm(`Withdraw ${o.name}? It can't be proclaimed again for a while.`)) return;
+            if (this.cmd(on ? { type: "revokeProclamation", proclamationId: o.id } : { type: "proclaim", proclamationId: o.id })) { autosave(this.state); draw(); }
+          };
+          row.append(bt);
+          procl.append(row);
+        }
+        box.append(procl);
         // Prophecies heard, and how they turned out.
         const proph = el("div", { class: "tech-card" });
         proph.innerHTML = `<b>🔮 Prophecies</b> <span class="dim">· seers foretell what fate holds; ${["velari", "lumen"].includes(me.raceId) ? "your seers speak plainly" : "decode the star colour, direction and turns"}</span>`;
@@ -1895,4 +1934,14 @@ export class GameScreen {
     this.root.append(t);
     setTimeout(() => t.remove(), 2600);
   }
+}
+
+/** A proclamation's gains and prices in plain words, e.g. "production +11% · growth −6%". */
+function bonusText(b: object): string {
+  const names: Record<string, string> = { production: "production", research: "research", growth: "growth", trade: "trade", culture: "culture", spying: "spying", range: "ship range", attack: "warship attack", relations: "relations" };
+  return (Object.entries(b) as [string, number | undefined][]).filter(([, n]) => n).map(([k, n]) => {
+    const whole = k === "range" || k === "attack" || k === "relations";
+    const val = whole ? `${Math.abs(n!)}` : `${Math.round(Math.abs(n!) * 100)}%`;
+    return `${names[k] ?? k} ${n! > 0 ? "+" : "−"}${val}`;
+  }).join(" · ");
 }

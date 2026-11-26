@@ -8,6 +8,7 @@
 import { HULLS, type ShipDesign } from "./data/ships";
 import { tech } from "./tech";
 import { empireBonus, transferWonders } from "./civ";
+import { edictShare, EDICT_DEFENSE_POINTS } from "./decrees";
 import { afterBattle, afterCapture, capturedPopulation, damageBonus } from "./abilities";
 import { say } from "./dialogue";
 import { adjustRelation, breakTreaty, treatiesWith } from "./diplomacy";
@@ -348,7 +349,7 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
   if (!c || troops <= 0) return;
   const owner = state.empires[c.empireId]!;
   const atkBonus = empireRace(attacker).ground * 10 + (techStats(attacker).specials.includes("personal-shields") ? 10 : 0);
-  const defBonus = empireRace(owner).ground * 10 + (techStats(owner).specials.includes("personal-shields") ? 10 : 0) + 5;
+  const defBonus = empireRace(owner).ground * 10 + (techStats(owner).specials.includes("personal-shields") ? 10 : 0) + 5 + edictShare(c, "defense") * EDICT_DEFENSE_POINTS;
   let att = troops;
   let def = Math.max(1, Math.round(c.population));
   while (att > 0 && def > 0) {

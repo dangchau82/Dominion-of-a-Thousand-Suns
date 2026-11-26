@@ -341,6 +341,8 @@ function civilization(ctx: Ctx): void {
   }
   // Treasury projects (money sinks): at most one a turn, only from real surplus.
   spare -= treasuryProject(ctx, spare);
+  // Edicts: calm a restless world, or push a strong one, with what is left.
+  spare -= edict(ctx, spare);
   // Fund every shipyard, warship yards first, so a big hoard turns into ships instead of piling up.
   const yards = view.colonies
     .filter((c) => c.buildTemplate)
@@ -352,6 +354,57 @@ function civilization(ctx: Ctx): void {
     cmds.push({ type: "fundShips", starId: yard.starId, bc });
     pool -= bc;
   }
+}
+
+/** Issue at most one edict a turn: relief for the most restless colony first, else a boost for the biggest producer. Returns its cost. */
+function edict(ctx: Ctx, spare: number): number {
+  const { view } = ctx;
+  if (spare < 200) return 0;
+  const free = view.colonies.filter((c) => !c.edict);
+  const restless = [...free].sort((a, b) => (b.unrest ?? 0) - (a.unrest ?? 0) || a.starId - b.starId)[0];
+  if (restless && (restless.unrest ?? 0) >= 40) {
+    const o = view.edicts(restless.starId).filter((x) => !x.why && x.unrest < 0 && x.cost <= spare * 0.5).sort((a, b) => a.unrest - b.unrest || a.cost - b.cost)[0];
+    if (o) { ctx.cmds.push({ type: "issueEdict", starId: restless.starId, edictId: o.id }); return o.cost; }
+  }
+  if (spare < 800) return 0;
+  const key = ctx.wars.length || ctx.curiosity < 0.6 ? "production" : "research";
+  const big = [...free].filter((c) => (c.unrest ?? 0) < 25).sort((a, b) => b.budget.production - a.budget.production || a.starId - b.starId)[0];
+  if (!big) return 0;
+  const o = view.edicts(big.starId).filter((x) => !x.why && (x.colony[key] ?? 0) > 0 && x.populationCost === 0 && x.unrest <= 8 && x.cost + 300 <= spare)
+    .sort((a, b) => (b.colony[key] ?? 0) - (a.colony[key] ?? 0) || a.cost - b.cost)[0];
+  if (!o) return 0;
+  ctx.cmds.push({ type: "issueEdict", starId: big.starId, edictId: o.id });
+  return o.cost;
+}
+
+/** Proclaim the policy that suits this empire's character and situation when a slot is free (one a turn). */
+function proclamations(ctx: Ctx): void {
+  const { view } = ctx;
+  const { slots, options } = view.proclamations;
+  if (options.filter((o) => o.activeUntil !== null).length >= slots) return;
+  const p = view.race.personality;
+  const atWar = ctx.wars.length > 0;
+  const worst = Math.max(0, ...view.colonies.map((c) => c.unrest ?? 0));
+  const score = (o: (typeof options)[number]): number => {
+    const b = o.bonus;
+    let s = (b.production ?? 0) * 1
+      + (b.research ?? 0) * (0.6 + 0.8 * ctx.curiosity)
+      + (b.growth ?? 0) * (view.turn < 120 ? 1 : 0.6)
+      + (b.trade ?? 0) * (0.4 + 0.6 * p.greed)
+      + (b.culture ?? 0) * (0.4 + 0.6 * p.pride)
+      + (b.spying ?? 0) * 0.3
+      + (b.attack ?? 0) * (atWar ? 0.12 : 0.05 * ctx.aggression)
+      + (b.range ?? 0) * (view.turn < 100 ? 0.04 : 0.015)
+      + (b.relations ?? 0) * (atWar ? 0.0005 : 0.002);
+    s -= (o.unrest / 100) * (worst >= 25 ? 1.5 : 0.5);
+    s -= (o.upkeep / Math.max(300, view.me.treasury)) * 0.5;
+    return s;
+  };
+  const best = options
+    .filter((o) => !o.why && view.me.treasury >= o.upkeep * 8 + 200)
+    .map((o) => ({ o, s: score(o) }))
+    .sort((a, b) => b.s - a.s || (a.o.id < b.o.id ? -1 : 1))[0];
+  if (best && best.s > 0.03) ctx.cmds.push({ type: "proclaim", proclamationId: best.o.id });
 }
 
 /** Pick one treasury project to buy with surplus money; returns what it costs (0 if none). */
@@ -927,6 +980,7 @@ export function basicAITurn(view: EmpireView): Command[] {
   researchProjects(ctx);
   designs(ctx);
   civilization(ctx);
+  proclamations(ctx);
   const openTargets = expansion(ctx);
   production(ctx, openTargets);
   military(ctx);

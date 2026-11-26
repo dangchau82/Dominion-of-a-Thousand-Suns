@@ -64,6 +64,7 @@ export function masterAITurn(view: EmpireView): Command[] {
     if (cmd.type === "buyBuilding" || cmd.type === "fundShips" || cmd.type === "councilVote" || cmd.type === "setBuilding") continue;
     if (cmd.type === "gift") treasury -= cmd.bc;
     if (cmd.type === "investSink") treasury -= view.moneySinks.find((s) => s.id === cmd.sinkId)?.cost ?? 0;
+    if (cmd.type === "issueEdict") treasury -= view.edicts(cmd.starId).find((x) => x.id === cmd.edictId)?.cost ?? 0;
     if (cmd.type === "hireLeader") treasury -= me.leaderOffer?.cost ?? 0;
     out.push(cmd);
   }

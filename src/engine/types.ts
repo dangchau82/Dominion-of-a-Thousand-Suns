@@ -77,6 +77,10 @@ export interface Colony {
   rebelsFundedUntil?: number;
   /** A prison colony (see src/engine/prison.ts): more output, more unrest, breakouts. */
   prison?: boolean;
+  /** An imperial edict in force here until a turn (see src/engine/decrees.ts). */
+  edict?: { id: string; until: number };
+  /** Turn each edict can be issued here again. */
+  edictReady?: Record<string, number>;
 }
 
 export type ResearchField =
@@ -170,6 +174,10 @@ export interface Empire {
   prophecies?: { turn: number; kind: string; text: string; due: number; starId: Id | null; outcome: "waiting" | "fulfilled" | "averted" }[];
   /** Council resolutions that cover this empire, until a turn (see src/engine/resolutions.ts). */
   resolutionBonuses?: { id: string; until: number }[];
+  /** Imperial proclamations in force (see src/engine/decrees.ts). */
+  proclamations?: { id: string; until: number }[];
+  /** Turn each proclamation can be made again. */
+  proclamationReady?: Record<string, number>;
   /** Rebel empires: the empire they broke away from in a civil war. */
   rebelOf?: Id;
 }

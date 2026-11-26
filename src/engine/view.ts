@@ -10,6 +10,7 @@ import { buildable, buyCost } from "./civ";
 import { techVictoryProgress, votesOf } from "./victory";
 import { canSettleStarless } from "./abilities";
 import { sinkOptions, type SinkOption } from "./moneySinks";
+import { edictOptions, proclamationOptions, proclamationSlots, type EdictOption, type ProclamationOption } from "./decrees";
 import { describeEvent, eventsFor } from "./events";
 import type { EventEffect } from "./data/events";
 import { GOLDEN_AGE_AT } from "./data/buildings";
@@ -115,6 +116,10 @@ export interface EmpireView {
   activeResolutions: { id: string; name: string; targetId: Id | null; until: number }[];
   /** Treasury projects we could buy (money sinks), with cost and what stops us. */
   moneySinks: SinkOption[];
+  /** Imperial proclamations we may use (open ones and our own race's), and how many we may hold at once. */
+  proclamations: { slots: number; options: ProclamationOption[] };
+  /** Edicts that fit one of our colonies, with cost and what stops us. */
+  edicts(starId: Id): EdictOption[];
   /** Buildings a colony of ours could start now. */
   buildable(starId: Id): string[];
   /** BC to finish a colony's current building now. */
@@ -193,6 +198,8 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       growthBonus: ts.growth, researchBonus: ts.research, projects,
     },
     moneySinks: sinkOptions(state, e),
+    proclamations: { slots: proclamationSlots(state, e), options: proclamationOptions(state, e) },
+    edicts: (starId: Id) => { const c = state.colonies[starId]; return c ? edictOptions(state, e, c) : []; },
     resolution: state.resolutionSession ? (() => {
       const s = state.resolutionSession!, d = RESOLUTION_BY_ID.get(s.id)!;
       return { id: s.id, name: d.name, description: d.description, targetId: s.targetId, myVote: s.votes[empireId], bonus: { ...d.bonus }, rule: d.rule ?? "none" };

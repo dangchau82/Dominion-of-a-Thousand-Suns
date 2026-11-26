@@ -4,6 +4,7 @@
 import { PRISON_COLONY } from "./data/hazardWorlds";
 import { castResolutionVote, underRule } from "./resolutions";
 import { investSink } from "./moneySinks";
+import { issueEdict, proclaim, revokeProclamation } from "./decrees";
 import { researchChoices } from "./tech";
 import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
@@ -43,6 +44,9 @@ export type Command =
   | { type: "investSink"; sinkId: string; starId?: Id }
   | { type: "resolutionVote"; yes: boolean | null }
   | { type: "declarePrison"; starId: Id }
+  | { type: "proclaim"; proclamationId: string }
+  | { type: "revokeProclamation"; proclamationId: string }
+  | { type: "issueEdict"; starId: Id; edictId: string }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -268,6 +272,20 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       e.culture = Math.max(0, e.culture - PRISON_COLONY.moraleCost * 10);
       c.prison = true;
       return { ok: true };
+    }
+    case "proclaim": {
+      const err = proclaim(state, e, cmd.proclamationId);
+      return err ? fail(err) : { ok: true };
+    }
+    case "revokeProclamation": {
+      const err = revokeProclamation(state, e, cmd.proclamationId);
+      return err ? fail(err) : { ok: true };
+    }
+    case "issueEdict": {
+      const c = ownColony(state, empireId, cmd.starId);
+      if (!c) return fail("Not your colony");
+      const err = issueEdict(state, e, c, cmd.edictId);
+      return err ? fail(err) : { ok: true };
     }
     case "resolutionVote": {
       const err = castResolutionVote(state, e, cmd.yes);

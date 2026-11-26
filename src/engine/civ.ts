@@ -2,6 +2,7 @@
 // golden ages, and leaders who serve the empire. Same rules for everyone.
 
 import { resolutionBonuses } from "./resolutions";
+import { edictShare, proclamationBonuses } from "./decrees";
 import { maxMissileBases } from "./data/ships";
 import {
   BUILDING_BY_ID, BUILDINGS, GOLDEN_AGE_AT, GOLDEN_AGE_BONUS, GOLDEN_AGE_TURNS, LEADER_KINDS, MAX_LEADERS, NAME_PARTS,
@@ -40,6 +41,7 @@ export function empireBonus(e: Empire): Required<EmpireBonus> {
   }
   if (e.goldenAge) add(out, GOLDEN_AGE_BONUS);
   for (const b of resolutionBonuses(e)) add(out, b);
+  for (const b of proclamationBonuses(e)) add(out, b);
   return out;
 }
 
@@ -127,7 +129,7 @@ export function processCivilization(state: GameState): void {
     let culture = 0;
     for (const c of Object.values(state.colonies)) {
       if (c.empireId !== e.id) continue;
-      culture += colonyEffects(c).culture + c.population * 0.005;
+      culture += (colonyEffects(c).culture + c.population * 0.005) * (1 + edictShare(c, "culture"));
     }
     e.culture += culture * (1 + eb.culture);
     const next = GOLDEN_AGE_AT[e.goldenAges];
