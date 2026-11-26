@@ -14,7 +14,8 @@ export const WARN_TURNS = 8;
 
 /** Do our spies tell us where this empire's fleets are going? */
 export function spiesOn(e: Empire, other: Id): boolean {
-  return (e.spies[other]?.agents ?? 0) > 0;
+  // Lumen telepaths sense every fleet's intent without agents.
+  return e.raceId === "lumen" || (e.spies[other]?.agents ?? 0) > 0;
 }
 
 /** Destination of a rival fleet as our spies report it, or null if we have no agents with them or it isn't moving. */

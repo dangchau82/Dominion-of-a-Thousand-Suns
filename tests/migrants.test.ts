@@ -37,6 +37,16 @@ describe("migrant growth", () => {
     processMigrants(few); processMigrants(many);
     expect(m[0]!.population - 2).toBeCloseTo((f!.population - 2) / 6);
   });
+  it("skips a colony whose star has no planet left (after a supernova) instead of crashing", () => {
+    const g = newGame(settings());
+    const e = g.empires[0]!;
+    const [gone, ok] = addColony(g, 2) as [Colony, Colony];
+    g.stars[gone.starId]!.planet = null;
+    const pool = migrantsThisTurn(g, e);
+    expect(() => processMigrants(g)).not.toThrow();
+    expect(gone.population).toBe(2);
+    expect(ok.population).toBeCloseTo(2 + pool);
+  });
   it("colonies do not grow on their own, and other races are untouched", () => {
     const g = newGame(settings());
     const [a] = addColony(g, 1);

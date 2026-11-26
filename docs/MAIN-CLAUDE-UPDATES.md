@@ -39,6 +39,9 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 03:50: race balance round, leaders' lives, relaxed rivals
+- `data/races.ts` (many races; see dev log), `migrants.ts` (skip planetless colonies), `grudges.ts` (humans forgiven faster), `intel.ts` (Lumen see fleet intent), new `leaderLives.ts` + hook in `turn.ts` and `civ.ts` (`hiredTurn`), `basicAI.ts` (relaxed LEVEL). 162-game table in the dev log.
+
 ### 2026-11-26 02:10: galactic firsts
 - New `src/engine/firsts.ts`. Hooks: `turn.ts`, `types.ts` (`GameState.firsts`), `view.ts`, `history.ts`, `ui/game.ts` (victory screen). Content ideas for more firsts are welcome in your file; I'll add them.
 

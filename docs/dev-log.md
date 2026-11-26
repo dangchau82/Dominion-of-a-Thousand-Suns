@@ -350,3 +350,24 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 - New `src/engine/firsts.ts`: nine milestones, each won once per game by the first empire to reach it (ties to the lower id), announced to everyone, worth 800-2000 culture: ten worlds, a truly hostile world, meet every people, tier 5 in any science, a golden age, a wonder, 1,000 population, tier 10 in any science, worlds of three peoples.
 - Shown on the Paths to victory screen (won by whom, when) and in the galaxy's story. `EmpireView.firsts`; `GameState.firsts` (optional, no save bump). Tests: `tests/firsts.test.ts` (2).
 - 54 games (with intel reports too): technology 16, culture 18, council 12, conquest 8, median T308. Culture up from 10 (firsts add about 10k culture a game in total); watch it in the 162-game check.
+
+## 2026-11-26 03:50 Race balance round; leaders' lives; gentler relaxed rivals
+- **Race changes** (a helper agent tuned the weakest races on 108+162 games; the main Claude merged and finished): Verdane growth 1.2 -> 1.5 and colonize +2 ("spreading seeds"); Raxxan colonize 1 -> 2; Seraphine production 1.15, ground +1, honour 0.7; Ixil diplomacy 0, ground +2, honour 0.4, aggression 0.6 (they must capture worlds to use their unique); Vossari growth 0.9; Thraal growth 0.5; Ruuvak production 1.07; Gorrath colonize 2 -> 1. **Rule changes:** Terran Accord are forgiven twice as fast (grudges against them fade at the square of the usual rate) and get production 1.1; Lumen telepaths see where every visible fleet is heading without agents, honour 0.5, production 1.1. Unique texts updated.
+- **Fix (helper agent):** Quorai migrants crashed on a colony whose star had blown up; such colonies are skipped (`migrants.ts`, test added).
+- **Leaders' lives** (`src/engine/leaderLives.ts`): hired leaders gain a level every 30 turns of service (up to 4, salary grows), and retire 70-120 turns after hiring (fixed from their id); a protégé then offers to take the post one level lower at half price. Androids never age. `Leader.hiredTurn` (optional). Tests: `tests/leaderLives.test.ts` (2).
+- **Relaxed difficulty:** first war 110 -> 140, war mood 0.4 -> 0.3 (relaxed rivals were starting more wars than hard ones on the test seeds).
+- **Final 162 games (seeds 3000, 4000, 5000), everything from tonight in:** technology 44, council 45, culture 41, conquest 32 (before tonight: technology 55, council 56, culture 48, conquest 0); no winner 0; median end T296. 759 peace treaties handed over worlds. Winner's lead-to-win gap 124 turns (was 161-167).
+
+| Race | Wins | | Race | Wins |
+| --- | --- | --- | --- | --- |
+| verdane | 13/45 29% | | humans | 9/55 16% |
+| quorai | 13/52 25% | | ruuvak | 8/49 16% |
+| kethrak | 13/56 23% | | velari | 8/54 15% |
+| drovani | 13/58 22% | | nyx | 8/60 13% |
+| tarkhan | 12/55 22% | | seraphine | 6/56 11% |
+| raxxan | 10/48 21% | | thraal | 6/57 11% |
+| ixil | 11/53 21% | | vossari | 5/53 9% |
+| gorrath | 11/57 19% | | orrun | 3/55 5% |
+| lumen | 11/59 19% | | ashkari | 2/51 4% |
+
+- **Noise warning:** one small change reshuffles every game; the same race on the same seeds moved 0% -> 40% between production 1.05 and 1.08. Read single 54-game numbers as +-10%. Next: Orrun and Ashkari.

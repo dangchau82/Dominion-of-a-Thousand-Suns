@@ -85,7 +85,7 @@ const FOCUS: Record<AutopilotFocus, FocusKnobs> = {
 
 /** How seriously the AI plays at each difficulty. Same information and rules at every level. */
 const LEVEL = {
-  relaxed: { fleet: 0.5, edge: 0.6, firstWar: 110, warMood: 0.4, troops: 2.2 },
+  relaxed: { fleet: 0.5, edge: 0.6, firstWar: 140, warMood: 0.3, troops: 2.2 }, // 2026-11-26: firstWar 110 -> 140, warMood 0.4 -> 0.3 (relaxed started more wars than hard on the test seeds)
   normal: { fleet: 1, edge: 0, firstWar: 50, warMood: 1, troops: 1.7 },
   hard: { fleet: 1.35, edge: -0.25, firstWar: 35, warMood: 1.6, troops: 1.5 },
   // Master difficulty: the Master AI plays on top of the basic AI with hard-level fleets (it filters out wars of choice itself).

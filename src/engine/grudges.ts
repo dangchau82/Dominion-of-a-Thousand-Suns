@@ -42,7 +42,8 @@ export function fadeGrudges(state: GameState): void {
     if (!e.grudges) continue;
     const keep = grudgeKeep(e);
     for (const [id, g] of Object.entries(e.grudges)) {
-      g.points *= keep;
+      // Terran Accord: born brokers, forgiven twice as fast.
+      g.points *= state.empires[Number(id)]?.raceId === "humans" ? keep * keep : keep;
       if (g.points < 1) delete e.grudges[Number(id)];
     }
     if (!Object.keys(e.grudges).length) delete e.grudges;

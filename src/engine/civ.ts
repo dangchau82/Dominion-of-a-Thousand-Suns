@@ -203,6 +203,7 @@ export function hireLeader(state: GameState, e: Empire): string | null {
   if (e.leaders.length >= MAX_LEADERS) return `You can have ${MAX_LEADERS} leaders; dismiss one first`;
   if (e.treasury < l.cost) return "Not enough BC";
   e.treasury -= l.cost;
+  l.hiredTurn = state.turn;
   e.leaders.push(l);
   e.leaderOffer = null;
   return null;

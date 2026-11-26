@@ -207,6 +207,8 @@ export interface Leader {
   offerUntil: number;
   /** Personality trait id from LEADER_TRAITS (leaders from before save version 11 have none). */
   trait?: string;
+  /** Turn they entered service (see src/engine/leaderLives.ts). */
+  hiredTurn?: number;
 }
 
 export interface PendingEvent {

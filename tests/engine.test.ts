@@ -24,7 +24,7 @@ describe("formulas (classic rules)", () => {
   it("hostile worlds grow at half speed, except for the home climate", () => {
     const toxic: Planet = { ...terran, climate: "toxic", size: 40 };
     expect(popGrowth(20, toxic, race("humans"))).toBeCloseTo(0.5);
-    expect(popGrowth(20, toxic, race("thraal"))).toBeCloseTo(0.6); // ignores environment, 0.6 growth
+    expect(popGrowth(20, toxic, race("thraal"))).toBeCloseTo(0.5); // ignores environment, 0.5 growth
   });
   it("beam hit chance has a 5% floor", () => {
     expect(beamHitChance(0, 0, 0, 1)).toBeCloseTo(0.5);

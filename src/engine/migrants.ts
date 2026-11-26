@@ -23,7 +23,8 @@ export function migrantsThisTurn(state: GameState, e: Empire): number {
 
 function roomy(state: GameState, e: Empire): { c: Colony; space: number }[] {
   return Object.values(state.colonies)
-    .filter((c) => c.empireId === e.id && growsByMigrants(e, c))
+    // A colony whose star blew up (supernova) has no planet left and takes no migrants (2026-11-26: it crashed the game).
+    .filter((c) => c.empireId === e.id && growsByMigrants(e, c) && !!state.stars[c.starId]?.planet)
     .sort((a, b) => a.starId - b.starId)
     .map((c) => ({ c, space: planetCapacity(state.stars[c.starId]!.planet!, e) - c.population }))
     .filter((x) => x.space > 1e-9);

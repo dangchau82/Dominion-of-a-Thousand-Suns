@@ -35,6 +35,7 @@ import { edictShare, processDecrees } from "./decrees";
 import { growsByMigrants, processMigrants } from "./migrants";
 import { fadeGrudges } from "./grudges";
 import { processFirsts } from "./firsts";
+import { processLeaderLives } from "./leaderLives";
 import { distance as lightYears } from "./formulas";
 import { PRISON_COLONY } from "./data/hazardWorlds";
 import { canSee, updateVision } from "./knowledge";
@@ -241,6 +242,7 @@ export function endTurn(state: GameState): void {
   processMigrants(state);
   fadeGrudges(state);
   processCivilization(state);
+  processLeaderLives(state);
   processFirsts(state);
   processUnrest(state);
   processPrisons(state);
