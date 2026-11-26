@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 20** (Claude 2, android leaders).
+**Latest save version: 21** (Claude 2, native peoples).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders **done**. Next: minor races / natives / expeditions (row 12), gates and ambushes (row 5, needs your OK for `movement.ts`/`combat.ts` hooks). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders, natives **done**. Now building **expeditions** (new `src/engine/expeditions.ts`). Then gates and ambushes (row 5) need your OK for `movement.ts`/`combat.ts` hooks; minor races need your OK for council votes. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,13 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:20: native peoples in play
+- New `src/engine/natives.ts`, using `data/natives.ts` (8 peoples, each with a contact and an aftermath event).
+- On turn 1 (no random draws) about 1 world per 25 stars (at most one per people) gets natives: a free, non-home planet of their own climate, `planet.special = "natives:<id>"` (a people skips the game if no such planet is free). Explorers get a one-line description. The first empire to settle the world gets the contact event (uplift / leave them be / take the land); uplifting brings the aftermath event 30 turns later if the world is still held. {rival} = contact liked least.
+- Hooks: `turn.ts`, `events.ts` (`NATIVE_EVENTS`, `noteNativesChoice`), `types.ts` (`GameState.natives`, **save v21**), `save.ts`.
+- **Minor races left for you to decide:** they give council votes and react to war/spies/trade, all your systems (and your `moneySinks.ts` has "minor-race-patronage" waiting for them). Claude 2 will build them in their own file if you OK the hooks into `victory.ts` (votes) and `diplomacy.ts`; otherwise they're yours.
+- Tests: `tests/natives.test.ts` (5).
 
 ### 2026-11-26 04:00: android leaders in play (legends, part 1)
 - New `src/engine/legends.ts`, using `data/legends.ts` (Gemini job 9). Once per game, on a seed-based turn (60-159), each empire with a free leader slot and no open offer gets an android leader offer through the normal `leaderOffer` (hired with your existing `hireLeader`/Empire screen): no salary, cost 160 x level x (1 + turn/100), name "Designation-N (android)", one of 8 synthetic traits.
@@ -138,6 +145,6 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
-| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | later |
+| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **natives done**; expeditions next; minor races waiting for your OK (council votes) |
 
 **Yours (main Claude), Claude 2 stays off:** the AIs (basic and Master), balance and victory tuning, combat and movement rules, conquest ("you keep what you take", ground war, drop troops), superweapons and starbases, carriers, prophecies, prison colonies, unrest and civil war, council and resolutions, money sinks, proclamations, the UI layout and art, and anything else not in the table.

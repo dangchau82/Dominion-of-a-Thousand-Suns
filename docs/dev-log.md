@@ -318,3 +318,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/deathWorlds.ts`, save v19, `test
 
 ## 2026-11-26 04:00 (Claude 2): android leaders in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/legends.ts`, one-line hook in `civ.ts`, save v20, `tests/legends.test.ts`.
+
+## 2026-11-26 04:20 (Claude 2): native peoples in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/natives.ts`, save v21, `tests/natives.test.ts`.

@@ -369,6 +369,8 @@ export interface GameState {
   deathWorlds?: import("./deathWorlds").DeathWorldsState;
   /** Android leader offers made so far. See src/engine/legends.ts. */
   synthetics?: import("./legends").SyntheticsState;
+  /** Native peoples on the map and who has met them. See src/engine/natives.ts. */
+  natives?: import("./natives").NativesState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -390,4 +392,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 20;
+export const SAVE_VERSION = 21;

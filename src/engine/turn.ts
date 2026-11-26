@@ -15,6 +15,7 @@ import { processInfestation } from "./infestation";
 import { processContracts } from "./contracts";
 import { processDeathWorlds } from "./deathWorlds";
 import { processSynthetics } from "./legends";
+import { processNatives } from "./natives";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -233,6 +234,7 @@ export function endTurn(state: GameState): void {
   processContracts(state);
   processDeathWorlds(state);
   processSynthetics(state);
+  processNatives(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);
