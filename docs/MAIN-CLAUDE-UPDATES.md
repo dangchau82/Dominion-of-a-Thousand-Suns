@@ -39,6 +39,11 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 03:40: grudges, governing distance, subject votes
+- New `src/engine/grudges.ts` (`addGrudge`, `fadeGrudges`); `Empire.grudges` (optional, no save bump). Hooks: `diplomacy.ts` (`breakTreaty`, `updateRelations`), `combat.ts` (`declareWar`, invasion capture, `cedeColonies`), `turn.ts`, `view.ts` (`KnownEmpire.grudge`), `basicAI.ts` (war targets), `ui/game.ts` (diplomacy screen).
+- `turn.ts`: `distanceCost` in `colonyBudget`. `victory.ts`: `votingPopulation` (subject peoples count half).
+- If your new content moves people between empires, `onCapture` sets `peopleRaceId`, which is what the half-vote rule reads.
+
 ### 2026-11-26 02:30: peace terms (cede worlds for peace)
 - `ProposalKind` "cede" + `Proposal.stars` (`types.ts`), `checkProposal`/`describeProposal`/`answerProposal` (`diplomacy.ts`, new optional `cede` callback), `cedeColonies` (`combat.ts`), `commands.ts` respond, `basicAI.ts` (asks and answers), `ui/game.ts` diplomacy screen. No save bump (optional field).
 

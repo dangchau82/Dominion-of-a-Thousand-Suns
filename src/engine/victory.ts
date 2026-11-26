@@ -37,10 +37,19 @@ export function population(state: GameState, e: Empire): number {
   return Object.values(state.colonies).filter((c) => c.empireId === e.id).reduce((a, c) => a + c.population, 0);
 }
 
-/** Council votes: one per 25 population; the Hall of Many Voices adds a fifth more. */
+/** Conquered or handed-over peoples (another race living under us) count for this share of their population in council votes. */
+export const SUBJECT_VOTE_SHARE = 0.5;
+
+/** Population that votes for this empire: its own people in full, subject peoples at SUBJECT_VOTE_SHARE. */
+export function votingPopulation(state: GameState, e: Empire): number {
+  return Object.values(state.colonies).filter((c) => c.empireId === e.id)
+    .reduce((a, c) => a + c.population * (c.peopleRaceId && c.peopleRaceId !== e.raceId ? SUBJECT_VOTE_SHARE : 1), 0);
+}
+
+/** Council votes: one per 25 voting population; the Hall of Many Voices adds a fifth more. */
 export function votesOf(state: GameState, e: Empire): number {
   if (!e.alive) return 0;
-  const base = Math.max(1, Math.round(population(state, e) / POP_PER_VOTE));
+  const base = Math.max(1, Math.round(votingPopulation(state, e) / POP_PER_VOTE));
   const lobby = e.councilBoost && e.councilBoost.until > state.turn ? e.councilBoost.votes : 0;
   return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base) + lobby;
 }

@@ -16,6 +16,7 @@ import { bestBeam, fighterStats, fightersPerShip, shipDesign } from "./designs";
 import { beamHitChance } from "./formulas";
 import { empireRace, newColony, shipCount } from "./game";
 import { onCapture } from "./unrest";
+import { addGrudge, GRUDGE } from "./grudges";
 import * as R from "./rng";
 import { techStats } from "./tech";
 import type { Colony, Empire, Fleet, GameState, Id, Star } from "./types";
@@ -372,6 +373,7 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
     onCapture(state, captured, old, owner, attacker);
     transferWonders(state, s.id, attacker);
     state.colonies[s.id] = captured;
+    addGrudge(state, owner, attacker, GRUDGE.tookWorld, `took ${s.name}`);
     const text = `The ${attacker.name} captured ${s.name} with ${plural(att, "surviving troop")}.`;
     state.events.push({ turn: state.turn, empireId: attacker.id, kind: "invasion", starId: s.id, text });
     state.events.push({ turn: state.turn, empireId: owner.id, kind: "invasion", starId: s.id, text });
@@ -457,6 +459,7 @@ export function declareWar(state: GameState, a: Empire, b: Empire): void {
   // Breaking a pact to attack is remembered by the victim.
   for (const k of treatiesWith(a, b)) breakTreaty(state, a, b, k);
   adjustRelation(b, a, -30);
+  addGrudge(state, b, a, GRUDGE.declaredWar, "declared war on us");
   a.atWar[b.id] = state.turn;
   b.atWar[a.id] = state.turn;
   if (!a.isPlayer) state.events.push({ turn: state.turn, empireId: b.id, kind: "war", text: say(state.turn, a, "declareWar", b) });
@@ -479,6 +482,7 @@ export function cedeColonies(state: GameState, winner: Empire, loser: Empire, st
     transferWonders(state, id, winner);
     state.colonies[id] = c;
     names.push(state.stars[id]!.name);
+    addGrudge(state, loser, winner, GRUDGE.forcedWorld, `forced us to give up ${state.stars[id]!.name}`);
   }
   delete winner.atWar[loser.id];
   delete loser.atWar[winner.id];

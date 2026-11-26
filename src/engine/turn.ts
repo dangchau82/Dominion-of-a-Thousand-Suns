@@ -33,6 +33,8 @@ import { processResolutions } from "./resolutions";
 import { processPrisons } from "./prison";
 import { edictShare, processDecrees } from "./decrees";
 import { growsByMigrants, processMigrants } from "./migrants";
+import { fadeGrudges } from "./grudges";
+import { distance as lightYears } from "./formulas";
 import { PRISON_COLONY } from "./data/hazardWorlds";
 import { updateVision } from "./knowledge";
 import { mergeFleets, moveFleets } from "./movement";
@@ -40,6 +42,20 @@ import { FIELDS, type Colony, type Empire, type GameEvent, type GameState, type 
 
 /** Share of unused BC that goes to the treasury instead of being lost. */
 export const LEFTOVER_TO_TREASURY = 0.5;
+
+/** Governing distance: a colony far from the capital loses part of its output to the cost of ruling it from afar.
+ *  DISTANCE_FREE ly are free; each light-year beyond costs DISTANCE_COST, up to DISTANCE_MAX. A brake on sprawling
+ *  empires and far-off conquests. (Idea from Danny's second Claude session, as output rather than money; 2026-11-26.) */
+export const DISTANCE_FREE = 8;
+export const DISTANCE_COST = 0.01;
+export const DISTANCE_MAX = 0.2;
+export function distanceCost(state: GameState, c: Colony): number {
+  const e = state.empires[c.empireId];
+  if (!e || c.isCapital) return 0;
+  const home = state.stars[e.capitalStarId], s = state.stars[c.starId];
+  if (!home || !s) return 0;
+  return Math.min(DISTANCE_MAX, Math.max(0, lightYears(home.x, home.y, s.x, s.y) - DISTANCE_FREE) * DISTANCE_COST);
+}
 
 /** Running a big empire costs money: upkeep grows faster than the colony count, so hoards and runaway sprawl are checked. */
 export function imperialUpkeep(colonies: number): number {
@@ -63,7 +79,7 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   const ce = colonyEffects(c);
   const eb = empireBonus(e);
   // Unrest cuts output (up to 25% at open revolt).
-  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1) * (1 + edictShare(c, "production"));
+  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1) * (1 + edictShare(c, "production")) * (1 - distanceCost(state, c));
   // Spies and internal security are paid first, out of every colony's output.
   const net = boosted * (1 - spendingShare(e));
   const part = (pct: number) => (net * pct) / 100;
@@ -221,6 +237,7 @@ export function endTurn(state: GameState): void {
   }
 
   processMigrants(state);
+  fadeGrudges(state);
   processCivilization(state);
   processUnrest(state);
   processPrisons(state);

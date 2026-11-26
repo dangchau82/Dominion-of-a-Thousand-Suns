@@ -2,6 +2,7 @@
 // The same rules for every empire. AI empires answer proposals from their
 // own EmpireView through the same "respond" command the player uses.
 
+import { addGrudge, grudgeAgainst, GRUDGE } from "./grudges";
 import { underRule } from "./resolutions";
 import { race } from "./data/races";
 import { SPY_MISSION_TEXTS } from "./data/unrest";
@@ -63,6 +64,7 @@ export function breakTreaty(state: GameState, a: Empire, b: Empire, k: TreatyKin
   delete a.treaties[b.id]![k];
   delete b.treaties[a.id]![k];
   adjustRelation(b, a, k === "alliance" ? -35 : k === "nap" ? -25 : -10);
+  addGrudge(state, b, a, k === "alliance" ? GRUDGE.brokeAlliance : k === "nap" ? GRUDGE.brokePact : GRUDGE.brokeTreaty, `broke our ${TREATY_NAMES[k]}`);
   event(state, null, "diplomacy", `The ${a.name} broke their ${TREATY_NAMES[k]} with the ${b.name}.`);
   // The betrayed side tells the betrayer what it thinks of them, once (war breaks every treaty at once).
   const anyLeft = Object.keys(a.treaties[b.id] ?? {}).length > 0;
@@ -275,6 +277,7 @@ export function updateRelations(state: GameState): void {
       }
       base -= Math.min(6, friction) * 5;
       if (Object.keys(a.atWar).some((id) => b.atWar[Number(id)] !== undefined)) base += 15;
+      base -= grudgeAgainst(a, b.id);
       a.relations[b.id] = clamp(relation(a, b) + (base - relation(a, b)) * 0.05, -100, 100);
     }
   }

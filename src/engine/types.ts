@@ -161,6 +161,8 @@ export interface Empire {
   recentEvents?: string[];
   /** What the AI concentrates on when it runs this empire (rivals, or the player's autopilot). */
   focus?: AutopilotFocus;
+  /** What this empire holds against others (see src/engine/grudges.ts). */
+  grudges?: Record<Id, import("./grudges").Grudge>;
   /** Areas the player has taken back from the autopilot: it leaves them exactly as the player set them. */
   autoOff?: AutoArea[];
   /** Player option: idle scouts explore on their own each turn. */

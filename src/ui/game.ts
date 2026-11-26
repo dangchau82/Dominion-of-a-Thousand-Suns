@@ -1035,7 +1035,12 @@ export class GameScreen {
         const greet = reply || say(v.turn, them, o.warSince !== null ? "threaten" : "greeting", this.state.empires[PLAYER]!);
         box.innerHTML = `<div class="empire-card big">${portraitHTML(o.raceId)}<div><h2 style="margin:0;color:${o.color}">${esc(o.name)}</h2>
           <div class="dim">${race(o.raceId).name} · ${moodWord(o.attitude)} toward you (${o.attitude > 0 ? "+" : ""}${o.attitude})</div></div></div>
-          <div class="quote" style="margin:8px 0">${esc(greet)}</div>`;
+          <div class="quote" style="margin:8px 0">${esc(greet)}</div>${(() => {
+            const mine = this.state.empires[id]!.grudges?.[PLAYER];
+            const ours = o.grudge;
+            const line = (who: string, g: { points: number; reasons: string[] }) => `<div class="dim" style="font-size:12px">${who} (${Math.round(g.points)}): ${g.reasons.map(esc).join(" · ")}</div>`;
+            return (mine && o.attitude !== undefined ? line("They remember", mine) : "") + (ours ? line("You remember", ours) : "");
+          })()}`;
         const ask = (proposal: Record<string, unknown>) => {
           const before = this.state.events.length;
           if (!this.cmd({ type: "propose", to: id, proposal: proposal as never })) return;

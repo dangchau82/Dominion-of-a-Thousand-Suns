@@ -57,6 +57,8 @@ export interface KnownEmpire {
   ourTechs: string[];
   /** Our spy network against them. */
   spies: SpyNetwork | null;
+  /** What we hold against them: points (pull our feelings down) and the reasons we remember. */
+  grudge: { points: number; reasons: string[] } | null;
 }
 
 export interface ColonyInfo extends Colony {
@@ -157,6 +159,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       warSince: e.atWar[o.id] ?? null, offersPeace: e.peaceOffers.includes(o.id), weOfferedPeace: o.peaceOffers.includes(e.id),
       attitude: Math.round(relation(o, e)), ourFeeling: Math.round(relation(e, o)), treaties: treatiesWith(e, o),
       theirTechs: tradeableTechs(o, e), ourTechs: tradeableTechs(e, o), spies: e.spies[o.id] ? { ...e.spies[o.id]! } : null,
+      grudge: e.grudges?.[o.id] ? { points: Math.round(e.grudges[o.id]!.points), reasons: [...e.grudges[o.id]!.reasons] } : null,
     };
   });
 

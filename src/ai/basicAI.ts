@@ -192,7 +192,8 @@ function diplomacy(ctx: Ctx): void {
       const cols = enemyColonies(ctx, c.id);
       const near = cols.length ? Math.min(...cols.map((x) => dist(x.star, nearestColony(ctx, x.star) ? ctx.starById.get(nearestColony(ctx, x.star)!.starId)! : x.star))) : 99;
       const theirs = knownPop(ctx, c.id);
-      return { c, near, ratio: mine / Math.max(1, theirs), cols: cols.length };
+      // Old wrongs make a target more tempting: up to a third more for a full grudge.
+      return { c, near, ratio: (mine / Math.max(1, theirs)) * (1 + (c.grudge?.points ?? 0) / 180), cols: cols.length };
     })
     .filter((x) => x.cols > 0 && x.near <= 8)
     .sort((a, b) => b.ratio - a.ratio);
