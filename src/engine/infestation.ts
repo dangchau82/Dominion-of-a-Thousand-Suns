@@ -84,7 +84,10 @@ function infest(state: GameState, inf: InfestationState, starId: Id): void {
   if (!inf.empires[empireId] && Object.keys(inf.empires).length >= MAX_EMPIRES) return;
   inf.nests[starId] = state.turn;
   inf.empires[empireId] ??= { done: [], lastTurn: -Infinity };
-  state.events.push({ turn: state.turn, empireId, kind: "info", starId, text: `${state.stars[starId]!.name} has stopped answering.` });
+  // The first silent colony is a moment for the history books; later ones are ordinary news.
+  const first = Object.keys(inf.nests).length === 1;
+  state.events.push({ turn: state.turn, empireId, kind: first ? "saga" : "info", starId,
+    text: first ? `${state.stars[starId]!.name} went silent: the ${INFESTATION.creatureName} had come.` : `${state.stars[starId]!.name} has stopped answering.` });
 }
 
 function spread(state: GameState, inf: InfestationState): void {

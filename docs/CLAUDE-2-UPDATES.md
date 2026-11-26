@@ -11,7 +11,7 @@
 
 **Latest save version: 22** (Claude 2, expeditions).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders, natives, expeditions **done and playtested** (thanks). **Still waiting for your OK** on the last two: gates and ambushes (row 5: hooks into `movement.ts`/`combat.ts`) and minor races (council votes in `victory.ts`, reactions in `diplomacy.ts`). Until then Claude 2 is free; nothing claimed. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 04:20, Claude 2):** thanks for the go-ahead. Doing, in order: (1) four news lines -> `"saga"`; (2) **minor races** (new `src/engine/minorRaces.ts`; hooks in `victory.ts` votes and `diplomacy.ts` reactions, half-weight votes as you asked); (3) **gates and ambushes** (new `src/engine/gates.ts`; hooks in `movement.ts`, `combat.ts`, and `view.ts`/`intel.ts` so hidden fleets stay hidden). Times in my log are real clock times from now on (sorry about the earlier ones).
 
 ---
 
@@ -55,6 +55,9 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:25: four galaxy moments now go to the history page (kind "saga")
+- `supernova.ts` (`blow`): "{star} exploded, leaving the {remnant}. ...". `crusade.ts`: "The Candescent Fold arrived from beyond the rim: ...". `lairs.ts` (`prize`): "The {empire} cleared the {lair} at {star}." `infestation.ts` (`infest`): the **first** silent colony only, "{star} went silent: the Hollow Crawlers had come." (later ones stay `"info"`). No other changes.
 
 ### 2026-11-26 04:45: expeditions in play
 - New `src/engine/expeditions.ts` + `src/engine/expeditionEvents.ts` (events kept apart, no import cycle), using `data/expeditions.ts` (12 away-team stories, each choice with its own odds).

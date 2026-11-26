@@ -176,8 +176,8 @@ function blow(state: GameState, nova: SupernovaState): void {
   s.planet = null;
   nova.remnantId = REMNANTS[(nova.starId + seedNumber(state)) % REMNANTS.length]!.id;
   const remnant = REMNANTS.find((r) => r.id === nova.remnantId)!;
-  state.events.push({ turn: state.turn, empireId: null, kind: "info", starId: s.id,
-    text: `${s.name} has exploded! What remains is the ${remnant.name}: ${remnant.description} Ships stationed there learn from it.` });
+  state.events.push({ turn: state.turn, empireId: null, kind: "saga", starId: s.id,
+    text: `${s.name} exploded, leaving the ${remnant.name}. ${remnant.description} Ships stationed there learn from it.` });
   for (const id of nova.affected) {
     const e = state.empires[id]!;
     if (e.alive && nearestColony(state, e, s.id) !== null) pushEvent(state, e, AFTERMATH_ID[nova.plans[id] ?? "stayed"], s.id);

@@ -117,7 +117,7 @@ function prize(state: GameState, e: Empire, lair: LairState, def: LairDef): void
   lair.clearedBy = e.id;
   const s = state.stars[lair.starId]!;
   state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: s.id, text: `${def.name} cleared! ${def.victoryText.replace(/\{star\}/g, s.name)}` });
-  state.events.push({ turn: state.turn, empireId: null, kind: "info", starId: s.id, text: `The ${e.name} cleared the ${def.name} at ${s.name}.` });
+  state.events.push({ turn: state.turn, empireId: null, kind: "saga", starId: s.id, text: `The ${e.name} cleared the ${def.name} at ${s.name}.` });
 }
 
 function scout(state: GameState, lair: LairState, def: LairDef): void {
