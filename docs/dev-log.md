@@ -211,3 +211,10 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - 19:15 Gemini Set B (moving scenes): first clip in, `public/art/scenes-video/ruuvak-science.mp4` (17a, egg hatching, plays once). Not shown in game yet; wire up with the scene pictures.
 - 19:15 Set B 17b in: `ruuvak-war.mp4` (guarding the nest, frill lowers; little battle damage shown, plays once).
 - 19:17 Set B 17c in: `ruuvak-invasion.mp4` (ships lower eggs onto the captured world, she blesses the nests; only 640x360 from Gemini).
+
+## 2026-11-25 19:25 Why-won report (new tool, no rule changes)
+- `tools/why-won.test.ts`: plays AI-only games and reads the chronicle to find the first turn from which the winner stayed #1 in each stat (colonies, population, factories, techs, fleet, culture), plus its ranks at T50/100/150. Run: `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 3 minutes; JSON in /tmp/why-won.json).
+- **54 medium games, seeds 3000+ (code at 835e7db):** culture 28, council 13, tech 7, conquest 0, no winner 6.
+- **Quorai:** won 6 of 22, all by culture; in all 6 they were #1 in colonies by T100 and never lost it. Only 11 of the other 42 winners led in colonies at T100. Their edge is early expansion.
+- **Snowball:** the median winner locks its first lasting lead 167 turns before the game ends. First stat locked: colonies 14, techs 10, culture 9, fleet 7, factories 6.
+- Next candidate (from the ideas review): Quorai colonies grow only from homeworld migrants; re-run these seeds.
