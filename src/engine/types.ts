@@ -156,6 +156,12 @@ export interface Empire {
   giftWarmth?: Record<Id, { since: number; used: number }>;
   /** Which AI runs this empire (rivals, or the player's autopilot). Unset = from difficulty. */
   ai?: AiBrain;
+  /** Treasury projects (money sinks): turn each can be bought again. */
+  sinkReady?: Record<string, number>;
+  /** Trade bonds waiting to pay out. */
+  bonds?: { sinkId: string; amount: number; matures: number }[];
+  /** Extra council votes from lobbying, until a turn. */
+  councilBoost?: { votes: number; until: number };
   /** Rebel empires: the empire they broke away from in a civil war. */
   rebelOf?: Id;
 }

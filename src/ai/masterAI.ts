@@ -63,6 +63,7 @@ export function masterAITurn(view: EmpireView): Command[] {
     if (cmd.type === "declareWar" && !nearlyWinning(view, cmd.targetId)) continue;
     if (cmd.type === "buyBuilding" || cmd.type === "fundShips" || cmd.type === "councilVote" || cmd.type === "setBuilding") continue;
     if (cmd.type === "gift") treasury -= cmd.bc;
+    if (cmd.type === "investSink") treasury -= view.moneySinks.find((s) => s.id === cmd.sinkId)?.cost ?? 0;
     if (cmd.type === "hireLeader") treasury -= me.leaderOffer?.cost ?? 0;
     out.push(cmd);
   }
@@ -101,6 +102,14 @@ export function masterAITurn(view: EmpireView): Command[] {
       out.push({ type: "gift", to: v.c.id, bc });
       treasury -= bc;
     }
+  }
+
+  // Lobbying (a treasury project) just before a council we can win.
+  const lobby = view.moneySinks.find((s) => s.id === "council-lobbying");
+  if (lobby && !lobby.why && contender && view.council.nextTurn - view.turn <= 10 && view.council.nextTurn > view.turn
+    && treasury >= lobby.cost + 400 && !out.some((c) => c.type === "investSink")) {
+    out.push({ type: "investSink", sinkId: lobby.id });
+    treasury -= lobby.cost;
   }
 
   // 4. Buildings: culture and growth first, wonders at the best yard.

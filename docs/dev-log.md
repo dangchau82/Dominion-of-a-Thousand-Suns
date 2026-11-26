@@ -168,3 +168,10 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - **Balance** (54 medium games, seeds 3000+): culture 26, council 18, tech 5, no winner 5, median end T330 (before: 25/18/6/5, T330). Unchanged.
 - Tests: `tests/carriers.test.ts`.
 - Also: `docs/gemini-art-jobs.md` (title screen, cutscenes, battle art, UI mock-ups, Ashkari video) for Gemini.
+
+## 2026-11-25 17:10 Treasury projects (money sinks) in play, from Gemini's `data/moneySinks.ts`
+- **Rules** (`src/engine/moneySinks.ts`, command `investSink`, `EmpireView.moneySinks`): 5 projects, each with a cost that grows with turn and colony count and a cooldown. Privateer Armada Charter (warships of your best design worth 1.1x the price at the capital, 15% the captains skim and raid), Crash-Program Institute (0.45 research per BC into your weakest field), Delegate Syndicate Retainer (extra council votes = 4% of all votes for 15 turns; 20% leak: 2% and angry rivals), Imperial Monument Bonds (0.45 wonder progress per BC; never the Ascension Gate), Freeport Venture Syndicate (10-turn bond paying 1.3x / 0.95x / 0.3x, 0.98x on average; rolled at maturity). Minor-race patronage stays off until minor races are in play. No save bump (optional fields).
+- **AI:** one project a turn from surplus after buildings: mercenaries when at war, wonder rush, research grant, bonds in peace; the Master AI also lobbies before a council it can win.
+- **UI:** Empire screen, "Treasury projects" with costs, reasons and Buy buttons; bonds listed with their pay-out turn.
+- **Result** (54 medium games, seeds 3000+): AIs buy 150-200 projects a game (`tools/treasury-probe.test.ts`). Median final treasury 2243 -> 2017; wins culture 24, council 18, tech 7, none 5, median end T334 (before 26/18/5/5, T330). **The hoard is only a little smaller:** AI income swings by thousands a turn late in the game, which a few cooldown-limited projects can't absorb. The real fix is in the economy (e.g. leftover-to-treasury 50% -> 30%, or upkeep on fleets); not done, needs a balance round of its own.
+- Tests: `tests/moneySinks.test.ts`.

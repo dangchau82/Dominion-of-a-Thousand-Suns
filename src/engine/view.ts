@@ -7,6 +7,7 @@ import { describeProposal, relation, tradeableTechs, treatiesWith } from "./dipl
 import { buildable, buyCost } from "./civ";
 import { techVictoryProgress, votesOf } from "./victory";
 import { canSettleStarless } from "./abilities";
+import { sinkOptions, type SinkOption } from "./moneySinks";
 import { describeEvent, eventsFor } from "./events";
 import type { EventEffect } from "./data/events";
 import { GOLDEN_AGE_AT } from "./data/buildings";
@@ -106,6 +107,8 @@ export interface EmpireView {
     /** Current research project and its cost in each field. */
     projects: Record<ResearchField, ResearchProject | null>;
   };
+  /** Treasury projects we could buy (money sinks), with cost and what stops us. */
+  moneySinks: SinkOption[];
   /** Buildings a colony of ours could start now. */
   buildable(starId: Id): string[];
   /** BC to finish a colony's current building now. */
@@ -183,6 +186,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       workerProductivity: workerProductivity(e, r), popCost: popCost(e), terraform: ts.terraform,
       growthBonus: ts.growth, researchBonus: ts.research, projects,
     },
+    moneySinks: sinkOptions(state, e),
     buildable: (starId) => {
       const c = state.colonies[starId];
       return c && c.empireId === empireId ? buildable(state, e, c).map((b) => b.id) : [];

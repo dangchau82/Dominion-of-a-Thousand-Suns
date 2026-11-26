@@ -1431,6 +1431,20 @@ export class GameScreen {
           lead.append(row);
         }
         box.append(lead);
+        // Treasury projects (money sinks): somewhere to put a big treasury.
+        const sinks = el("div", { class: "tech-card" });
+        sinks.innerHTML = `<b>Treasury projects</b> <span class="dim">· spend a big treasury · ${fmt(me.treasury)} BC</span>`;
+        const vNow = makeView(this.state, PLAYER);
+        for (const s of vNow.moneySinks) {
+          const row = el("div", { class: "design-row", style: "margin-top:6px" }, `<span style="flex:1"><b>${esc(s.name)}</b> <span class="dim">· ${s.cost} BC${s.why ? ` · ${esc(s.why)}` : ""}</span><div class="dim" style="font-size:12px">${esc(s.description)}</div></span>`);
+          const buy = el("button", { class: "small primary" }, `Buy (${s.cost} BC)`);
+          buy.disabled = !!s.why;
+          buy.onclick = () => { if (this.cmd({ type: "investSink", sinkId: s.id })) { autosave(this.state); draw(); } };
+          row.append(buy);
+          sinks.append(row);
+        }
+        for (const b of me.bonds ?? []) sinks.append(el("div", { class: "dim", style: "margin-top:4px" }, `Bond of ${b.amount} BC pays out on turn ${b.matures}.`));
+        box.append(sinks);
         const won = el("div", { class: "tech-card" });
         won.innerHTML = `<b>Wonders of the galaxy</b>`;
         for (const b of BUILDINGS.filter((x) => x.wonder)) {

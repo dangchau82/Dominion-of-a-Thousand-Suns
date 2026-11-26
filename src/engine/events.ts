@@ -67,12 +67,13 @@ export function resolveEvent(state: GameState, p: PendingEvent, choice: number):
   if (!def || !c) return "No such choice";
   state.pendingEvents = state.pendingEvents.filter((x) => x.id !== p.id);
   const e = state.empires[p.empireId]!;
-  for (const fx of c.effects) apply(state, e, p, fx);
+  for (const fx of c.effects) applyEffect(state, e, p, fx);
   state.events.push({ turn: state.turn, empireId: e.id, kind: "info", text: `${def.title}: ${fill(c.result, state, p)}` });
   return null;
 }
 
-function apply(state: GameState, e: Empire, p: PendingEvent, fx: EventEffect): void {
+/** Apply one event effect to an empire (also used by money sinks). */
+export function applyEffect(state: GameState, e: Empire, p: PendingEvent, fx: EventEffect): void {
   const colony = (p.colonyStarId !== null && state.colonies[p.colonyStarId]?.empireId === e.id ? state.colonies[p.colonyStarId] : undefined)
     ?? state.colonies[e.capitalStarId];
   switch (fx.kind) {

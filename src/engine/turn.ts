@@ -16,6 +16,7 @@ import {
 } from "./formulas";
 import { empireRace } from "./game";
 import { processUnrest, unrestPenalty } from "./unrest";
+import { processMoneySinks } from "./moneySinks";
 import { updateVision } from "./knowledge";
 import { mergeFleets, moveFleets } from "./movement";
 import { FIELDS, type Colony, type Empire, type GameEvent, type GameState, type Star } from "./types";
@@ -202,6 +203,7 @@ export function endTurn(state: GameState): void {
 
   processCivilization(state);
   processUnrest(state);
+  processMoneySinks(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

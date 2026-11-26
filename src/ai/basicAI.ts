@@ -339,6 +339,8 @@ function civilization(ctx: Ctx): void {
     const cost = view.buyCost(c.starId);
     if (cost > 0 && cost <= spare * 0.5) { cmds.push({ type: "buyBuilding", starId: c.starId }); spare -= cost; }
   }
+  // Treasury projects (money sinks): at most one a turn, only from real surplus.
+  spare -= treasuryProject(ctx, spare);
   // Fund every shipyard, warship yards first, so a big hoard turns into ships instead of piling up.
   const yards = view.colonies
     .filter((c) => c.buildTemplate)
@@ -350,6 +352,23 @@ function civilization(ctx: Ctx): void {
     cmds.push({ type: "fundShips", starId: yard.starId, bc });
     pool -= bc;
   }
+}
+
+/** Pick one treasury project to buy with surplus money; returns what it costs (0 if none). */
+function treasuryProject(ctx: Ctx, spare: number): number {
+  const { view } = ctx;
+  const ok = (id: string, margin: number) => {
+    const o = view.moneySinks.find((s) => s.id === id);
+    return o && !o.why && spare >= o.cost + margin ? o : undefined;
+  };
+  const choice =
+    (ctx.wars.length > 0 && ok("mercenary-contract", 300)) ||
+    ok("wonder-rush-grant", 300) ||
+    ok("emergency-research-grant", 300 + (1 - ctx.curiosity) * 500) ||
+    (ctx.wars.length === 0 && ok("interstellar-exchange", 1000));
+  if (!choice) return 0;
+  ctx.cmds.push({ type: "investSink", sinkId: choice.id });
+  return choice.cost;
 }
 
 // ---------- random events ----------

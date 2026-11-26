@@ -1,6 +1,7 @@
 // Every action a player OR an AI can take goes through applyCommand.
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
+import { investSink } from "./moneySinks";
 import { researchChoices } from "./tech";
 import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
 import { buildable, buyCost, hireLeader, progressBuilding } from "./civ";
@@ -37,6 +38,7 @@ export type Command =
   | { type: "setFocus"; focus: AutopilotFocus }
   | { type: "setAutoExplore"; on: boolean }
   | { type: "setAutopilotAI"; ai: "basic" | "master" }
+  | { type: "investSink"; sinkId: string; starId?: Id }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -249,6 +251,10 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if (!(AUTOPILOT_FOCI as readonly string[]).includes(cmd.focus)) return fail("Unknown focus");
       e.focus = cmd.focus;
       return { ok: true };
+    }
+    case "investSink": {
+      const err = investSink(state, e, cmd.sinkId, cmd.starId);
+      return err ? fail(err) : { ok: true };
     }
     case "setAutopilotAI": {
       if (cmd.ai !== "basic" && cmd.ai !== "master") return fail("Unknown AI");

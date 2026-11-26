@@ -27,7 +27,8 @@ export function population(state: GameState, e: Empire): number {
 export function votesOf(state: GameState, e: Empire): number {
   if (!e.alive) return 0;
   const base = Math.max(1, Math.round(population(state, e) / POP_PER_VOTE));
-  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base);
+  const lobby = e.councilBoost && e.councilBoost.until > state.turn ? e.councilBoost.votes : 0;
+  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base) + lobby;
 }
 
 export function techVictoryProgress(e: Empire): number {
