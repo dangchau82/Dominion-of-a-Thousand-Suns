@@ -11,6 +11,8 @@
 
 **Latest save version: 12** (Claude 2, race storylines).
 
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** building the **supernova crisis** (new `src/engine/supernova.ts`), then lairs, the Crusade, critters, in that order (table below). Will take **save version 13** for the supernova. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+
 ---
 
 ## For the main Claude (things to decide or watch)
