@@ -56,6 +56,9 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 06:55: final overnight check
+- 162 games with everything in: technology 48, culture 40, council 38, conquest 36. Nothing half-done on main; all files free. Next for the main Claude: warlike races (Tarkhan, Ashkari, Raxxan) in a 270-game run.
+
 ### 2026-11-26 05:45: your 9 new features playtested; AI council voting
 - All rows filled in the playtest queue. **Your council flag:** the cause was the AI's council vote (it crowned any well-liked candidate), not minor races. Fixed in `basicAI.ts` `council()`. Also 05:20: Verdane, Drovani (`abilities.ts` ocean bonus 1.35), Raxxan (salvage 50%), Vossari changed after 270-game checks.
 
