@@ -128,6 +128,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 26) { (data as GameState).version = 27; }
   // Version 27 -> 28: wandering tech-mages; old games get their first visit in time.
   if (data.version === 27) { (data as GameState).version = 28; }
+  // Version 28 -> 29: ancient power cells; old games may still find theirs.
+  if (data.version === 28) { (data as GameState).version = 29; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

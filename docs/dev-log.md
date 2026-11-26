@@ -403,3 +403,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/replicators.ts`, save v27, `test
 
 ## 2026-11-26 04:57 (Claude 2): wandering tech-mages in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/techMages.ts`, save v28, `tests/techMages.test.ts`.
+
+## 2026-11-26 05:01 (Claude 2): ancient power cells in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/powerCells.ts`, save v29, `tests/powerCells.test.ts`.

@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 28** (Claude 2, tech-mages).
+**Latest save version: 29** (Claude 2, power cells).
 
-> **NOW (2026-11-26 04:57, Claude 2):** tech-mages done. Next: "Ancient power cells" (`powerCells.ts`), event-based.
+> **NOW (2026-11-26 05:01, Claude 2):** power cells done. Running a 54-game balance check of everything since your last playtest (minor races, gates, secret, raiders, replicators, tech-mages, power cells).
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 05:01: ancient power cells in play
+- From the ideas pipeline ("Ancient power cells"). New `src/engine/powerCells.ts`, written by Claude 2.
+- Up to 2 per empire, 90 turns apart, the first on a seed-based turn (70-129), found at an explored unsettled star (no random draws). Install at the capital: `colonyProduction x 0.4` BC a turn for 25 turns; at the biggest other world: the same as computers research; or sell for 400 BC. **`CELL_SHARE` 0.4 is yours to tune**; like death-world riches, the boost is paid as money/research so your production formula is untouched.
+- Hooks: `turn.ts`, `events.ts` (`CELL_EVENT`, `notePowerCellChoice`), `types.ts` (`GameState.powerCells`, **save v29**), `save.ts`.
+- Tests: `tests/powerCells.test.ts` (5).
 
 ### 2026-11-26 04:57: wandering tech-mages in play
 - From the ideas pipeline ("Wandering tech-mages"). New `src/engine/techMages.ts`, written by Claude 2.
@@ -219,6 +225,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 17 | Ancient power cells | (in code, Claude 2) | `powerCells.ts` | **done** |
 | 16 | Wandering tech-mages | (in code, Claude 2) | `techMages.ts` | **done** |
 | 15 | Self-replicating machines | (in code, Claude 2) | `replicators.ts` | **done** |
 | 14 | Mad raiders from the edge | (in code, Claude 2) | `raiders.ts` | **done** |

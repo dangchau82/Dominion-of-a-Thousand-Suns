@@ -395,6 +395,8 @@ export interface GameState {
   replicators?: import("./replicators").ReplicatorState;
   /** Wandering tech-mages' visits per empire. See src/engine/techMages.ts. */
   techMages?: Record<Id, import("./techMages").MageVisit>;
+  /** Ancient power cells found and running, per empire. See src/engine/powerCells.ts. */
+  powerCells?: Record<Id, import("./powerCells").PowerCellState>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -416,4 +418,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 28;
+export const SAVE_VERSION = 29;
