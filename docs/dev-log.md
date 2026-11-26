@@ -202,3 +202,8 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - Gemini wrote `src/engine/prison.ts` (breakout events on prison colonies, same pattern as unrest events) and `tests/prison.test.ts`; its reply 2 (the small edits) never reached Claude, so Claude wired those from the job spec: `Colony.prison` (optional, no save bump), command `declarePrison` (own non-capital colony, 220 BC and a little culture), +25% output in `colonyBudget`, "+15 Prison colony" in the unrest reasons, `PRISON_EVENTS` findable by `EVENT_BY_ID`, `processPrisons` after `processUnrest`. Colony panel: "⛓️ Make prison colony" button.
 - **Gemini's score:** real functions only, compiled first time, deterministic, 4 of 5 tests right. The fifth expected the unrest target to rise by exactly 15, but targets are clamped at 0, so one assertion was fixed. Same standard as its earlier coding jobs: fine for contained jobs with complete files.
 - AI doesn't declare prison colonies yet.
+
+## 2026-11-25 18:25 — Moving title screen, gate opens, Ashkari living portrait
+- Title screen (wide screens): Gemini's 10 s title video, re-cut to loop seamlessly (1 s crossfade), 0.4 MB, `public/art/backgrounds/title-wide.mp4`. Phones held upright and reduced-motion players keep the still picture.
+- `src/ui/gatePortal.ts`: a canvas laid over the ring (object-fit cover maths) wakes the gate: sparks run round the rim, light pours in from the edge, then a soft rippling, shimmering surface holds. Original design, no film effect copied.
+- Ashkari living portrait from Gemini (Gemini job 03), cropped square to match the others, looped by crossfade; `ashkari` added to `LIVING`.

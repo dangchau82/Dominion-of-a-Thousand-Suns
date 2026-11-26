@@ -27,11 +27,12 @@ export const art = {
   bg: (name: "menu" | "menu-2" | "council" | "diplomacy") => `art/backgrounds/bg-${name}.png`,
   event: (name: string) => `art/events/event-${name}.png`,
   title: (shape: "wide" | "tall") => `art/backgrounds/title-${shape}.jpg`,
+  titleVideo: () => `art/backgrounds/title-wide.mp4`,
 };
 
 /** Races that have a "living portrait" loop (made with Google Flow, cropped and looped with ffmpeg). */
 const LIVING = new Set([
-  "drovani", "gorrath", "humans", "ixil", "kethrak", "lumen", "nyx", "orrun", "quorai",
+  "ashkari", "drovani", "gorrath", "humans", "ixil", "kethrak", "lumen", "nyx", "orrun", "quorai",
   "raxxan", "ruuvak", "seraphine", "tarkhan", "thraal", "velari", "verdane", "vossari",
 ]);
 

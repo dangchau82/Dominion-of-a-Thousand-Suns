@@ -3,6 +3,7 @@
 import { newGame, RACES, type GameSettings, type GameState } from "../engine";
 import type { Difficulty, GalaxyShape, GalaxySize } from "../engine/types";
 import { art, portraitHTML } from "./assets";
+import { addGatePortal } from "./gatePortal";
 import { clearAutosave, hasAutosave, loadAutosave } from "./storage";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -14,7 +15,10 @@ export function showMainMenu(root: HTMLElement, start: (g: GameState) => void): 
   // Title art by Gemini: a wide picture for landscape screens, a tall one for phones held upright.
   const tall = typeof matchMedia === "function" && matchMedia("(orientation: portrait)").matches;
   m.style.backgroundImage = `url(${art.title(tall ? "tall" : "wide")})`;
-  m.innerHTML = `<div class="title-head"><h1>DOMINION OF A<br>THOUSAND SUNS</h1><div class="tag">Start with one world. End with a galaxy.</div></div>`;
+  // Moving title (Gemini video, looped by crossfade) on wide screens, unless the player asked for less motion.
+  const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const video = !tall && !still ? `<video class="title-video" src="${art.titleVideo()}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>` : "";
+  m.innerHTML = `${video}<div class="title-head"><h1>DOMINION OF A<br>THOUSAND SUNS</h1><div class="tag">Start with one world. End with a galaxy.</div></div>`;
   const actions = document.createElement("div");
   actions.className = "title-actions";
   if (hasAutosave()) {
@@ -37,6 +41,7 @@ export function showMainMenu(root: HTMLElement, start: (g: GameState) => void): 
   actions.append(ver);
   m.append(actions);
   root.append(m);
+  if (video) addGatePortal(m);
 }
 
 function showSetup(root: HTMLElement, start: (g: GameState) => void): void {
