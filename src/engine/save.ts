@@ -138,6 +138,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 31) { (data as GameState).version = 32; }
   // Version 32 -> 33: parasite overlords.
   if (data.version === 32) { (data as GameState).version = 33; }
+  // Version 33 -> 34: the hybrid derelict.
+  if (data.version === 33) { (data as GameState).version = 34; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

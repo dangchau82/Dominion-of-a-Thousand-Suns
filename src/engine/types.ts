@@ -405,6 +405,8 @@ export interface GameState {
   deathCult?: import("./deathCult").CultState;
   /** Parasite overlords, one host per empire per game. See src/engine/parasites.ts. */
   parasites?: Record<Id, import("./parasites").ParasiteHost>;
+  /** The hybrid derelict, once a game per empire. See src/engine/hybridDerelict.ts. */
+  hybridDerelict?: Record<Id, import("./hybridDerelict").DerelictState>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -426,4 +428,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 33;
+export const SAVE_VERSION = 34;

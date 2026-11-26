@@ -434,3 +434,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/deathCult.ts`, save v32, `tests/
 
 ## 2026-11-26 11:51 (Claude 2): parasite overlords in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/parasites.ts`, save v33, `tests/parasites.test.ts`.
+
+## 2026-11-26 11:55 (Claude 2): the hybrid derelict in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/hybridDerelict.ts`, save v34, `tests/hybridDerelict.test.ts`.

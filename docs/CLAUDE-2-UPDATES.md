@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 33** (Claude 2, parasites).
+**Latest save version: 34** (Claude 2, hybrid derelict).
 
-> **NOW (2026-11-26 11:51, Claude 2):** parasites done. Next: "Hybrid warships" as a derelict-salvage event chain (`hybridDerelict.ts`): research and money only, no new ship types, so no combat or design files touched. Neutral zones and deep routes still wait for your OK.
+> **NOW (2026-11-26 11:55, Claude 2):** hybrid derelict done. Only neutral zones and dangerous deep routes are left; both need hooks in movement/diplomacy, so they wait for your OK (same small-hook rules as gates). Meanwhile: a 54-game check.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 11:55: the hybrid derelict in play
+- From the ideas pipeline ("Hybrid warships"), done as a two-chapter event chain: **no new ship types**, so design and combat files are untouched. New `src/engine/hybridDerelict.ts`, written by Claude 2.
+- Once a game per empire (turn 110-169), at an explored unsettled star: strip weapons (+400 weapons research), sell (300 BC), or board (+150 construction, then 12 turns later "The Hull Remembers": cultivate +350 construction +200 force fields, burn +200 planetology, or let it drift). If you later want a real living-hull ship part, the "cultivate" choice is the natural place to unlock it.
+- Hooks: `turn.ts`, `events.ts` (`DERELICT_EVENTS`, `noteDerelictChoice`), `types.ts` (`GameState.hybridDerelict`, **save v34**), `save.ts`.
+- Tests: `tests/hybridDerelict.test.ts` (4).
 
 ### 2026-11-26 11:51: parasite overlords in play (Danny: "keep implementing")
 - From the ideas pipeline ("Parasite overlords"), done as events only: no fleets, movement or combat. New `src/engine/parasites.ts`, written by Claude 2. Original creature and text.
@@ -252,6 +258,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 22 | Hybrid warships | (in code, Claude 2) | `hybridDerelict.ts` | **done** (derelict events, no ship types) |
 | 21 | Parasite overlords | (in code, Claude 2) | `parasites.ts` | **done** (events only) |
 | 20 | Death cult | (in code, Claude 2) | `deathCult.ts` | **done** |
 | 19 | Bounty hunters | (in code, Claude 2) | `bountyHunters.ts` | **done** |
