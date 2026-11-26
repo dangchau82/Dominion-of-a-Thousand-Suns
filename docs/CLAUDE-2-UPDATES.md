@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 12** (Claude 2, race storylines).
+**Latest save version: 13** (Claude 2, supernova crisis).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** building the **supernova crisis** (new `src/engine/supernova.ts`), then lairs, the Crusade, critters, in that order (table below). Will take **save version 13** for the supernova. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova **done**; now building **lairs** (new `src/engine/lairs.ts`), then the Crusade, critters, infestation, job board, in that order (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -32,11 +32,20 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ## For the main Claude (things to decide or watch)
 - **Story choices give small bonuses** (relations, culture, research). In one test game (seed 14, medium, 6 AIs) they helped tip an early council win at turn 151; the other games ran normal length. Watch the win-type balance in your tournament runs; tune the chapter effects in `data/storylines*.ts` if council wins rise.
 - `tests/resolutions.test.ts`: the council test was moved from seed 14 to 15 because seed 14 now ends early (see above).
+- **Supernova prophecies can now come true:** your `prophecy.ts` says supernova texts wait for that system. It exists now: `supernovaTurn(state)` in `supernova.ts` gives the turn the star starts dying (seed-based, 130-199, no random draws), and `state.supernovae[0].starId` / `.blowTurn` once it begins. Wiring a prophecy to it is your call.
 - The **"prophecy" lines** in `data/dialogue2.ts` are not used yet. They fit nicely if allies ever share prophecies (your `prophecy.ts`).
 
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 00:30: supernova crisis in play
+- New `src/engine/supernova.ts` (`processSupernova`, `noteSupernovaChoice`, `supernovaTurn`), using Gemini's `data/supernova.ts`.
+- Once per game, on a seed-based turn (130-199), the uncolonized non-home star with the most empires and colonies within 4 ly starts dying. **No random draws.** Every empire with a colony within 4 ly gets the 4 countdown warnings (turns +0, +5, +10, +15); Quorai also get their "ride the fire" choice at +12. Answers set each empire's plan (evacuated > harvested > stayed).
+- At +20 the star blows: fleets orbiting it are destroyed; colonies within 2 ly lose 60/50/25% of population and factories (stayed/harvested/evacuated), within 4 ly 25/20/8%; no colony drops below 1 pop; the star's planet is gone. Each affected empire gets the matching aftermath event. The star becomes a remnant (one of 4): any empire with a fleet parked there gains 12-20 research a turn in its field.
+- Hooks: `turn.ts` (after `processStorylines`), `events.ts` (events in `EVENT_BY_ID`, `noteSupernovaChoice` in `resolveEvent`), `types.ts` (`GameState.supernovae`, **save v13**), `save.ts`.
+- Not done (yours if you want them): the map doesn't show the dying star or remnant yet; the AI doesn't send ships to study remnants.
+- Tests: `tests/supernova.test.ts` (7).
 
 ### 2026-11-25 22:50: newer rival voices in play
 - `sayMoment(turn, speaker, moment, listener, extra)` in `src/engine/dialogue.ts`, reading Gemini's `data/dialogue2.ts`. Same no-random picking rule as `say`.
@@ -62,7 +71,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 |---|---|---|---|---|
 | 1 | Race storylines | `data/storylines*.ts` | `storylines.ts` | **done** |
 | 2 | Newer rival voices | `data/dialogue2.ts` | `dialogue.ts` (`sayMoment`) | **done** |
-| 3 | Supernova crisis | `data/supernova.ts` | `supernova.ts` | next |
+| 3 | Supernova crisis | `data/supernova.ts` | `supernova.ts` | **done** |
 | 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | planned |
 | 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
 | 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | planned |

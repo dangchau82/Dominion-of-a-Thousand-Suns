@@ -96,6 +96,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 10) { (data as GameState).version = 11; }
   // Version 11 -> 12: empires gained an optional race story; old games simply start theirs from chapter 1.
   if (data.version === 11) { (data as GameState).version = 12; }
+  // Version 12 -> 13: the supernova crisis; old games simply have had none yet.
+  if (data.version === 12) { (data as GameState).version = 13; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

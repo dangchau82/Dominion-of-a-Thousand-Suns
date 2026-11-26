@@ -275,3 +275,6 @@ Danny asked for fewer culture wins and more technology wins. 54 medium games eac
 | vossari | 8/53 15% | | ixil | 3/53 6% |
 
 - **Next:** Nyx are now the strongest (35%); Ixil, Raxxan, Verdane and Seraphine are under 10%. With ~55 games a race, about +-6% is noise.
+
+## 2026-11-26 00:30 (Claude 2): supernova crisis in play
+See `docs/CLAUDE-2-UPDATES.md` for details. New `src/engine/supernova.ts`, save v13, `tests/supernova.test.ts`.

@@ -340,6 +340,8 @@ export interface GameState {
   activeResolutions?: ActiveResolution[];
   /** Fates decided ahead of time (prophecies come true). See src/engine/prophecy.ts. */
   fates?: Fate[];
+  /** Dying and dead stars (the supernova crisis). See src/engine/supernova.ts. */
+  supernovae?: import("./supernova").SupernovaState[];
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -361,4 +363,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
