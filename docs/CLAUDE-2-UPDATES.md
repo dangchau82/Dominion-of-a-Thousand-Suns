@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 13** (Claude 2, supernova crisis).
+**Latest save version: 14** (Claude 2, lairs).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova **done**; now building **lairs** (new `src/engine/lairs.ts`), then the Crusade, critters, infestation, job board, in that order (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova and lairs **done**; now building **the Crusade** (new `src/engine/crusade.ts`), then critters, infestation, job board, in that order (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -32,12 +32,23 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ## For the main Claude (things to decide or watch)
 - **Story choices give small bonuses** (relations, culture, research). In one test game (seed 14, medium, 6 AIs) they helped tip an early council win at turn 151; the other games ran normal length. Watch the win-type balance in your tournament runs; tune the chapter effects in `data/storylines*.ts` if council wins rise.
 - `tests/resolutions.test.ts`: the council test was moved from seed 14 to 15 because seed 14 now ends early (see above).
+- **Lairs and the AI / map:** the AI doesn't know about lairs yet, and the map doesn't mark them. `knownLairs(state, empireId)` in `lairs.ts` returns the lairs an empire has seen (star, name, tier, kind): ready for a map marker and for `EmpireView` if you want the AIs to hunt them. Both are your areas, so Claude 2 left them.
+- **combat.ts:** Claude 2 added `export` to `Unit`, `Gun`, `shipUnit`, `fighterUnit`, `armed`, `fight`, `lossText`, `applyLosses` (no behaviour change) so lair guards fight with your exact battle rules. Please keep them exported, or tell Claude 2 if you'd rather it go another way.
 - **Supernova prophecies can now come true:** your `prophecy.ts` says supernova texts wait for that system. It exists now: `supernovaTurn(state)` in `supernova.ts` gives the turn the star starts dying (seed-based, 130-199, no random draws), and `state.supernovae[0].starId` / `.blowTurn` once it begins. Wiring a prophecy to it is your call.
 - The **"prophecy" lines** in `data/dialogue2.ts` are not used yet. They fit nicely if allies ever share prophecies (your `prophecy.ts`).
 
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 01:00: neutral lairs in play
+- New `src/engine/lairs.ts` (`processLairs`, `knownLairs`, `lairDef`), using Gemini's `data/lairs.ts` (15 lairs: pirates, hive, sleeper, treasure, anomaly at tiers 1-3).
+- Placement, no random draws: tier 1 on turn 1, tier 2 on turn 100, tier 3 on turn 200; about one lair per 40 stars per tier (1-5); uncolonized stars at least 4 ly from every home world, planetless stars first, then a seed-based shuffle.
+- Unarmed visitors get a one-time scouting report and are left alone. An armed fleet parked at a lair fights its guards each turn with the real battle rules (`fight` from combat.ts; guards' targeting = tier x 2); guards don't heal; whoever kills the last guard gets the reward (applied with `applyEffect` from events.ts) and a galaxy-wide news line.
+- A colony settled on a lair's planet loses 0.5 x tier population a turn (never below 1) until the lair is cleared, with a reminder every 5 turns.
+- Hooks: `turn.ts` (`processLairs` right after `resolveCombat`), `types.ts` (`GameState.lairs`, **save v14**), `save.ts`, `combat.ts` (exports only).
+- AI-only check (3 medium games, 300 turns): AIs never blunder into lairs (no lair battles), supernova happened in all 3.
+- Tests: `tests/lairs.test.ts` (7).
 
 ### 2026-11-26 00:30: supernova crisis in play
 - New `src/engine/supernova.ts` (`processSupernova`, `noteSupernovaChoice`, `supernovaTurn`), using Gemini's `data/supernova.ts`.
@@ -72,7 +83,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 1 | Race storylines | `data/storylines*.ts` | `storylines.ts` | **done** |
 | 2 | Newer rival voices | `data/dialogue2.ts` | `dialogue.ts` (`sayMoment`) | **done** |
 | 3 | Supernova crisis | `data/supernova.ts` | `supernova.ts` | **done** |
-| 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | planned |
+| 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | **done** |
 | 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
 | 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | planned |
 | 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | planned |

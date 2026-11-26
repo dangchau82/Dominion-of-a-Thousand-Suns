@@ -346,6 +346,8 @@ export interface GameState {
   fates?: Fate[];
   /** Dying and dead stars (the supernova crisis). See src/engine/supernova.ts. */
   supernovae?: import("./supernova").SupernovaState[];
+  /** Neutral lairs on the map (guarded prizes). See src/engine/lairs.ts. */
+  lairs?: import("./lairs").LairState[];
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -367,4 +369,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;

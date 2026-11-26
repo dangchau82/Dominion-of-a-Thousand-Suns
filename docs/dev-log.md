@@ -284,3 +284,5 @@ See `docs/CLAUDE-2-UPDATES.md` for details. New `src/engine/supernova.ts`, save 
 - Why: in 18 test games, the eventual winner usually held 2-4 home worlds and 3 rivals were dead, but games still ran to culture, tech or council at T300+.
 - **Nyx** growth 1 -> 0.5 ("built, not born": they still buy people in factories at 2/3 cost). Nyx 7 of 37 games (19%), was 35% of 162.
 - **54 games (seeds 3000+):** technology 18, council 15, **conquest 9** (was 0), culture 11, no winner 1, median end T322. Nyx 1/16 here (small sample). Tests: `tests/conquest.test.ts` (4).
+## 2026-11-26 01:00 (Claude 2): neutral lairs in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/lairs.ts`, save v14, `tests/lairs.test.ts`; `combat.ts` now exports its battle building blocks (no behaviour change).

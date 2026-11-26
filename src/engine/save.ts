@@ -98,6 +98,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 11) { (data as GameState).version = 12; }
   // Version 12 -> 13: the supernova crisis; old games simply have had none yet.
   if (data.version === 12) { (data as GameState).version = 13; }
+  // Version 13 -> 14: neutral lairs; old games get theirs placed on the next turn.
+  if (data.version === 13) { (data as GameState).version = 14; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

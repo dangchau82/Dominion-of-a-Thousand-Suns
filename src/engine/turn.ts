@@ -8,6 +8,7 @@ import { resolveCombat } from "./combat";
 import { rollEvents } from "./events";
 import { processStorylines } from "./storylines";
 import { processSupernova } from "./supernova";
+import { processLairs } from "./lairs";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -227,6 +228,7 @@ export function endTurn(state: GameState): void {
   mergeFleets(state);
   moveFleets(state);
   resolveCombat(state);
+  processLairs(state);
   updateVision(state);
   processProphecies(state);
   updateRelations(state);

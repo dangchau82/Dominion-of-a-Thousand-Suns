@@ -27,18 +27,20 @@ export const MAX_ROUNDS = 8;
 /** Missiles and torpedoes run out after this many rounds. */
 export const MISSILE_ROUNDS = 3;
 
+// Unit, shipUnit, fighterUnit, armed, fight, lossText and applyLosses are exported so
+// neutral lairs (lairs.ts, Claude 2) fight with exactly these rules.
 export function atWar(a: Empire, b: Empire): boolean {
   return a.atWar[b.id] !== undefined;
 }
 
-interface Gun {
+export interface Gun {
   kind: "beam" | "missile" | "bomb" | "torpedo";
   min: number;
   max: number;
   count: number;
 }
 
-interface Unit {
+export interface Unit {
   side: 0 | 1;
   empireId: Id;
   /** Design id, or "planet". */
@@ -88,7 +90,7 @@ function levelOf(id: string | null, stat: string): number {
   return 0;
 }
 
-function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count: number): Unit {
+export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count: number): Unit {
   const r = empireRace(e);
   const h = HULLS[d.hull];
   const armor = levelOf(d.armor, "armor");
@@ -108,7 +110,7 @@ function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count
 }
 
 /** The fighters a group of carriers launches, as one unit. */
-function fighterUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, carriers: Unit): Unit | null {
+export function fighterUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, carriers: Unit): Unit | null {
   const per = fightersPerShip(d.bays, d.hull);
   if (!d.bays || per <= 0) return null;
   const f = fighterStats(d.bays.bayId, d.bays.variant, bestBeam(e));
@@ -140,7 +142,7 @@ function planetUnit(state: GameState, side: 0 | 1, e: Empire, c: Colony): Unit |
   };
 }
 
-function armed(u: Unit): boolean {
+export function armed(u: Unit): boolean {
   return u.count > 0 && u.guns.some((g) => g.kind !== "bomb");
 }
 
@@ -169,7 +171,7 @@ function pickTarget(rng: R.RngState, enemies: Unit[]): Unit | null {
   return live[live.length - 1]!;
 }
 
-function fight(state: GameState, units: Unit[]): number {
+export function fight(state: GameState, units: Unit[]): number {
   const rng = state.rng;
   let rounds = 0;
   // Warp dampeners slow the other side, making them easier to hit.
@@ -237,13 +239,13 @@ function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
-function lossText(units: Unit[], side: 0 | 1): string {
+export function lossText(units: Unit[], side: 0 | 1): string {
   const parts = units.filter((u) => u.side === side && u.start > u.count).map((u) => plural(u.start - u.count, u.name));
   return parts.length ? parts.join(", ") : "nothing";
 }
 
 /** Take losses off the fleets at a star. */
-function applyLosses(state: GameState, fleets: Fleet[], units: Unit[]): void {
+export function applyLosses(state: GameState, fleets: Fleet[], units: Unit[]): void {
   for (const u of units) {
     if (u.key === "planet" || u.fighter) continue;
     let lost = u.start - u.count;
