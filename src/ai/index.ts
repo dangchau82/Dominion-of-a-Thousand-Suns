@@ -8,6 +8,7 @@ import type { AiBrain, Empire, GameState } from "../engine/types";
 import { makeView, type EmpireView } from "../engine/view";
 import { autoScoutOrders, basicAIAnswers, basicAITurn } from "./basicAI";
 import { masterAIAnswers, masterAITurn } from "./masterAI";
+import { autopilotMay } from "./handsOff";
 export { autoScoutOrders };
 
 export function brainOf(state: GameState, e: Empire): AiBrain {
@@ -17,13 +18,20 @@ export function brainOf(state: GameState, e: Empire): AiBrain {
 const TURN: Record<AiBrain, (v: EmpireView) => Command[]> = { basic: basicAITurn, master: masterAITurn };
 const ANSWERS: Record<AiBrain, (v: EmpireView) => Command[]> = { basic: basicAIAnswers, master: masterAIAnswers };
 
-export function runAITurns(state: GameState, includePlayer = false): void {
+/** Runs the AIs. For the player's autopilot, returns the orders it held back because the player took that area
+ *  (or colony) back, so the screen can say what it left alone. */
+export function runAITurns(state: GameState, includePlayer = false): Command[] {
+  const held: Command[] = [];
   const asleep = (state.cheats?.rivalsAsleepUntil ?? 0) > state.turn;
   for (const e of state.empires) {
     if (asleep && !e.isPlayer) continue; // player's "sleep rivals" cheat
     if (!e.alive || (e.isPlayer && !includePlayer)) continue;
-    for (const cmd of TURN[brainOf(state, e)](makeView(state, e.id))) applyCommand(state, e.id, cmd);
+    for (const cmd of TURN[brainOf(state, e)](makeView(state, e.id))) {
+      if (e.isPlayer && !autopilotMay(state, e, cmd)) { held.push(cmd); continue; }
+      applyCommand(state, e.id, cmd);
+    }
   }
+  return held;
 }
 
 /** AI empires answer proposals waiting for them right away, from their own view. */

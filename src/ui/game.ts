@@ -8,7 +8,7 @@ import { DEFAULT_MODEL, geminiChat, geminiKey, geminiModel, saveGemini, type Cha
 import { markSeen, nextTip, setTipsOff, tipsOff } from "./advisor";
 import type { EventEffect } from "../engine/data/events";
 import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/buildings";
-import { AUTOPILOT_FOCI, type AutopilotFocus, type TreatyKind } from "../engine/types";
+import { AUTO_AREAS, AUTOPILOT_FOCI, type AutoArea, type AutopilotFocus, type TreatyKind } from "../engine/types";
 import {
   applyCommand, chronicleText, CHRONICLE_STATS, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
   popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, colonyShipCount, HULLS, HULL_SIZES, MAX_DESIGNS,
@@ -314,10 +314,11 @@ export class GameScreen {
     const me = this.state.empires[PLAYER]!;
     let stopReason = "";
     const knownAtStart = new Set(me.contacts);
+    let heldBack = 0;
     const step = (left: number) => {
       const t = this.state.turn;
       const knownBefore = me.contacts.length;
-      runAITurns(this.state, true);
+      heldBack += runAITurns(this.state, true).length;
       endTurn(this.state);
       autosave(this.state);
       const evs = this.state.events.filter((e) => e.turn === t && (e.empireId === PLAYER || e.empireId === null));
@@ -334,7 +335,8 @@ export class GameScreen {
       else {
         this.busy = false;
         const all = this.state.events.filter((e) => e.turn >= startTurn && (e.empireId === PLAYER || e.empireId === null) && ["war", "invasion", "battle", "contact", "council", "culture", "colonized"].includes(e.kind));
-        this.toast(stopReason || `Autopilot ran ${this.state.turn - startTurn} turns.`);
+        const kept = heldBack ? ` It left ${heldBack} order${heldBack === 1 ? "" : "s"} to you (the parts you kept).` : "";
+        this.toast((stopReason || `Autopilot ran ${this.state.turn - startTurn} turns.`) + kept);
         const met = me.contacts.filter((id) => !knownAtStart.has(id));
         const next = () => (all.length ? this.showReport(this.state.turn - 1, all.slice(-25), startTurn) : this.showProposals());
         if (met.length) this.showFirstContacts(met, next);
@@ -598,6 +600,12 @@ export class GameScreen {
       pr.onclick = () => { if (confirm(`${PRISON_COLONY.description}\n\nCosts ${PRISON_COLONY.setupCost} BC and some culture. Go ahead?`) && this.cmd({ type: "declarePrison", starId: c.starId })) { autosave(this.state); this.refresh(); } };
       wrap.append(pr);
     } else if (c.prison) wrap.append(el("div", { class: "dim" }, `⛓️ Prison colony: +${Math.round(PRISON_COLONY.productionBonus * 100)}% output, restless, breakouts.`));
+    // Hands off: the autopilot never changes this colony.
+    {
+      const ho = el("button", { class: `small ${c.handsOff ? "on" : ""}`, style: "margin:6px 6px 0 0", title: "The autopilot leaves this colony exactly as you set it" }, c.handsOff ? "✋ Hands off: autopilot leaves this colony alone" : "🤖 Autopilot may manage this colony");
+      ho.onclick = () => { this.cmd({ type: "setHandsOff", starId: c.starId, on: !c.handsOff }); autosave(this.state); this.refreshKeepScroll(); };
+      wrap.append(ho);
+    }
     // Edicts: a one-off imperial order for this colony.
     {
       const ed = el("details", { style: "margin-top:8px" });
@@ -1824,6 +1832,18 @@ export class GameScreen {
         brainSeg.append(btn);
       }
       auto.append(el("span", { class: "dim", style: "width:100%;margin-top:4px" }, brain === "master" ? "Master autopilot: peace-minded, courts the council, rushes culture and spends its gold." : "Standard autopilot: plays like the rival AIs."), brainSeg);
+      // Hands off: areas the player keeps for themselves.
+      const me = this.state.empires[PLAYER]!;
+      const AREA_LABELS: Record<AutoArea, string> = { colonies: "🏭 Colonies", research: "🔬 Research", fleets: "🚀 Fleets", diplomacy: "🤝 Diplomacy", empire: "📜 Treasury, spies, proclamations" };
+      auto.append(el("span", { class: "dim", style: "width:100%;margin-top:4px" }, "The autopilot may run (tap to keep one for yourself; it is then left exactly as you set it):"));
+      const areaRow = el("div", { class: "seg", style: "width:100%;flex-wrap:wrap" });
+      for (const a of AUTO_AREAS) {
+        const on = !me.autoOff?.includes(a);
+        const b = el("button", { class: on ? "on" : "" }, `${on ? "✓" : "✋"} ${AREA_LABELS[a]}`);
+        b.onclick = () => { this.cmd({ type: "setAutoArea", area: a, on: !on }); autosave(this.state); close(); this.showMenu(); };
+        areaRow.append(b);
+      }
+      auto.append(areaRow);
       for (const n of [5, 10, 25]) {
         const b = el("button", { class: "small" }, `▶ ${n} turns`);
         b.onclick = () => { close(); this.autopilot(n); };

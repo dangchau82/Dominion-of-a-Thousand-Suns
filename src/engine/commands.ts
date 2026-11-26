@@ -19,7 +19,7 @@ import { empire, empireRace, newColony, shipCount, star } from "./game";
 import { exploreStar, isExplored } from "./knowledge";
 import { fleetExtraRange, inFuelRange } from "./movement";
 import {
-  AUTOPILOT_FOCI, FIELDS, SLIDERS, SPY_MISSIONS, type AutopilotFocus,
+  AUTOPILOT_FOCI, AUTO_AREAS, type AutoArea, FIELDS, SLIDERS, SPY_MISSIONS, type AutopilotFocus,
   type Colony, type GameState, type Id, type ResearchField, type Slider, type SliderSet, type SpyMission, type TreatyKind,
 } from "./types";
 
@@ -39,6 +39,8 @@ export type Command =
   | { type: "setSpies"; targetId: Id; alloc: number; mission: SpyMission }
   | { type: "setSecurity"; percent: number }
   | { type: "setFocus"; focus: AutopilotFocus }
+  | { type: "setAutoArea"; area: AutoArea; on: boolean }
+  | { type: "setHandsOff"; starId: Id; on: boolean }
   | { type: "setAutoExplore"; on: boolean }
   | { type: "setAutopilotAI"; ai: "basic" | "master" }
   | { type: "investSink"; sinkId: string; starId?: Id }
@@ -255,6 +257,19 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "dismissLeader": {
       if (!e.leaders.some((l) => l.id === cmd.leaderId)) return fail("No such leader");
       e.leaders = e.leaders.filter((l) => l.id !== cmd.leaderId);
+      return { ok: true };
+    }
+    case "setAutoArea": {
+      if (!(AUTO_AREAS as readonly string[]).includes(cmd.area)) return fail("Unknown area");
+      const off = new Set(e.autoOff ?? []);
+      if (cmd.on) off.delete(cmd.area); else off.add(cmd.area);
+      if (off.size) e.autoOff = AUTO_AREAS.filter((a) => off.has(a)); else delete e.autoOff;
+      return { ok: true };
+    }
+    case "setHandsOff": {
+      const c = ownColony(state, empireId, cmd.starId);
+      if (!c) return fail("Not your colony");
+      if (cmd.on) c.handsOff = true; else delete c.handsOff;
       return { ok: true };
     }
     case "setFocus": {

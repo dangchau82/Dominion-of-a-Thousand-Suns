@@ -30,6 +30,13 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 01:10: manual lock
+- New `src/ai/handsOff.ts`; `runAITurns` now returns the player's held-back orders. Commands `setAutoArea`, `setHandsOff`. Hooks: `types.ts`, `commands.ts`, `ui/game.ts` (menu, colony panel, autopilot toast).
+
+### 2026-11-26 00:30: conquest victory
+- `victory.ts`: hold your own home world and more than half of the original home worlds (4 of 6). `GameState.homeStars` (new games; optional field, no save bump). `view.ts` standings `homeWorlds`; basic AI treats a near-conqueror as the threat. 54 games: conquest 9 wins (was 0).
+- Nyx growth 0.5.
+
 ### 2026-11-25 23:35: Quorai migrant rule, all-race win table
 - New `src/engine/migrants.ts`; `Race.homeMigrants`; hook in `turn.ts` (growth) and `ui/game.ts` (colony note). Quorai 21% of 162 games.
 

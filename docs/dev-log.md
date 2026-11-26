@@ -286,3 +286,10 @@ See `docs/CLAUDE-2-UPDATES.md` for details. New `src/engine/supernova.ts`, save 
 - **54 games (seeds 3000+):** technology 18, council 15, **conquest 9** (was 0), culture 11, no winner 1, median end T322. Nyx 1/16 here (small sample). Tests: `tests/conquest.test.ts` (4).
 ## 2026-11-26 01:00 (Claude 2): neutral lairs in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/lairs.ts`, save v14, `tests/lairs.test.ts`; `combat.ts` now exports its battle building blocks (no behaviour change).
+
+## 2026-11-26 01:10 Manual lock: keep parts of the empire from the autopilot
+- **Menu → Autopilot:** five switches, all on by default: colonies, research, fleets, diplomacy, treasury/spies/proclamations. Tap one to keep it: the autopilot then leaves it exactly as the player set it (e.g. diplomacy off = it never offers, accepts or refuses peace, declares war or votes for you).
+- **Colony panel:** "Hands off" button per colony: the autopilot never changes its sliders, build, buildings or edicts; ships may still leave from it.
+- The autopilot report says how many orders it left to the player. Events and game-flow orders are never held.
+- Code: `src/ai/handsOff.ts` (which area each command belongs to); `runAITurns` filters only the player's empire and returns what it held. Commands `setAutoArea`, `setHandsOff`; `Empire.autoOff`, `Colony.handsOff` (optional, no save bump). Rival AIs and the balance tools are unaffected. Tests: `tests/handsOff.test.ts` (4).
+- Fixes the handover's open problem 4 (autopilot resets ship builds and makes peace on its own).

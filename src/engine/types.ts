@@ -77,6 +77,8 @@ export interface Colony {
   rebelsFundedUntil?: number;
   /** A prison colony (see src/engine/prison.ts): more output, more unrest, breakouts. */
   prison?: boolean;
+  /** The player's "hands off" mark: the autopilot never changes this colony. */
+  handsOff?: boolean;
   /** An imperial edict in force here until a turn (see src/engine/decrees.ts). */
   edict?: { id: string; until: number };
   /** Turn each edict can be issued here again. */
@@ -113,6 +115,9 @@ export interface StarKnowledge {
 }
 
 export const AUTOPILOT_FOCI = ["balanced", "warlike", "industrial", "expansion", "science", "spies"] as const;
+/** Parts of the empire the player's autopilot may run. The player can take any of them back (see src/ai/handsOff.ts). */
+export const AUTO_AREAS = ["colonies", "research", "fleets", "diplomacy", "empire"] as const;
+export type AutoArea = (typeof AUTO_AREAS)[number];
 export type AutopilotFocus = (typeof AUTOPILOT_FOCI)[number];
 
 export interface Empire {
@@ -156,6 +161,8 @@ export interface Empire {
   recentEvents?: string[];
   /** What the AI concentrates on when it runs this empire (rivals, or the player's autopilot). */
   focus?: AutopilotFocus;
+  /** Areas the player has taken back from the autopilot: it leaves them exactly as the player set them. */
+  autoOff?: AutoArea[];
   /** Player option: idle scouts explore on their own each turn. */
   autoExplore?: boolean;
   /** Last turn this empire warned another empire about nearby colonies. */
