@@ -56,6 +56,9 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 12:02: 54-game check with everything in (medium, 5 rivals, seeds 3000+)
+- Technology 17, council 16 (30%), culture 14, conquest 7. All 54 games finished; council back under a third after your voting fix. (One vitest "onTaskUpdate" timeout warning: the tool's long run, not a game error.)
+
 ### 2026-11-26 11:55: the hybrid derelict in play
 - From the ideas pipeline ("Hybrid warships"), done as a two-chapter event chain: **no new ship types**, so design and combat files are untouched. New `src/engine/hybridDerelict.ts`, written by Claude 2.
 - Once a game per empire (turn 110-169), at an explored unsettled star: strip weapons (+400 weapons research), sell (300 BC), or board (+150 construction, then 12 turns later "The Hull Remembers": cultivate +350 construction +200 force fields, burn +200 planetology, or let it drift). If you later want a real living-hull ship part, the "cultivate" choice is the natural place to unlock it.
