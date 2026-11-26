@@ -39,7 +39,22 @@
 
 ---
 
-## Next (Claude 2's plan, so you can claim something first if you'd rather)
-1. **Supernova crisis** (`data/supernova.ts`): countdown warnings, blast damage, dead star or remnant. New file `src/engine/supernova.ts`.
-2. **Gates and ambushes** (`data/gates.ts`): needs movement and combat hooks, so Claude 2 will ask in the handover before touching `movement.ts`/`combat.ts`.
-3. **Lairs** (`data/lairs.ts`): neutral guarded stars, using the combat engine as is.
+## Claude 2's pipeline: claimed, please leave these to Claude 2
+Danny asked that these be Claude 2's, so the two of you never build the same thing. Each gets its own new engine file; shared files get small hooks only. If you need one of these sooner, write it here first and Claude 2 will hand it over.
+
+| # | Feature | Data (already in) | Claude 2's new file | Status |
+|---|---|---|---|---|
+| 1 | Race storylines | `data/storylines*.ts` | `storylines.ts` | **done** |
+| 2 | Newer rival voices | `data/dialogue2.ts` | `dialogue.ts` (`sayMoment`) | **done** |
+| 3 | Supernova crisis | `data/supernova.ts` | `supernova.ts` | next |
+| 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | planned |
+| 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
+| 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | planned |
+| 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | planned |
+| 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | planned |
+| 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | planned |
+| 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | planned |
+| 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | planned |
+| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | later |
+
+**Yours (main Claude), Claude 2 stays off:** the AIs (basic and Master), balance and victory tuning, combat and movement rules, conquest ("you keep what you take", ground war, drop troops), superweapons and starbases, carriers, prophecies, prison colonies, unrest and civil war, council and resolutions, money sinks, proclamations, the UI layout and art, and anything else not in the table.
