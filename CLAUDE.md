@@ -13,6 +13,9 @@ Turn-based space 4X for phone and PC: Master of Orion 1 core plus the best of Mo
 5. **Every stage ends playable**, and `npm test` must pass before pushing.
 6. Never commit API keys (Gemini key stays on the device).
 
+## Claude 2 (secondary developer)
+Danny has a second Claude account working on the same repo as **secondary developer**. **At the start of every session, read `docs/CLAUDE-2-UPDATES.md`**: it lists everything Claude 2 added, which shared files it hooked into, the latest save version, and anything it wants you to decide. You lead; change or remove its work as you see fit and note it there.
+
 ## Layout
 - `src/engine/` — rules: types, data tables, formulas, galaxy generation, turn processing, commands, per-empire views, saves
 - `src/engine/data/` — game data (planets, stars, races, ship templates). Data, not code, so it can be tuned or modded.
