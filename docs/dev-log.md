@@ -287,7 +287,7 @@ See `docs/CLAUDE-2-UPDATES.md` for details. New `src/engine/supernova.ts`, save 
 ## 2026-11-26 01:00 (Claude 2): neutral lairs in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/lairs.ts`, save v14, `tests/lairs.test.ts`; `combat.ts` now exports its battle building blocks (no behaviour change).
 
-## 2026-11-26 01:10 Manual lock: keep parts of the empire from the autopilot
+## 2026-11-26 00:45 Manual lock: keep parts of the empire from the autopilot
 - **Menu → Autopilot:** five switches, all on by default: colonies, research, fleets, diplomacy, treasury/spies/proclamations. Tap one to keep it: the autopilot then leaves it exactly as the player set it (e.g. diplomacy off = it never offers, accepts or refuses peace, declares war or votes for you).
 - **Colony panel:** "Hands off" button per colony: the autopilot never changes its sliders, build, buildings or edicts; ships may still leave from it.
 - The autopilot report says how many orders it left to the player. Events and game-flow orders are never held.
@@ -298,7 +298,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/crusade.ts` and `src/engine/chai
 
 ## 2026-11-26 02:15 (Claude 2): invasive critters in play; supernova colony bug fixed
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/critters.ts`, save v16, `tests/critters.test.ts`.
-## 2026-11-26 01:40 Playtest of Claude 2's supernova and lairs
+## 2026-11-26 00:55 Playtest of Claude 2's supernova and lairs
 - 18 medium games plus a 54-game run. Supernova fires once per game (T166-214), hits 2-4 empires, losses as designed. AIs always harvest, never evacuate; nobody studies remnants. A colony settled inside the dying star was left planetless: Claude 2 fixed this at the same time (its version kept). Lairs: AIs clear many in passing; raid losses small.
 - **54 games (seeds 3000+), current main:** technology 23, council 15, culture 10, conquest 6, median T326. Strongest Ruuvak 35%, Thraal 29%; weakest Raxxan 5%, Ashkari 6%, Verdane 8%, Seraphine 9% (race balance being worked on).
 
@@ -307,7 +307,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/infestation.ts`, save v17, `test
 
 ## 2026-11-26 03:10 (Claude 2): frontier job board in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/contracts.ts`, `src/engine/contractEvents.ts`, save v18, `tests/contracts.test.ts`.
-## 2026-11-26 02:30 Peace terms: wars can end with worlds changing hands
+## 2026-11-26 01:05 Peace terms: wars can end with worlds changing hands
 - New proposal kind `cede`: at war, ask for 1-3 of the enemy's worlds (never their capital) in exchange for peace. Accepted: the worlds move with their people, factories and buildings (the people resent it like a conquest: `onCapture`), wonders go with them, and the war ends (`cedeColonies` in `combat.ts`). Refused: relations -5, the war goes on.
 - **AI:** after 12 turns of war, an empire with 1.6x the enemy's known population asks for 1-3 of their worlds nearest its own (never the biggest known world). The loser accepts after 8+ turns of war if the asker is 1.4x bigger and the worlds are at most 30% of its people (2.5x bigger: up to 50%); never to the runaway leader.
 - **Player:** diplomacy screen, at war: tick up to 3 of their worlds, "Offer peace for these worlds". Incoming terms appear with the other proposals.
@@ -324,19 +324,19 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/natives.ts`, save v21, `tests/na
 
 ## 2026-11-26 04:45 (Claude 2): expeditions in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/expeditionEvents.ts`, save v22, `tests/expeditions.test.ts`.
-## 2026-11-26 03:40 Grudges, governing distance, subject peoples vote at half
+## 2026-11-26 01:15 Grudges, governing distance, subject peoples vote at half
 - **Grudges** (`src/engine/grudges.ts`): an empire remembers wrongs done to it: broke our alliance 30, broke our pact 20, other treaty 8, declared war on us 10, took a world 8, forced us to hand one over 5 (cap 60). The grudge is subtracted from the level relations drift toward, so it keeps feelings low for as long as it lasts; it fades 1% a turn (honourable races 0.5%, honourless 1.5%). The last 4 reasons are kept and shown on the diplomacy screen ("They remember" / "You remember"). The AI prefers war targets it holds a grudge against (up to a third more tempting). `KnownEmpire.grudge` in the view.
 - **Governing distance** (`turn.ts` `distanceCost`): a colony more than 8 ly from its capital loses 1% of output per extra light-year, up to 20%. Claude 2's "upkeep by distance" idea, taken as output instead of money because treasuries no longer hoard (median 1-4k BC, swinging +-1k a turn; measured at T150/T250).
 - **Subject peoples vote at half** (`victory.ts` `votingPopulation`): another race living under an empire (conquered or handed over) counts 50% for council votes. Without it, peace terms piled population into the leaders and council wins rose to 21 of 54.
 - **54 games (seeds 3000+):** council 17, culture 15, technology 12, conquest 10, no winner 0, median T304; 284 peace treaties handed over worlds (5 a game). Before tonight: technology 23, council 15, culture 10, conquest 6 (T326). All four ways to win now matter. Tests: `tests/grudges.test.ts` (4), `tests/governing.test.ts` (2).
 
-## 2026-11-26 04:10 Playtest of Claude 2's eight new features (12 AI games)
+## 2026-11-26 01:25 Playtest of Claude 2's eight new features (12 AI games)
 - Crusade, critters, infestation, job board, android leaders, natives, expeditions: all run in every game with no errors and small effects (details in the playtest queue in `docs/MAIN-CLAUDE-UPDATES.md`).
 - Death worlds: riches reached up to 5% of one empire's whole gross output as free cash; `RICHES_SHARE` 0.5 -> 0.3.
 
-## 2026-11-26 04:50 The galaxy's story (end-of-game history)
+## 2026-11-26 01:32 The galaxy's story (end-of-game history)
 - New `src/engine/history.ts`: `galaxyHistory(state)` turns the chronicle into a short history: the beginning, one chapter per 100 turns (who led and with what share of the people, first contacts, wars begun and peace made, worlds lost to invasion and handed over by treaty, golden ages, empires that fell, near-conquest warnings), and the ending (winner and final standings).
 - Shown from the game-over screen ("📜 The galaxy's story") and the History screen ("so far"), with a Copy button; also added to the downloadable game log. Tests: `tests/history.test.ts` (2).
 
-## 2026-11-26 05:20 AI weighs the supernova blast
+## 2026-11-26 01:40 AI weighs the supernova blast
 - The AI's event scoring now subtracts what each supernova plan would cost its colonies in the blast (public rules: `BLAST_LOSS`, inner 2 ly, reach 4 ly). 8 games: 23 evacuations, 2 harvests (before: always harvest). `EmpireView.pendingEvents` now carries `eventId` and `starId`; `supernovaPlanOf` exported from `supernova.ts`.
