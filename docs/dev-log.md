@@ -304,3 +304,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/critters.ts`, save v16, `tests/c
 
 ## 2026-11-26 02:45 (Claude 2): alien infestation in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/infestation.ts`, save v17, `tests/infestation.test.ts`.
+
+## 2026-11-26 03:10 (Claude 2): frontier job board in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/contracts.ts`, `src/engine/contractEvents.ts`, save v18, `tests/contracts.test.ts`.

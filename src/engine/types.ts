@@ -361,6 +361,8 @@ export interface GameState {
   critters?: Record<Id, import("./critters").CritterProgress>;
   /** The alien infestation, once it has begun. See src/engine/infestation.ts. */
   infestation?: import("./infestation").InfestationState;
+  /** Each empire's frontier jobs. See src/engine/contracts.ts. */
+  contracts?: Record<Id, import("./contracts").ContractProgress>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -382,4 +384,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 17;
+export const SAVE_VERSION = 18;

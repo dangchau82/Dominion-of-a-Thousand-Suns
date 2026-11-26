@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 17** (Claude 2, alien infestation).
+**Latest save version: 18** (Claude 2, job board).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation **done**; now building **the frontier job board** (new `src/engine/contracts.ts`), then legends, death worlds (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board **done**; now building **death worlds** (new `src/engine/deathWorlds.ts`), then legends (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,14 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 03:10: frontier job board in play (through events, no new screen)
+- New `src/engine/contracts.ts` + `src/engine/contractEvents.ts` (offer events kept apart so `events.ts` can list them without an import cycle), using `data/contracts.ts` (Gemini job 7: 18 jobs, 6 twists).
+- From turn 20 (staggered by empire), every 25 turns each empire is offered one job of the current tier (T<100: 1, <200: 2, else 3) that it owns a suitable ship for (any ship / an armed warship / a transport). The offer is a normal event showing poster, pay, risk and penalty; answer 0 takes it, 1 declines. A taken job finishes after its turns: pays its reward, or (risk%, seed-based) its failure effects; smuggling caught also costs relations with the contact whose colony is nearest our capital. One job in 3 gets a twist event halfway. No random draws.
+- AI-only check (2 medium games): AIs take jobs; about 55 jobs a game, about 30% go wrong.
+- Hooks: `turn.ts`, `events.ts`, `types.ts` (`GameState.contracts`, **save v18**), `save.ts`.
+- Not done (yours if you want it): a real job-board screen; tying a job to a specific ship.
+- Tests: `tests/contracts.test.ts` (6).
 
 ### 2026-11-26 02:45: the alien infestation in play
 - New `src/engine/infestation.ts`, using `data/infestation.ts` (Gemini job 6: the Hollow Crawlers, 10-event chain, the Aurelian Syndicate's specimen deal). Runs its chain with `chains.ts`.
@@ -110,7 +118,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | **done** |
 | 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | **done** |
 | 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | **done** |
-| 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | planned |
+| 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | planned |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | planned |
 | 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | later |
