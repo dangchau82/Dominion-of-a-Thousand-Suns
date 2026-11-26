@@ -365,6 +365,8 @@ export interface GameState {
   infestation?: import("./infestation").InfestationState;
   /** Each empire's frontier jobs. See src/engine/contracts.ts. */
   contracts?: Record<Id, import("./contracts").ContractProgress>;
+  /** Death worlds marked on the map, and who has been warned. See src/engine/deathWorlds.ts. */
+  deathWorlds?: import("./deathWorlds").DeathWorldsState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -386,4 +388,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 18;
+export const SAVE_VERSION = 19;

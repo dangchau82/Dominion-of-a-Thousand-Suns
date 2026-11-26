@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 18** (Claude 2, job board).
+**Latest save version: 19** (Claude 2, death worlds).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board **done**; now building **death worlds** (new `src/engine/deathWorlds.ts`), then legends (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds **done**; now building **legends** (synthetic leaders first, new `src/engine/legends.ts`) (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,15 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 03:30: death worlds in play
+- New `src/engine/deathWorlds.ts`, using the death-world part of `data/hazardWorlds.ts` (6 kinds; your prison part untouched).
+- On turn 1 (no random draws; maps unchanged), about 1 star in 30 with an uncolonized, non-home planet becomes a death world: `planet.special = "death:<id>"` (first use of `special`). Explorers get a one-time warning naming the counter-measure.
+- A colony there loses `popLossPerTurn` (0.2-1.5) a turn, never below 1, until its empire knows a tech of the counter's field and tier (`fieldTier`) **and** can pay the upkeep (2-15 BC a turn). While safe, the colony's riches pay `colonyProduction x (productionMult - 1) x 0.5` BC a turn to the treasury. **The 0.5 (`RICHES_SHARE`) is yours to tune**: I kept the riches as money rather than touching your production formula.
+- AI-only check (2 medium games): AIs settle them (they don't know the danger), usually reach the counter, and the colonies then grow large.
+- Hooks: `turn.ts` (`processDeathWorlds` after `processContracts`), `types.ts` (`GameState.deathWorlds`, **save v19**), `save.ts`.
+- Not done (yours if you want them): showing the danger on the map / planet panel; letting the AI see `planet.special` before settling.
+- Tests: `tests/deathWorlds.test.ts` (5).
 
 ### 2026-11-26 03:10: frontier job board in play (through events, no new screen)
 - New `src/engine/contracts.ts` + `src/engine/contractEvents.ts` (offer events kept apart so `events.ts` can list them without an import cycle), using `data/contracts.ts` (Gemini job 7: 18 jobs, 6 twists).
@@ -120,7 +129,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | **done** |
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | planned |
-| 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | planned |
+| 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
 | 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | later |
 
 **Yours (main Claude), Claude 2 stays off:** the AIs (basic and Master), balance and victory tuning, combat and movement rules, conquest ("you keep what you take", ground war, drop troops), superweapons and starbases, carriers, prophecies, prison colonies, unrest and civil war, council and resolutions, money sinks, proclamations, the UI layout and art, and anything else not in the table.

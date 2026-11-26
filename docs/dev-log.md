@@ -312,3 +312,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/contracts.ts`, `src/engine/contr
 - **AI:** after 12 turns of war, an empire with 1.6x the enemy's known population asks for 1-3 of their worlds nearest its own (never the biggest known world). The loser accepts after 8+ turns of war if the asker is 1.4x bigger and the worlds are at most 30% of its people (2.5x bigger: up to 50%); never to the runaway leader.
 - **Player:** diplomacy screen, at war: tick up to 3 of their worlds, "Offer peace for these worlds". Incoming terms appear with the other proposals.
 - 6 test games: 92 demands, 39 accepted (about 6 treaties a game). 54 games (seeds 3000+): council 20, technology 16, culture 10, conquest 8; median T301 (was T326). Ceded home worlds count toward a conquest win. Tests: `tests/peaceTerms.test.ts` (4). `why-won` now counts treaties that handed over worlds.
+
+## 2026-11-26 03:30 (Claude 2): death worlds in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/deathWorlds.ts`, save v19, `tests/deathWorlds.test.ts`.

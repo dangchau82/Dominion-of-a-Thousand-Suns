@@ -13,6 +13,7 @@ import { processCrusade } from "./crusade";
 import { processCritters } from "./critters";
 import { processInfestation } from "./infestation";
 import { processContracts } from "./contracts";
+import { processDeathWorlds } from "./deathWorlds";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -229,6 +230,7 @@ export function endTurn(state: GameState): void {
   processCritters(state);
   processInfestation(state);
   processContracts(state);
+  processDeathWorlds(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);
