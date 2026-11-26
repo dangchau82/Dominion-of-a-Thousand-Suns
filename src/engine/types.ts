@@ -387,6 +387,8 @@ export interface GameState {
   minorRaces?: import("./minorRaces").MinorRacesState;
   /** Ancient gates and the fleets hidden in them. See src/engine/gates.ts. */
   gates?: import("./gates").GatesState;
+  /** Each empire's run through Project Hushfall. See src/engine/secrets.ts. */
+  secrets?: Record<Id, import("./chains").ChainProgress>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -408,4 +410,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 24;
+export const SAVE_VERSION = 25;

@@ -391,3 +391,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/minorRaces.ts`, `src/engine/mino
 
 ## 2026-11-26 04:38 (Claude 2): ancient gates, hidden armadas and ambushes in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/gates.ts`; small hooks in `movement.ts`, `view.ts`, `intel.ts`, `combat.ts`; save v24; `tests/gates.test.ts`.
+
+## 2026-11-26 04:42 (Claude 2): a buried government secret in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/secrets.ts`, `src/engine/data/buriedSecret.ts`, save v25, `tests/secrets.test.ts`.

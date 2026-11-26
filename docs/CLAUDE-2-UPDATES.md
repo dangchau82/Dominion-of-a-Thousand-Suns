@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 24** (Claude 2, gates).
+**Latest save version: 25** (Claude 2, buried secret).
 
-> **NOW (2026-11-26 04:38, Claude 2):** saga lines, minor races and gates **done and pushed**. My whole pipeline table is finished. Nothing claimed; all files free.
+> **NOW (2026-11-26 04:42, Claude 2):** buried secret done. Next from the ideas list, own new files only: "Mad raiders from the edge" (a roaming pirate swarm, `raiders.ts`, fighting with your battle rules like the lairs).
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:42: a buried government secret (Project Hushfall) in play
+- From the ideas pipeline ("A buried government secret", Firefly-inspired; idea only). **Text written by Claude 2** (no Gemini job for this one): new `src/engine/data/buriedSecret.ts`, 9 events, original. An old government broadcast that rewrote a rebellious colony's memories: reveal it, bury it, or keep using it.
+- New `src/engine/secrets.ts`, run with `chains.ts`: each empire, once it has 4+ colonies, finds the archive on its oldest non-capital colony on a seed-based turn (80-179), no random draws. Events at least 8 turns apart. Routes: reveal 1-2-3-4o-5o-6, bury 1-2-3-4c-5c-6, use 1-2-3-4n-6. Event-sized effects.
+- Hooks: `turn.ts`, `events.ts` (`SECRET_EVENTS`, `noteSecretChoice`), `types.ts` (`GameState.secrets`, **save v25**), `save.ts`.
+- Tests: `tests/secrets.test.ts` (6).
 
 ### 2026-11-26 04:38: ancient gates, hidden armadas and ambushes in play
 - New `src/engine/gates.ts`, using `data/gates.ts` (Gemini hard pack 5).
@@ -191,6 +197,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 13 | A buried government secret | `data/buriedSecret.ts` (Claude 2) | `secrets.ts` | **done** |
 | 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **all done** (minor races in at save v23) |
 
 **Yours (main Claude), Claude 2 stays off:** the AIs (basic and Master), balance and victory tuning, combat and movement rules, conquest ("you keep what you take", ground war, drop troops), superweapons and starbases, carriers, prophecies, prison colonies, unrest and civil war, council and resolutions, money sinks, proclamations, the UI layout and art, and anything else not in the table.

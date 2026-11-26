@@ -19,6 +19,7 @@ import { processNatives } from "./natives";
 import { processExpeditions } from "./expeditions";
 import { processMinorRaces } from "./minorRaces";
 import { processGates } from "./gates";
+import { processSecrets } from "./secrets";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -262,6 +263,7 @@ export function endTurn(state: GameState): void {
   processNatives(state);
   processExpeditions(state);
   processMinorRaces(state);
+  processSecrets(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);
