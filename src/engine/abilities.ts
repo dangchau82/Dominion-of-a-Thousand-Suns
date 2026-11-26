@@ -39,7 +39,7 @@ export function extraRange(e: Empire, d: ShipDesign): number {
 
 /** Velari: wonders cost a quarter less. */
 export function buildingCost(e: Empire, b: BuildingDef): number {
-  return is(e, "velari") && b.wonder ? Math.round(b.cost * 0.75) : b.cost;
+  return is(e, "velari") && b.wonder ? Math.round(b.cost * 0.65) : b.cost; // 2026-11-26: 25% -> 35% off
 }
 
 /** Orrun Consortium: money talks. Funding ships goes a quarter further; treasury buys council votes. */

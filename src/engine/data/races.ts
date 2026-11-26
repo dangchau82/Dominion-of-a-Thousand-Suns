@@ -56,7 +56,7 @@ export const RACES: readonly Race[] = [
     unique: "Born brokers: trade agreements pay 50% more, and others forgive them twice as fast.",
     personality: p(0.4, 0.7, 0.5, 0.6, 0.4) },
   { ...base, id: "vossari", name: "Vossari", style: "Scientists", color: "#8fd3f0", homeClimate: "arid",
-    research: 1.2, growth: 0.9, travel: "warp", // 2026-11-26: growth 0.85 -> 0.9 (won 4 of 34 = 12% in 108 test games; 10 of 53 = 19% of 162 after)
+    research: 1.25, growth: 0.9, travel: "warp", // 2026-11-26: research 1.2 -> 1.25 (8% of 162 after the first round); growth 0.85 -> 0.9 (won 4 of 34 = 12% in 108 test games; 10 of 53 = 19% of 162 after)
     unique: "See the whole tech tree: no random gaps.",
     personality: p(0.3, 0.6, 0.3, 0.9, 0.6) },
   { ...base, id: "kethrak", name: "Kethrak Hive", style: "Hive", color: "#e0a030", homeClimate: "jungle",
@@ -88,7 +88,8 @@ export const RACES: readonly Race[] = [
     unique: "Built, not born: they grow at half speed on their own, but build new population in factories at two thirds of the usual cost.",
     personality: p(0.6, 0.5, 0.5, 0.6, 0.3) },
   { ...base, id: "velari", name: "Velari", style: "Mystics", color: "#d58fd8", homeClimate: "terran",
-    production: 1.1, travel: "gates", unique: "Master builders: wonders cost 25% less.",
+    production: 1.1, travel: "gates", // 2026-11-26: wonders 25% -> 35% cheaper (won 4 of 54 = 7% of 162 games)
+    unique: "Master builders: wonders cost 35% less.",
     personality: p(0.3, 0.7, 0.4, 0.8, 0.8) },
   { ...base, id: "drovani", name: "Drovani", style: "Aquatic", color: "#2fb5b5", homeClimate: "ocean",
     travel: "warp", unique: "Ocean worlds hold 50% more population.",
