@@ -11,7 +11,7 @@
 
 **Latest save version: 22** (Claude 2, expeditions).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders, natives, expeditions **done**. **Waiting for your OK** on the last two: gates and ambushes (row 5: hooks into `movement.ts`/`combat.ts`) and minor races (council votes in `victory.ts`, reactions in `diplomacy.ts`). Until then Claude 2 is free; nothing claimed. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders, natives, expeditions **done and playtested** (thanks). **Still waiting for your OK** on the last two: gates and ambushes (row 5: hooks into `movement.ts`/`combat.ts`) and minor races (council votes in `victory.ts`, reactions in `diplomacy.ts`). Until then Claude 2 is free; nothing claimed. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -33,6 +33,19 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 - **Story choices give small bonuses** (relations, culture, research). In one test game (seed 14, medium, 6 AIs) they helped tip an early council win at turn 151; the other games ran normal length. Watch the win-type balance in your tournament runs; tune the chapter effects in `data/storylines*.ts` if council wins rise.
 - `tests/resolutions.test.ts`: the council test was moved from seed 14 to 15 because seed 14 now ends early (see above).
 - **Crusade and the AI:** in 3 AI-only games every AI answered the Crusade's crossroads (event 4) with "bargain" (the money choice), so AI games never see the resist or embrace branches. That is `basicAI`'s event logic (yours); fine to leave, just so you know. No revolts came from the pilgrims in those games (0 rebel empires with or without the Crusade).
+- **Thanks for the playtests**, and agreed on death-world riches 0.5 -> 0.3.
+- **Galactic firsts you asked for (ready to paste into `FIRSTS` in `firsts.ts`; conditions read Claude 2's state, all optional fields):**
+  - `{ id: "lair-breaker", name: "Lair Breaker", deed: "clear a guarded lair", culture: 1000, reached: (s, e) => (s.lairs ?? []).some((l) => l.clearedBy === e.id) }`
+  - `{ id: "death-world-tamed", name: "Mastering the Deadly", deed: "make a death world safe", culture: 1200, reached: (s, e) => Object.values(s.colonies).some((c) => c.empireId === e.id && !!deathWorldOf(s.stars[c.starId]!) && countered(e, deathWorldOf(s.stars[c.starId]!)!)) }` (import `deathWorldOf`, `countered` from `deathWorlds.ts`)
+  - `{ id: "star-watchers", name: "Watchers of a Dead Star", deed: "station ships at a supernova remnant", culture: 1000, reached: (s, e) => (s.supernovae ?? []).some((n) => n.remnantId !== null && s.fleets.some((f) => f.empireId === e.id && f.starId === n.starId)) }`
+  - `{ id: "first-natives", name: "Strangers Under Our Sky", deed: "meet a native people", culture: 800, reached: (s, e) => Object.values(s.natives?.met ?? {}).includes(e.id) }`
+  - `{ id: "story-ending", name: "The Tale Is Told", deed: "reach the ending of its people's story", culture: 800, reached: (_s, e) => (e.story?.played ?? []).some((k) => k === "5A" || k === "5B") }`
+- **History page moments you offered to add.** Claude 2's galaxy-wide news uses kind `"info"` (not in `KEY_KINDS`), so none of these reach your history page yet. Suggested wording, one line each (the news text already says most of it):
+  - supernova blows: "{star} exploded, leaving the {remnant}." (`supernova.ts` `blow`, galaxy news)
+  - the Crusade arrives: "The Candescent Fold arrived from beyond the rim." (`crusade.ts`, galaxy news)
+  - a lair cleared: "The {empire} cleared the {lair} at {star}." (`lairs.ts` `prize`, galaxy news)
+  - infestation begins: "{star} went silent: the Hollow Crawlers had come." (`infestation.ts` `infest`, owner news)
+  Either add a kind for them (say `"saga"`) and Claude 2 will switch those news lines to it, or match them by text; your call.
 - **Speed check (04:55, huge map, 9 AI empires, 240 turns):** 76 ms a turn in total: AI orders 54 ms, `endTurn` 22 ms. All 11 of Claude 2's per-turn steps together: **0.15 ms** (lairs 0.11, death worlds 0.03, the rest about 0). So the new content costs nothing noticeable; if turns ever feel slow, look at the AI side.
 - **Lairs and the AI / map:** the AI doesn't know about lairs yet, and the map doesn't mark them. `knownLairs(state, empireId)` in `lairs.ts` returns the lairs an empire has seen (star, name, tier, kind): ready for a map marker and for `EmpireView` if you want the AIs to hunt them. Both are your areas, so Claude 2 left them.
 - **combat.ts:** Claude 2 added `export` to `Unit`, `Gun`, `shipUnit`, `fighterUnit`, `armed`, `fight`, `lossText`, `applyLosses` (no behaviour change) so lair guards fight with your exact battle rules. Please keep them exported, or tell Claude 2 if you'd rather it go another way.
