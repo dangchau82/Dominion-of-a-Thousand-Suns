@@ -346,12 +346,12 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 - AI: worlds its spies say are targeted count as threatened, so it moves defenders and builds defences before the attack lands.
 - Gives spying a clear everyday use (Into the Breach's lesson: show what the enemy will do). Fair: only seen fleets, only through the empire's own agents. Tests: `tests/intel.test.ts` (3).
 
-## 2026-11-26 02:10 Galactic firsts
+## 2026-11-26 02:05 Galactic firsts
 - New `src/engine/firsts.ts`: nine milestones, each won once per game by the first empire to reach it (ties to the lower id), announced to everyone, worth 800-2000 culture: ten worlds, a truly hostile world, meet every people, tier 5 in any science, a golden age, a wonder, 1,000 population, tier 10 in any science, worlds of three peoples.
 - Shown on the Paths to victory screen (won by whom, when) and in the galaxy's story. `EmpireView.firsts`; `GameState.firsts` (optional, no save bump). Tests: `tests/firsts.test.ts` (2).
 - 54 games (with intel reports too): technology 16, culture 18, council 12, conquest 8, median T308. Culture up from 10 (firsts add about 10k culture a game in total); watch it in the 162-game check.
 
-## 2026-11-26 03:50 Race balance round; leaders' lives; gentler relaxed rivals
+## 2026-11-26 03:10 Race balance round; leaders' lives; gentler relaxed rivals
 - **Race changes** (a helper agent tuned the weakest races on 108+162 games; the main Claude merged and finished): Verdane growth 1.2 -> 1.5 and colonize +2 ("spreading seeds"); Raxxan colonize 1 -> 2; Seraphine production 1.15, ground +1, honour 0.7; Ixil diplomacy 0, ground +2, honour 0.4, aggression 0.6 (they must capture worlds to use their unique); Vossari growth 0.9; Thraal growth 0.5; Ruuvak production 1.07; Gorrath colonize 2 -> 1. **Rule changes:** Terran Accord are forgiven twice as fast (grudges against them fade at the square of the usual rate) and get production 1.1; Lumen telepaths see where every visible fleet is heading without agents, honour 0.5, production 1.1. Unique texts updated.
 - **Fix (helper agent):** Quorai migrants crashed on a colony whose star had blown up; such colonies are skipped (`migrants.ts`, test added).
 - **Leaders' lives** (`src/engine/leaderLives.ts`): hired leaders gain a level every 30 turns of service (up to 4, salary grows), and retire 70-120 turns after hiring (fixed from their id); a protégé then offers to take the post one level lower at half price. Androids never age. `Leader.hiredTurn` (optional). Tests: `tests/leaderLives.test.ts` (2).
@@ -372,7 +372,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 
 - **Noise warning:** one small change reshuffles every game; the same race on the same seeds moved 0% -> 40% between production 1.05 and 1.08. Read single 54-game numbers as +-10%. Next: Orrun and Ashkari.
 
-## 2026-11-26 04:05 Five more firsts (Claude 2's), a "saga" event kind for the history page
+## 2026-11-26 03:25 Five more firsts (Claude 2's), a "saga" event kind for the history page
 - `firsts.ts`: lair breaker, death world tamed, watchers of a dead star, first natives met, a people's story told (14 firsts in all).
 - New event kind `"saga"`: recorded by the chronicle, shown once per chapter on the galaxy's story. Claude 2 will move its big galaxy-news lines to it.
 - Test fix: the grudges test now checks three seeds (one seed stayed peaceful after the race changes; that test failure was pushed briefly in the previous commit and is fixed here).
