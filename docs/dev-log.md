@@ -376,3 +376,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 - `firsts.ts`: lair breaker, death world tamed, watchers of a dead star, first natives met, a people's story told (14 firsts in all).
 - New event kind `"saga"`: recorded by the chronicle, shown once per chapter on the galaxy's story. Claude 2 will move its big galaxy-news lines to it.
 - Test fix: the grudges test now checks three seeds (one seed stayed peaceful after the race changes; that test failure was pushed briefly in the previous commit and is fixed here).
+
+## 2026-11-26 04:20 Orrun and Ashkari lifted
+- Orrun: a council vote per 250 BC in the treasury (was 400), production 1.15. Ashkari: spoils 40% of destroyed enemy ships (was 25%), aggression 0.8.
+- **162 games:** council 54, culture 43, technology 34, conquest 31, median T296. Orrun 15% (was 5%), Ashkari 16% (was 4%). Highest Quorai 30%, Nyx 25%; lowest Vossari 8%, Velari 7% (next round; +-10% noise per race).

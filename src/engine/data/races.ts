@@ -64,8 +64,9 @@ export const RACES: readonly Race[] = [
     unique: "Every 20 turns, larvae found a colony on a nearby world with no colony ship needed.",
     personality: p(0.8, 0.5, 0.6, 0.2, 0.5) },
   { ...base, id: "ashkari", name: "Ashkari Dominion", style: "Warriors", color: "#d03a2a", homeClimate: "desert",
-    ground: 2, production: 1.15, travel: "warp", unique: "Take 25% of the value of every enemy ship destroyed as spoils.",
-    personality: p(0.9, 0.6, 0.4, 0.3, 0.9) },
+    ground: 2, production: 1.15, travel: "warp", // 2026-11-26: spoils 25% -> 40%, aggression 0.9 -> 0.8 (won 2 of 51 = 4% of 162 games: wars on everyone made everyone hold grudges)
+    unique: "Take 40% of the value of every enemy ship destroyed as spoils.",
+    personality: p(0.8, 0.6, 0.4, 0.3, 0.9) },
   { ...base, id: "lumen", name: "Lumen Choir", style: "Telepaths", color: "#c7a8ff", homeClimate: "ocean",
     spying: 2, research: 1.1, production: 1.1, travel: "phase", // 2026-11-26: telepathic foresight (see where every visible fleet is heading), honor 0.2 -> 0.5, production 1.0 -> 1.1 (still 8% with foresight alone) (won 4 of 60 = 7% of 162 games)
     unique: "Telepaths: they sense where every fleet they can see is heading, and keep 60% of a conquered world's people.",
@@ -79,7 +80,8 @@ export const RACES: readonly Race[] = [
     unique: "Superb pilots: their ships are much harder to hit, and their dropships land troops with precision.",
     personality: p(0.6, 0.7, 0.6, 0.5, 0.6) },
   { ...base, id: "orrun", name: "Orrun Consortium", style: "Traders", color: "#3fbf6f", homeClimate: "ocean",
-    diplomacy: 1, production: 1.1, travel: "lanes", unique: "Money talks: treasury buys council votes, and funding ships goes 25% further.",
+    diplomacy: 1, production: 1.15, travel: "lanes", // 2026-11-26: production 1.1 -> 1.15, a council vote per 250 BC (was 400) (won 3 of 55 = 5% of 162 games)
+    unique: "Money talks: every 250 BC in the treasury buys a council vote, and funding ships goes 25% further.",
     personality: p(0.3, 0.4, 0.9, 0.5, 0.3) },
   { ...base, id: "nyx", name: "Nyx Collective", style: "Machines", color: "#7a4fd0", homeClimate: "dead",
     production: 1.0, growth: 0.5, colonizeBonus: 3, travel: "warp", // 2026-11-26: growth 1 -> 0.5, built not born (won 35% of 162 games); balance 2026-11-25: production 1.2 -> 1.0 (won ~43% of 108 test games at 1.2/1.1)

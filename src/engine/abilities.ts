@@ -47,7 +47,7 @@ export function fundMultiplier(e: Empire): number {
   return is(e, "orrun") ? 1.25 : 1;
 }
 export function boughtVotes(e: Empire, baseVotes: number): number {
-  return is(e, "orrun") ? Math.min(Math.round(baseVotes * 0.5), Math.floor(Math.max(0, e.treasury) / 400)) : 0;
+  return is(e, "orrun") ? Math.min(Math.round(baseVotes * 0.5), Math.floor(Math.max(0, e.treasury) / 250)) : 0; // 2026-11-26: 400 -> 250 BC a vote (Orrun won 5% of 162 games)
 }
 
 /** Quorai: live inside stars, so they can settle stars with no habitable planet. */
@@ -72,7 +72,7 @@ export function capturedPopulation(e: Empire, troops: number, oldPop: number): n
 export function afterBattle(state: GameState, winner: Empire, loser: Empire, enemyLossValue: number): string | null {
   if (enemyLossValue <= 0) return null;
   if (is(winner, "ashkari")) {
-    const spoils = Math.round(enemyLossValue * 0.25);
+    const spoils = Math.round(enemyLossValue * 0.4); // 2026-11-26: 25% -> 40% (Ashkari won 4% of 162 games)
     winner.treasury += spoils;
     return `Our warriors claimed ${spoils} BC in spoils.`;
   }
