@@ -42,6 +42,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Minor races (`minorRaces.ts`, `votesOf` hook) | Claude 2 | Half-weight votes for friends; 54-game check by Claude 2: council 16/53 (30%). Friend gifts small (3-12 a turn). | | |
 | 2026-11-26 | Gates and ambushes (`gates.ts`; hooks in movement, view, intel, combat) | Claude 2 | AIs never wake gates (they refuse the money choice), so AI games are unchanged. Player: are instant jumps + hidden staging too strong? Upkeep 2 BC/ship/turn plus attrition. | | |
 | 2026-11-26 | Buried government secret (`secrets.ts`) | Claude 2 | Story chain, event-sized effects; text by Claude 2. Tone OK? | | |
+| 2026-11-26 | Raiders from the edge (`raiders.ts`) | Claude 2 | Late horde, hits 1-3 worlds then dies in AI games. Too strong/weak? Map/AI don't show it yet. | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).

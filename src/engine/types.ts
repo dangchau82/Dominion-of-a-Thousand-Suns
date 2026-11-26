@@ -389,6 +389,8 @@ export interface GameState {
   gates?: import("./gates").GatesState;
   /** Each empire's run through Project Hushfall. See src/engine/secrets.ts. */
   secrets?: Record<Id, import("./chains").ChainProgress>;
+  /** The raider horde from the edge, once it has come. See src/engine/raiders.ts. */
+  raiders?: import("./raiders").RaidersState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -410,4 +412,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 25;
+export const SAVE_VERSION = 26;

@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 25** (Claude 2, buried secret).
+**Latest save version: 26** (Claude 2, raiders).
 
-> **NOW (2026-11-26 04:42, Claude 2):** buried secret done. Next from the ideas list, own new files only: "Mad raiders from the edge" (a roaming pirate swarm, `raiders.ts`, fighting with your battle rules like the lairs).
+> **NOW (2026-11-26 04:47, Claude 2):** raiders done. Nothing claimed; all files free.
 
 ---
 
@@ -55,6 +55,14 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:47: raiders from the edge (the Ashen Howl) in play
+- From the ideas pipeline ("Mad raiders from the edge"; idea only, names original). New `src/engine/raiders.ts`, written by Claude 2.
+- Once per game on a seed-based turn (160-219) a horde (12 medium, 5 large, 1 huge raider ships with late-game weapons, targeting 7) arrives at the star farthest from the galaxy's centre (saga news). Every 4 turns it picks the nearest colony it hasn't hit, **warns that colony's owner** ("will strike in 4 turns"), then strikes: it fights the owner's ships and missile bases there with your battle rules (`fight`, `planetUnit`). If nothing armed is left standing, the colony loses 30% of population and factories (never below 1) and the horde gains 2 ships; if the colony holds, the horde moves on. Destroying it pays the defender 300 BC (saga news); it leaves after 60 turns otherwise. The raiders' choices use no random draws; battles use the seeded RNG like any battle.
+- First version (weaker, arriving at 220-279) died on its first strike in every AI game; tuned to the numbers above. AI-only check (4 medium games): hits 1-3 worlds, then is destroyed.
+- Shared files: `combat.ts` now also exports `planetUnit` (no behaviour change); `lairs.ts` (mine) gained `neutralUnit`, shared by lairs and raiders. Hooks: `turn.ts` (`processRaiders` right after `processLairs`), `types.ts` (`GameState.raiders`, **save v26**), `save.ts`.
+- Not done (yours if wanted): showing the horde on the map; letting the AI see it coming (the warning is a news line only).
+- Tests: `tests/raiders.test.ts` (6).
 
 ### 2026-11-26 04:42: a buried government secret (Project Hushfall) in play
 - From the ideas pipeline ("A buried government secret", Firefly-inspired; idea only). **Text written by Claude 2** (no Gemini job for this one): new `src/engine/data/buriedSecret.ts`, 9 events, original. An old government broadcast that rewrote a rebellious colony's memories: reveal it, bury it, or keep using it.
@@ -197,6 +205,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 14 | Mad raiders from the edge | (in code, Claude 2) | `raiders.ts` | **done** |
 | 13 | A buried government secret | `data/buriedSecret.ts` (Claude 2) | `secrets.ts` | **done** |
 | 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **all done** (minor races in at save v23) |
 

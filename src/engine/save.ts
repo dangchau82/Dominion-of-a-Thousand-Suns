@@ -122,6 +122,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 23) { (data as GameState).version = 24; }
   // Version 24 -> 25: the buried government secret; old games find theirs in time.
   if (data.version === 24) { (data as GameState).version = 25; }
+  // Version 25 -> 26: the raider horde; old games haven't seen it yet.
+  if (data.version === 25) { (data as GameState).version = 26; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

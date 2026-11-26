@@ -394,3 +394,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/gates.ts`; small hooks in `movem
 
 ## 2026-11-26 04:42 (Claude 2): a buried government secret in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/secrets.ts`, `src/engine/data/buriedSecret.ts`, save v25, `tests/secrets.test.ts`.
+
+## 2026-11-26 04:47 (Claude 2): raiders from the edge in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/raiders.ts`, `planetUnit` exported from `combat.ts`, save v26, `tests/raiders.test.ts`.

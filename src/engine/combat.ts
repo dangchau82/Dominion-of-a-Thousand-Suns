@@ -29,8 +29,8 @@ export const MAX_ROUNDS = 8;
 /** Missiles and torpedoes run out after this many rounds. */
 export const MISSILE_ROUNDS = 3;
 
-// Unit, shipUnit, fighterUnit, armed, fight, lossText and applyLosses are exported so
-// neutral lairs (lairs.ts, Claude 2) fight with exactly these rules.
+// Unit, shipUnit, fighterUnit, planetUnit, armed, fight, lossText and applyLosses are exported so
+// neutral lairs and raiders (lairs.ts, raiders.ts, Claude 2) fight with exactly these rules.
 export function atWar(a: Empire, b: Empire): boolean {
   return a.atWar[b.id] !== undefined;
 }
@@ -130,7 +130,7 @@ export function fighterUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDes
 }
 
 /** A colony's missile bases fight as one target whose hit points are its bases. */
-function planetUnit(state: GameState, side: 0 | 1, e: Empire, c: Colony): Unit | null {
+export function planetUnit(state: GameState, side: 0 | 1, e: Empire, c: Colony): Unit | null {
   if (c.missileBases <= 0) return null;
   const ts = techStats(e);
   const best = ts.weapons.map(tech).flatMap((t) => t.effects).filter((fx) => fx.stat === "weapon" && fx.kind === "missile")

@@ -81,16 +81,21 @@ function guardGuns(g: LairGuard): Gun[] {
   return out;
 }
 
-/** A guard group as a battle unit. Its targeting grows with the lair's tier. */
-function guardUnit(def: LairDef, g: LairGuard, count: number): Unit {
+/** A neutral ship group (lair guards, raiders) as a battle unit on side 1. */
+export function neutralUnit(g: LairGuard, count: number, attack: number, keyPrefix = "lair"): Unit {
   const h = HULLS[g.hull];
   const maxHp = h.hits * (1 + 0.5 * Math.max(0, g.armor - 1));
   return {
-    side: 1, empireId: -1, key: `lair:${g.name}`, name: g.name, count, start: count, hp: maxHp, maxHp,
-    attack: def.tier * 2, beamDef: h.defense, missileDef: h.defense, shield: g.shield,
+    side: 1, empireId: -1, key: `${keyPrefix}:${g.name}`, name: g.name, count, start: count, hp: maxHp, maxHp,
+    attack, beamDef: h.defense, missileDef: h.defense, shield: g.shield,
     guns: guardGuns(g), small: g.hull === "small", invulnerable: false,
     bonusDamage: 0, first: false, dodge: 0, stasis: false, dampener: false, frozen: false,
   };
+}
+
+/** A guard group as a battle unit. Its targeting grows with the lair's tier. */
+function guardUnit(def: LairDef, g: LairGuard, count: number): Unit {
+  return neutralUnit(g, count, def.tier * 2);
 }
 
 /** One empire's ships at the lair, built the same way as in a normal battle. */
