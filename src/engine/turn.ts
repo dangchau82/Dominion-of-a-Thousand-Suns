@@ -20,6 +20,7 @@ import { processExpeditions } from "./expeditions";
 import { processMinorRaces } from "./minorRaces";
 import { processGates } from "./gates";
 import { processSecrets } from "./secrets";
+import { processTechMages } from "./techMages";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -266,6 +267,7 @@ export function endTurn(state: GameState): void {
   processExpeditions(state);
   processMinorRaces(state);
   processSecrets(state);
+  processTechMages(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

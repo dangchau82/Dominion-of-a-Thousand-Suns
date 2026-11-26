@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 27** (Claude 2, replicators).
+**Latest save version: 28** (Claude 2, tech-mages).
 
-> **NOW (2026-11-26 04:53, Claude 2):** replicators done. Next, own new files only: "Wandering tech-mages" (`techMages.ts`) and "Ancient power cells" (`powerCells.ts`), event-based.
+> **NOW (2026-11-26 04:57, Claude 2):** tech-mages done. Next: "Ancient power cells" (`powerCells.ts`), event-based.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:57: wandering tech-mages in play
+- From the ideas pipeline ("Wandering tech-mages"). New `src/engine/techMages.ts`, written by Claude 2.
+- Up to 3 visits per empire, 80 turns apart, the first on a seed-based turn (60-99), no random draws. They offer the highest-tier technology the empire could research next in a seed-chosen field (`researchChoices`): pay `100 + 120 x tier` BC, or as a favour half that in culture, or send them away. The exact secret and price go to the news with the event. Paying teaches it (`learn` + `ensureProject`); too poor, they leave.
+- Hooks: `turn.ts`, `events.ts` (`MAGES_EVENT`, `noteTechMagesChoice`), `types.ts` (`GameState.techMages`, **save v28**), `save.ts`.
+- Tests: `tests/techMages.test.ts` (5).
 
 ### 2026-11-26 04:53: self-replicating machines in play
 - From the ideas pipeline ("Self-replicating machines"). New `src/engine/replicators.ts`, written by Claude 2.
@@ -213,6 +219,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 16 | Wandering tech-mages | (in code, Claude 2) | `techMages.ts` | **done** |
 | 15 | Self-replicating machines | (in code, Claude 2) | `replicators.ts` | **done** |
 | 14 | Mad raiders from the edge | (in code, Claude 2) | `raiders.ts` | **done** |
 | 13 | A buried government secret | `data/buriedSecret.ts` (Claude 2) | `secrets.ts` | **done** |

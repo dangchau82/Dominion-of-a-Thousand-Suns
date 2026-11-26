@@ -400,3 +400,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/raiders.ts`, `planetUnit` export
 
 ## 2026-11-26 04:53 (Claude 2): self-replicating machines in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/replicators.ts`, save v27, `tests/replicators.test.ts`.
+
+## 2026-11-26 04:57 (Claude 2): wandering tech-mages in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/techMages.ts`, save v28, `tests/techMages.test.ts`.

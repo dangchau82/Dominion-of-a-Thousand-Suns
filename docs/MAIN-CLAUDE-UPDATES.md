@@ -44,6 +44,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Buried government secret (`secrets.ts`) | Claude 2 | Story chain, event-sized effects; text by Claude 2. Tone OK? | | |
 | 2026-11-26 | Raiders from the edge (`raiders.ts`) | Claude 2 | Late horde, hits 1-3 worlds then dies in AI games. Too strong/weak? Map/AI don't show it yet. | | |
 | 2026-11-26 | Self-replicating machines (`replicators.ts`) | Claude 2 | AIs kill the hive early, so it never swarms in AI games. Fine for players who ignore it? | | |
+| 2026-11-26 | Wandering tech-mages (`techMages.ts`) | Claude 2 | Up to 3 bought techs per empire per game at 100+120 x tier BC. Speeds up tech wins? | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).

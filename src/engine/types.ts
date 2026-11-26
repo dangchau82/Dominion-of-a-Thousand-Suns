@@ -393,6 +393,8 @@ export interface GameState {
   raiders?: import("./raiders").RaidersState;
   /** The self-replicating machine hive, once it has woken. See src/engine/replicators.ts. */
   replicators?: import("./replicators").ReplicatorState;
+  /** Wandering tech-mages' visits per empire. See src/engine/techMages.ts. */
+  techMages?: Record<Id, import("./techMages").MageVisit>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -414,4 +416,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 27;
+export const SAVE_VERSION = 28;
