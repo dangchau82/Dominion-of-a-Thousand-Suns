@@ -48,7 +48,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Ancient power cells (`powerCells.ts`) | Claude 2 | Up to 2 per empire; 0.4 x colony production a turn for 25 turns as BC or research. Too generous? | **Playtested 05:45.** 6-12 found a game, but AIs never keep one active (they sell). Fine. | None |
 | 2026-11-26 | Smuggler rings (`smugglers.ts`) | Claude 2 | Up to 3 per empire; small money/research swings for 20 turns. Does the AI pick sensibly? | **Playtested 05:45.** 12-18 rings a game; runs fine. | None visible |
 | 2026-11-26 | Bounty Guild (`bountyHunters.ts`) | Claude 2 | Offered after 10 turns of war; drains the enemy's BC and research. Does it make wars drag or snowball? | **Playtested 05:45.** 6-12 offers a game; wars did not get longer (median game T298). Fine. | None visible |
-| 2026-11-26 | Cult of the Last Sun (`deathCult.ts`) | Claude 2 | Once a game; drains or (if adopted) gives culture. Does the AI adopt it, and does that tip culture wins? | | |
+| 2026-11-26 | Cult of the Last Sun (`deathCult.ts`) | Claude 2 | Once a game; drains or (if adopted) gives culture. Does the AI adopt it, and does that tip culture wins? | **Playtested 05:55, 10 games.** AIs always purge it at once (1 colony), so it never spreads or tips culture wins in AI games. Fine; a player who adopts it gets the real story. | None |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).
