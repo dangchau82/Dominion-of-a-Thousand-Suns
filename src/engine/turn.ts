@@ -19,6 +19,8 @@ import { processUnrest, unrestPenalty } from "./unrest";
 import { processMoneySinks } from "./moneySinks";
 import { processProphecies } from "./prophecy";
 import { processResolutions } from "./resolutions";
+import { processPrisons } from "./prison";
+import { PRISON_COLONY } from "./data/hazardWorlds";
 import { updateVision } from "./knowledge";
 import { mergeFleets, moveFleets } from "./movement";
 import { FIELDS, type Colony, type Empire, type GameEvent, type GameState, type Star } from "./types";
@@ -48,7 +50,7 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   const ce = colonyEffects(c);
   const eb = empireBonus(e);
   // Unrest cuts output (up to 25% at open revolt).
-  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c));
+  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1);
   // Spies and internal security are paid first, out of every colony's output.
   const net = boosted * (1 - spendingShare(e));
   const part = (pct: number) => (net * pct) / 100;
@@ -205,6 +207,7 @@ export function endTurn(state: GameState): void {
 
   processCivilization(state);
   processUnrest(state);
+  processPrisons(state);
   processMoneySinks(state);
   rollEvents(state);
   processEspionage(state);

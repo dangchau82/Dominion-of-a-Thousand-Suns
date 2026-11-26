@@ -197,3 +197,8 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 - **Balance** (54 medium games, seeds 3000+, with all of today's systems): culture 28, council 13, tech 7, no winner 6, median end T351; Quorai won 6 of their 22 games (27%, was 32-36%).
 - AI test "relaxed rivals start fewer wars" now sums 8 seeds (5 was too noisy once resolutions change who fights whom).
 - **Title screen:** Gemini's title art (wide for landscape, tall for phones held upright, `public/art/backgrounds/title-*.jpg`); the name sits in the dark top, the buttons below the gate.
+
+## 2026-11-25 18:20 Prison colonies (Gemini coding job 05)
+- Gemini wrote `src/engine/prison.ts` (breakout events on prison colonies, same pattern as unrest events) and `tests/prison.test.ts`; its reply 2 (the small edits) never reached Claude, so Claude wired those from the job spec: `Colony.prison` (optional, no save bump), command `declarePrison` (own non-capital colony, 220 BC and a little culture), +25% output in `colonyBudget`, "+15 Prison colony" in the unrest reasons, `PRISON_EVENTS` findable by `EVENT_BY_ID`, `processPrisons` after `processUnrest`. Colony panel: "⛓️ Make prison colony" button.
+- **Gemini's score:** real functions only, compiled first time, deterministic, 4 of 5 tests right. The fifth expected the unrest target to rise by exactly 15, but targets are clamped at 0, so one assertion was fixed. Same standard as its earlier coding jobs: fine for contained jobs with complete files.
+- AI doesn't declare prison colonies yet.

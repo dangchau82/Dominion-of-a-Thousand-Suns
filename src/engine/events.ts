@@ -3,6 +3,7 @@
 
 import { EVENTS, type EventEffect, type GameEventDef } from "./data/events";
 import { UNREST_EVENTS } from "./data/unrest";
+import { PRISON_EVENTS } from "./data/hazardWorlds";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
 import { distance } from "./formulas";
@@ -13,7 +14,7 @@ export const EVENT_CHANCE = 1 / 14;
 /** Unanswered events resolve with their first choice after this many turns. */
 export const EVENT_TIMEOUT = 5;
 
-export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS].map((e) => [e.id, e]));
+export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS].map((e) => [e.id, e]));
 
 function fill(text: string, state: GameState, p: PendingEvent): string {
   return text

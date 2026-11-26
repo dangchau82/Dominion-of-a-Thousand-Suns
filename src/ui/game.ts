@@ -27,6 +27,7 @@ import { art, portraitHTML, setImageLoadedHandler } from "./assets";
 import { StarMap, type FleetTap } from "./map";
 import { autosave } from "./storage";
 import { LEADER_TRAITS } from "../engine/data/leaderTraits";
+import { PRISON_COLONY } from "../engine/data/hazardWorlds";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
@@ -585,6 +586,13 @@ export class GameScreen {
       seg.append(bt);
     }
     build.append(seg);
+    // Prison colony: a harsh world turned into a labour camp (Gemini's data and code).
+    if (!c.isCapital && !c.prison) {
+      const pr = el("button", { class: "small", style: "margin:6px 6px 0 0", title: PRISON_COLONY.description }, `⛓️ Make prison colony (${PRISON_COLONY.setupCost} BC)`);
+      pr.disabled = v.me.treasury < PRISON_COLONY.setupCost;
+      pr.onclick = () => { if (confirm(`${PRISON_COLONY.description}\n\nCosts ${PRISON_COLONY.setupCost} BC and some culture. Go ahead?`) && this.cmd({ type: "declarePrison", starId: c.starId })) { autosave(this.state); this.refresh(); } };
+      wrap.append(pr);
+    } else if (c.prison) wrap.append(el("div", { class: "dim" }, `⛓️ Prison colony: +${Math.round(PRISON_COLONY.productionBonus * 100)}% output, restless, breakouts.`));
     if (c.buildTemplate && v.me.treasury >= 50) {
       const t = this.tpl(c.buildTemplate);
       const need = Math.max(0, Math.ceil(t.cost - c.shipProgress));

@@ -75,6 +75,8 @@ export interface Colony {
   occupiedSince?: number;
   /** Enemy-funded rebels: revolts are twice as likely until this turn. */
   rebelsFundedUntil?: number;
+  /** A prison colony (see src/engine/prison.ts): more output, more unrest, breakouts. */
+  prison?: boolean;
 }
 
 export type ResearchField =

@@ -1,6 +1,7 @@
 // Every action a player OR an AI can take goes through applyCommand.
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
+import { PRISON_COLONY } from "./data/hazardWorlds";
 import { castResolutionVote, underRule } from "./resolutions";
 import { investSink } from "./moneySinks";
 import { researchChoices } from "./tech";
@@ -41,6 +42,7 @@ export type Command =
   | { type: "setAutopilotAI"; ai: "basic" | "master" }
   | { type: "investSink"; sinkId: string; starId?: Id }
   | { type: "resolutionVote"; yes: boolean | null }
+  | { type: "declarePrison"; starId: Id }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -254,6 +256,17 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     case "setFocus": {
       if (!(AUTOPILOT_FOCI as readonly string[]).includes(cmd.focus)) return fail("Unknown focus");
       e.focus = cmd.focus;
+      return { ok: true };
+    }
+    case "declarePrison": {
+      const c = ownColony(state, empireId, cmd.starId);
+      if (!c) return fail("Not your colony");
+      if (c.isCapital) return fail("The capital can't be a prison colony");
+      if (c.prison) return fail("Already a prison colony");
+      if (e.treasury < PRISON_COLONY.setupCost) return fail(`Need ${PRISON_COLONY.setupCost} BC`);
+      e.treasury -= PRISON_COLONY.setupCost;
+      e.culture = Math.max(0, e.culture - PRISON_COLONY.moraleCost * 10);
+      c.prison = true;
       return { ok: true };
     }
     case "resolutionVote": {

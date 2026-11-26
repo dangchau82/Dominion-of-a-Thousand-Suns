@@ -9,6 +9,7 @@
 // Same rules for the player and every AI. Deterministic: randomness only from state.rng.
 
 import { REBEL_FACTIONS, UNREST_EVENTS } from "./data/unrest";
+import { PRISON_COLONY } from "./data/hazardWorlds";
 import { race } from "./data/races";
 import { colonyEffects, transferWonders } from "./civ";
 import { distance } from "./formulas";
@@ -60,6 +61,7 @@ export function unrestBreakdown(state: GameState, c: Colony): UnrestPart[] {
   for (const since of Object.values(e.atWar)) weariness += Math.max(0, (state.turn - since - 30) / 4);
   add("War weariness", Math.min(12, weariness));
   add("Foreign agitators", Math.min(40, c.agitation ?? 0));
+  if (c.prison) add("Prison colony", PRISON_COLONY.unrestPerTurn * 5);
   add("Internal security", -e.security * 2);
   add("Culture buildings", -colonyEffects(c).culture * 2);
   if (e.goldenAge) add("Golden age", -15);
