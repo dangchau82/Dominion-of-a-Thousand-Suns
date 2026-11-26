@@ -332,6 +332,10 @@ export interface GameState {
   council: CouncilState;
   /** Set when someone has won; the player may keep playing afterwards. */
   winner: Winner | null;
+  /** The home star each starting empire began on (index = empire id). Conquest victory counts these. */
+  homeStars?: Id[];
+  /** Most home worlds each empire has been announced as holding (so the warning is given once). */
+  homeWarned?: Record<Id, number>;
   keepPlaying?: boolean;
   /** A rival's win the player refused to accept ("Fight on"). Only the player can win from then on. */
   rivalWin?: Winner | null;

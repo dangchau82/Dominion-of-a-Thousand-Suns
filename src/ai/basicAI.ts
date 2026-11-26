@@ -940,6 +940,8 @@ function findThreat(view: EmpireView): Id | null {
     if (s.buildingAscension) score = Math.max(score, 1);
     // Runaway leaders: close to a culture win, far ahead in tech, or holding a big share of the galaxy's votes.
     score = Math.max(score, s.culture / 95000 - 0.05, s.techFields / 6 - 0.2);
+    // One home world short of a conquest win is as urgent as it gets.
+    if (view.homeWorldsNeeded && s.homeWorlds >= 2) score = Math.max(score, s.homeWorlds / view.homeWorldsNeeded - 0.1);
     if (view.turn >= 120 && totalVotes > 0) score = Math.max(score, (s.votes / totalVotes) * 1.6 - 0.15);
     if (score >= 0.6 && (!worst || score > worst.score)) worst = { id: s.id, score };
   }

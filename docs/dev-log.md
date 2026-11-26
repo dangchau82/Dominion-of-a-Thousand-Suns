@@ -278,3 +278,9 @@ Danny asked for fewer culture wins and more technology wins. 54 medium games eac
 
 ## 2026-11-26 00:30 (Claude 2): supernova crisis in play
 See `docs/CLAUDE-2-UPDATES.md` for details. New `src/engine/supernova.ts`, save v13, `tests/supernova.test.ts`.
+
+## 2026-11-26 00:30 Conquest victory: hold most home worlds; Nyx growth halved
+- **Conquest** (`victory.ts`): an empire that holds its own home world and more than half of the galaxy's original home worlds wins (4 of 6 in a 6-empire game). Last-one-standing still counts. The galaxy is warned once when someone is one home world short; the basic AI treats that empire as the threat to stop. `GameState.homeStars` records the starting home stars (new games only; old saves keep the old rule). Victory screen shows each empire's home worlds.
+- Why: in 18 test games, the eventual winner usually held 2-4 home worlds and 3 rivals were dead, but games still ran to culture, tech or council at T300+.
+- **Nyx** growth 1 -> 0.5 ("built, not born": they still buy people in factories at 2/3 cost). Nyx 7 of 37 games (19%), was 35% of 162.
+- **54 games (seeds 3000+):** technology 18, council 15, **conquest 9** (was 0), culture 11, no winner 1, median end T322. Nyx 1/16 here (small sample). Tests: `tests/conquest.test.ts` (4).

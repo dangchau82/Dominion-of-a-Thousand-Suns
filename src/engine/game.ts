@@ -86,6 +86,7 @@ export function newGame(settings: GameSettings): GameState {
 
   bridgeStars(rng, stars);
   for (const e of state.empires) exploreStar(state, e, star(state, e.capitalStarId), false);
+  state.homeStars = state.empires.map((e) => e.capitalStarId);
   return state;
 }
 

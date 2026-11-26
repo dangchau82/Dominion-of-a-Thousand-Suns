@@ -29,6 +29,7 @@ import { autosave } from "./storage";
 import { LEADER_TRAITS } from "../engine/data/leaderTraits";
 import { PRISON_COLONY } from "../engine/data/hazardWorlds";
 import { EDICT_BY_ID } from "../engine/decrees";
+import { CULTURE_VICTORY } from "../engine/victory";
 import { growsByMigrants } from "../engine/migrants";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
@@ -962,15 +963,15 @@ export class GameScreen {
     this.modal((box, close) => {
       const total = v.standings.filter((s) => s.alive).reduce((a, s) => a + s.votes, 0);
       const rows = [...v.standings].sort((a, b) => b.votes - a.votes).map((s) =>
-        `<tr${s.id === PLAYER ? ' class="good"' : ""}><td style="color:${s.color}">${esc(s.name)}${s.alive ? "" : " †"}</td><td>${s.votes}</td><td>${fmt(s.culture / 1000, 1)}k</td><td>${s.techFields}/6</td></tr>`).join("");
+        `<tr${s.id === PLAYER ? ' class="good"' : ""}><td style="color:${s.color}">${esc(s.name)}${s.alive ? "" : " †"}</td><td>${s.votes}</td><td>${fmt(s.culture / 1000, 1)}k</td><td>${s.techFields}/6</td><td>${s.homeWorlds}</td></tr>`).join("");
       box.innerHTML = `<h2>Paths to victory</h2>
         <ul>
-          <li><b>Conquest</b>: be the last empire standing.</li>
+          <li><b>Conquest</b>: ${v.homeWorldsNeeded ? `hold ${v.homeWorldsNeeded} of the galaxy's ${v.homeWorldsTotal} original home worlds, your own among them` : "be the last empire standing"}.</li>
           <li><b>Galactic Council</b>: from turn 150, every 25 turns, the two biggest empires stand and need three fifths (60%) of all votes. ${v.council.defied ? "<span class='bad'>You defied the council; it no longer meets.</span>" : `Next session: turn ${v.council.nextTurn}.`}</li>
-          <li><b>Culture</b>: reach 95k culture.</li>
+          <li><b>Culture</b>: reach ${fmt(CULTURE_VICTORY / 1000, 0)}k culture.</li>
           <li><b>Technology</b>: reach tier 10 in all six fields, then build the Ascension Gate.</li>
         </ul>
-        <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th></tr>${rows}</table>
+        <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th><th>Home worlds</th></tr>${rows}</table>
         <p class="dim">Shows you and the empires you have met. Total votes among them: ${total}.</p>`;
       const row = el("div", { class: "row" });
       const ok = el("button", { class: "primary" }, "Close");

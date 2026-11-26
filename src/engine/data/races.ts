@@ -78,8 +78,8 @@ export const RACES: readonly Race[] = [
     diplomacy: 1, production: 1.1, travel: "lanes", unique: "Money talks: treasury buys council votes, and funding ships goes 25% further.",
     personality: p(0.3, 0.4, 0.9, 0.5, 0.3) },
   { ...base, id: "nyx", name: "Nyx Collective", style: "Machines", color: "#7a4fd0", homeClimate: "dead",
-    production: 1.0, colonizeBonus: 3, travel: "warp", // balance 2026-11-25: production 1.2 -> 1.0 (won ~43% of 108 test games at 1.2/1.1)
-    unique: "Build new population in factories at two thirds of the usual cost.",
+    production: 1.0, growth: 0.5, colonizeBonus: 3, travel: "warp", // 2026-11-26: growth 1 -> 0.5, built not born (won 35% of 162 games); balance 2026-11-25: production 1.2 -> 1.0 (won ~43% of 108 test games at 1.2/1.1)
+    unique: "Built, not born: they grow at half speed on their own, but build new population in factories at two thirds of the usual cost.",
     personality: p(0.6, 0.5, 0.5, 0.6, 0.3) },
   { ...base, id: "velari", name: "Velari", style: "Mystics", color: "#d58fd8", homeClimate: "terran",
     production: 1.1, travel: "gates", unique: "Master builders: wonders cost 25% less.",

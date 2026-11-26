@@ -7,7 +7,7 @@ import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
 import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
 import { buildable, buyCost } from "./civ";
-import { techVictoryProgress, votesOf } from "./victory";
+import { techVictoryProgress, votesOf, homeWorldsHeld, homeWorldsNeeded } from "./victory";
 import { canSettleStarless } from "./abilities";
 import { sinkOptions, type SinkOption } from "./moneySinks";
 import { edictOptions, proclamationOptions, proclamationSlots, type EdictOption, type ProclamationOption } from "./decrees";
@@ -90,7 +90,10 @@ export interface EmpireView {
   pendingEvents: { id: number; title: string; art: string; text: string; subtitle: string | null; choices: { label: string; result: string; effects: EventEffect[] }[] }[];
   keepPlaying: boolean;
   /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
-  standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean }[];
+  standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean; homeWorlds: number }[];
+  /** Home worlds needed for a conquest victory (0 = not in this game), out of how many. */
+  homeWorldsNeeded: number;
+  homeWorldsTotal: number;
   /** Culture needed for the next golden age, or null after the last. */
   nextGoldenAge: number | null;
   /** Ship designs this empire can build (built-ins first). */
@@ -183,9 +186,11 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     winner: state.winner ? { ...state.winner } : null,
     pendingEvents: eventsFor(state, empireId).map((p) => ({ id: p.id, ...structuredClone(describeEvent(state, p)) })),
     keepPlaying: !!state.keepPlaying,
+    homeWorldsNeeded: homeWorldsNeeded(state),
+    homeWorldsTotal: state.homeStars?.length ?? 0,
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),
-      techFields: techVictoryProgress(o), alive: o.alive,
+      techFields: techVictoryProgress(o), alive: o.alive, homeWorlds: homeWorldsHeld(state, o),
       buildingAscension: Object.values(state.colonies).some((c) => c.empireId === o.id && c.buildQueue === "w-ascension"),
     })),
     me, designs: structuredClone(designsOf(state, empireId)), race: RACES.find((x) => x.id === r.id)!, knowledge, colonies, fleets, seenFleets, contacts,

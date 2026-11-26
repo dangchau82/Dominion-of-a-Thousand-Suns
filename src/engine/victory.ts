@@ -15,6 +15,20 @@ export const CULTURE_VICTORY = 90000; // balance 2026-11-24: 100k -> tech won 14
 /** Technology victory: master all six fields, then build this. */
 export const ASCENSION_GATE = "w-ascension";
 
+/** Conquest victory: hold more than this share of the galaxy's original home worlds, your own included. */
+export const HOME_WORLD_SHARE = 0.5;
+
+/** Home worlds needed for a conquest victory (0 if this game has no record of them). */
+export function homeWorldsNeeded(state: GameState): number {
+  const n = state.homeStars?.length ?? 0;
+  return n >= 3 ? Math.floor(n * HOME_WORLD_SHARE) + 1 : 0;
+}
+
+/** Original home worlds this empire holds now. */
+export function homeWorldsHeld(state: GameState, e: Empire): number {
+  return (state.homeStars ?? []).filter((h) => state.colonies[h]?.empireId === e.id).length;
+}
+
 function ev(state: GameState, empireId: Id | null, text: string): void {
   state.events.push({ turn: state.turn, empireId, kind: "council", text });
 }
@@ -42,7 +56,7 @@ function win(state: GameState, empireId: Id, kind: VictoryKind): void {
   state.winner = { empireId, kind, turn: state.turn, ...(state.rivalWin ? { comeback: true } : {}) };
   const e = state.empires[empireId]!;
   const how: Record<VictoryKind, string> = {
-    conquest: "by conquest: no rival remains",
+    conquest: state.empires.filter((x) => x.alive).length > 1 ? "by conquest: it rules most of the galaxy's home worlds" : "by conquest: no rival remains",
     council: "by vote of the Galactic Council",
     culture: "through the brilliance of its culture",
     technology: "by mastering every field of science",
@@ -136,6 +150,21 @@ export function checkVictory(state: GameState): void {
     // The player is gone: the strongest survivor takes the galaxy.
     const top = [...alive].sort((a, b) => population(state, b) - population(state, a))[0]!;
     return win(state, top.id, "conquest");
+  }
+  // Conquest: an empire that still holds its own home world and has taken enough of the others rules the galaxy.
+  const need = homeWorldsNeeded(state);
+  if (need) {
+    for (const e of alive) {
+      const own = state.homeStars![e.id];
+      if (own === undefined || state.colonies[own]?.empireId !== e.id) continue;
+      const held = homeWorldsHeld(state, e);
+      if (held >= need) return win(state, e.id, "conquest");
+      const warned = (state.homeWarned ??= {});
+      if (held >= need - 1 && held >= 2 && (warned[e.id] ?? 0) < held) {
+        warned[e.id] = held;
+        ev(state, null, `The ${e.name} now hold ${held} of the galaxy's ${state.homeStars!.length} home worlds. One more and they rule by conquest.`);
+      }
+    }
   }
   for (const e of alive) {
     if (e.wonders.includes(ASCENSION_GATE)) return win(state, e.id, "technology");
