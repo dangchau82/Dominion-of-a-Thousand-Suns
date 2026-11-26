@@ -397,3 +397,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/secrets.ts`, `src/engine/data/bu
 
 ## 2026-11-26 04:47 (Claude 2): raiders from the edge in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/raiders.ts`, `planetUnit` exported from `combat.ts`, save v26, `tests/raiders.test.ts`.
+
+## 2026-11-26 04:53 (Claude 2): self-replicating machines in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/replicators.ts`, save v27, `tests/replicators.test.ts`.

@@ -391,6 +391,8 @@ export interface GameState {
   secrets?: Record<Id, import("./chains").ChainProgress>;
   /** The raider horde from the edge, once it has come. See src/engine/raiders.ts. */
   raiders?: import("./raiders").RaidersState;
+  /** The self-replicating machine hive, once it has woken. See src/engine/replicators.ts. */
+  replicators?: import("./replicators").ReplicatorState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -412,4 +414,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 26;
+export const SAVE_VERSION = 27;

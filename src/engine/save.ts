@@ -124,6 +124,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 24) { (data as GameState).version = 25; }
   // Version 25 -> 26: the raider horde; old games haven't seen it yet.
   if (data.version === 25) { (data as GameState).version = 26; }
+  // Version 26 -> 27: the self-replicating machines; old games haven't seen them wake yet.
+  if (data.version === 26) { (data as GameState).version = 27; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

@@ -115,42 +115,58 @@ function defenders(state: GameState, e: Empire, starId: Id): Unit[] {
   return units;
 }
 
-function strike(state: GameState, r: RaidersState): void {
-  const sid = r.targetStarId!;
+/**
+ * A neutral force strikes a colony: it fights the owner's ships and missile bases there with
+ * the real battle rules. Returns what happened; `left` (ships per group) is updated in place.
+ * Shared by the raiders and the replicators.
+ */
+export function strikeColony(state: GameState, sid: Id, groups: LairGuard[], left: number[], attack: number, key: string, name: string):
+    { outcome: "destroyed" | "wrecked" | "held"; owner: Empire; text: string } | null {
   const c = state.colonies[sid];
   const s = state.stars[sid]!;
-  r.starId = sid;
-  if (!c) return;
+  if (!c) return null;
   const e = state.empires[c.empireId]!;
   const mine = defenders(state, e, sid);
-  const raiders = RAIDER_GROUPS.map((g, i) => neutralUnit(g, r.left[i]!, RAIDER_ATTACK, "howl")).filter((u) => u.count > 0);
-  const units = [...mine, ...raiders];
+  const enemy = groups.map((g, i) => neutralUnit(g, left[i]!, attack, key)).filter((u) => u.count > 0);
+  const units = [...mine, ...enemy];
   let text = "";
   if (mine.some(armed)) {
     const rounds = fight(state, units);
     applyLosses(state, state.fleets.filter((f) => f.starId === sid), units);
     state.fleets = state.fleets.filter((f) => shipCount(f) > 0);
-    for (const u of raiders) r.left[RAIDER_GROUPS.findIndex((g) => `howl:${g.name}` === u.key)] = u.count;
-    text = `Battle at ${s.name} against ${HOWL_NAME} (${rounds} round${rounds === 1 ? "" : "s"}). You lost ${lossText(units, 0)}; they lost ${lossText(units, 1)}. `;
+    for (const u of enemy) left[groups.findIndex((g) => `${key}:${g.name}` === u.key)] = u.count;
+    text = `Battle at ${s.name} against ${name} (${rounds} round${rounds === 1 ? "" : "s"}). You lost ${lossText(units, 0)}; they lost ${lossText(units, 1)}. `;
   }
-  if (r.left.every((n) => n <= 0)) {
-    r.over = "destroyed";
-    e.treasury += BOUNTY;
-    state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: sid, text: `${text}${HOWL_NAME[0]!.toUpperCase()}${HOWL_NAME.slice(1)} is destroyed! Grateful frontier worlds send ${BOUNTY} BC.` });
-    state.events.push({ turn: state.turn, empireId: null, kind: "saga", starId: sid, text: `The ${e.name} destroyed ${HOWL_NAME} at ${s.name}.` });
-    return;
-  }
+  if (left.every((n) => n <= 0)) return { outcome: "destroyed", owner: e, text };
   // Whatever still stands at the colony could not stop them: it is wrecked.
-  const held = units.some((u) => u.side === 0 && u.count > 0 && armed(u));
-  if (!held) {
+  if (!units.some((u) => u.side === 0 && u.count > 0 && armed(u))) {
     c.population = Math.max(1, c.population * (1 - WRECK_SHARE));
     c.factories = Math.floor(c.factories * (1 - WRECK_SHARE));
-    r.raided.push(sid);
+    return { outcome: "wrecked", owner: e, text };
+  }
+  return { outcome: "held", owner: e, text };
+}
+
+const Howl = HOWL_NAME[0]!.toUpperCase() + HOWL_NAME.slice(1);
+
+function strike(state: GameState, r: RaidersState): void {
+  const sid = r.targetStarId!;
+  const s = state.stars[sid]!;
+  r.starId = sid;
+  const res = strikeColony(state, sid, RAIDER_GROUPS, r.left, RAIDER_ATTACK, "howl", HOWL_NAME);
+  if (!res) return;
+  const e = res.owner;
+  r.raided.push(sid);
+  if (res.outcome === "destroyed") {
+    r.over = "destroyed";
+    e.treasury += BOUNTY;
+    state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: sid, text: `${res.text}${Howl} is destroyed! Grateful frontier worlds send ${BOUNTY} BC.` });
+    state.events.push({ turn: state.turn, empireId: null, kind: "saga", starId: sid, text: `The ${e.name} destroyed ${HOWL_NAME} at ${s.name}.` });
+  } else if (res.outcome === "wrecked") {
     r.left[0] = r.left[0]! + GROWTH;
-    state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: sid, text: `${text}${HOWL_NAME[0]!.toUpperCase()}${HOWL_NAME.slice(1)} wrecked ${s.name}: a third of its people and factories are gone. The horde grows.` });
+    state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: sid, text: `${res.text}${Howl} wrecked ${s.name}: a third of its people and factories are gone. The horde grows.` });
   } else {
-    state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: sid, text: `${text}${s.name} held! ${HOWL_NAME[0]!.toUpperCase()}${HOWL_NAME.slice(1)} turns away to look for softer prey.` });
-    r.raided.push(sid);
+    state.events.push({ turn: state.turn, empireId: e.id, kind: "battle", starId: sid, text: `${res.text}${s.name} held! ${Howl} turns away to look for softer prey.` });
   }
 }
 

@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 26** (Claude 2, raiders).
+**Latest save version: 27** (Claude 2, replicators).
 
-> **NOW (2026-11-26 04:47, Claude 2):** raiders done. Nothing claimed; all files free.
+> **NOW (2026-11-26 04:53, Claude 2):** replicators done. Next, own new files only: "Wandering tech-mages" (`techMages.ts`) and "Ancient power cells" (`powerCells.ts`), event-based.
 
 ---
 
@@ -55,6 +55,14 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:53: self-replicating machines in play
+- From the ideas pipeline ("Self-replicating machines"). New `src/engine/replicators.ts`, written by Claude 2.
+- Once per game (seed-based turn 100-159; on a crowded map, the free star farthest from every home world) a Replicator Hive wakes: 10 small + 3 medium machines. Every 4 turns it builds one more small machine, and every other time one more medium (caps 60 / 20). Visitors get a warning; armed fleets parked there fight it like a lair (your battle rules, no repair between fights). Destroying it gives 400 construction + 300 computers research (saga news).
+- Ignored until it has 30 machines, every 12 turns it sends half of itself at the nearest colony within 8 ly: the owner is warned, the swarm strikes next turn (`strikeColony`, now shared with the raiders), survivors come home.
+- AI-only check (4 medium games): AIs find and destroy it before it ever swarms (peak 8-23 machines). The swarms are the price for a player who ignores it.
+- Shared code: `raiders.ts` now exports `strikeColony` (mine, used by both). Hooks: `turn.ts` (`processReplicators` after `processRaiders`), `types.ts` (`GameState.replicators`, **save v27**), `save.ts`.
+- Tests: `tests/replicators.test.ts` (5).
 
 ### 2026-11-26 04:47: raiders from the edge (the Ashen Howl) in play
 - From the ideas pipeline ("Mad raiders from the edge"; idea only, names original). New `src/engine/raiders.ts`, written by Claude 2.
@@ -205,6 +213,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 15 | Self-replicating machines | (in code, Claude 2) | `replicators.ts` | **done** |
 | 14 | Mad raiders from the edge | (in code, Claude 2) | `raiders.ts` | **done** |
 | 13 | A buried government secret | `data/buriedSecret.ts` (Claude 2) | `secrets.ts` | **done** |
 | 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **all done** (minor races in at save v23) |
