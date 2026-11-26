@@ -30,7 +30,7 @@ describe("AI", () => {
     // One seed is chaotic (a single tweak shifts who fights whom), so total over a few seeds.
     const count = (difficulty: "relaxed" | "hard") => {
       let wars = 0;
-      for (const seed of [7, 8, 9, 10, 11]) {
+      for (const seed of [7, 8, 9, 10, 11, 12, 13, 14]) {
         const g = newGame({ seed, size: "medium", shape: "ellipse", rivals: 6, playerRaceId: "humans", playerName: "X", difficulty });
         for (let t = 1; t <= 160; t++) {
           runAITurns(g, true);

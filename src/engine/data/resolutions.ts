@@ -51,7 +51,7 @@ export const RESOLUTIONS: ResolutionDef[] = [
     description: "Imposes technology-sharing tariffs and diplomatic friction on the leading empire to slow its march toward dominance.",
     target: "oneEmpire",
     aimedAt: "leader",
-    bonus: { research: -0.07, relations: -8, culture: -0.08 },
+    bonus: { research: -0.07, relations: -8, culture: -0.15 }, // Claude: culture -8% -> -15% (the runaway leader usually wins by culture)
     rule: "none",
     duration: 20,
     proposalText: "Smaller delegations unite to curb the growing hegemony of the {rival} before balance is lost.",
@@ -102,7 +102,7 @@ export const RESOLUTIONS: ResolutionDef[] = [
     name: "The Armistice of the Lantern",
     description: "Prohibits declaring any new wars across the galaxy while fostering modest goodwill among all council members.",
     target: "everyone",
-    bonus: { relations: 6, culture: 0.05 },
+    bonus: { relations: 6 }, // Claude: culture +5% removed (galaxy-wide culture boosts sped up culture wins)
     rule: "noNewWars",
     duration: 12,
     proposalText: "Peacekeepers propose a sacred truce forbidding new declarations of war across the sector.",
@@ -112,9 +112,9 @@ export const RESOLUTIONS: ResolutionDef[] = [
   {
     id: "pan-galactic-science-year",
     name: "The Shared Symposium Charter",
-    description: "Opens academic relays across all member worlds, boosting research output and cultural exchange everywhere.",
+    description: "Opens academic relays across all member worlds, boosting research output everywhere.",
     target: "everyone",
-    bonus: { research: 0.08, relations: 5, culture: 0.1 },
+    bonus: { research: 0.08, relations: 5 }, // Claude: culture +10% removed
     rule: "none",
     duration: 20,
     proposalText: "Scholars petition the council to link civilian laboratories for an era of shared discovery.",
@@ -160,9 +160,9 @@ export const RESOLUTIONS: ResolutionDef[] = [
   {
     id: "colonial-seed-grant",
     name: "The Homesteaders' Compact",
-    description: "Funds frontier medical and agricultural exchanges, boosting population growth and cultural vitality across all colonies.",
+    description: "Funds frontier medical and agricultural exchanges, boosting population growth across all colonies.",
     target: "everyone",
-    bonus: { production: -0.03, growth: 0.15, culture: 0.12 },
+    bonus: { production: -0.03, growth: 0.15 }, // Claude: culture +12% removed
     rule: "none",
     duration: 25,
     proposalText: "Frontier representatives propose pooling biosphere grants to help young colonies flourish.",

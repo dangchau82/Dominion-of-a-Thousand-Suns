@@ -38,6 +38,10 @@ h1, h2, h3 { margin: 0 0 8px; font-weight: 650; letter-spacing: 0.02em; }
 }
 .menu::before { content: ""; position: absolute; inset: 0; background: radial-gradient(transparent, rgba(0,0,0,0.75)); }
 .menu > * { position: relative; }
+/* Title screen: the name sits in the calm dark top of the art, the buttons below the gate. */
+.menu.title { justify-content: space-between; padding: 7vh 24px 6vh; }
+.menu.title::before { background: linear-gradient(rgba(0,0,0,0.15), transparent 40%, rgba(0,0,0,0.55)); }
+.title-head, .title-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .menu h1 { font-size: clamp(26px, 7vw, 48px); text-align: center; text-shadow: 0 2px 18px #000; letter-spacing: 0.08em; }
 .menu .tag { color: #c9d4ee; text-shadow: 0 1px 8px #000; margin-bottom: 18px; text-align: center; }
 .menu button { min-width: 240px; font-size: 17px; }

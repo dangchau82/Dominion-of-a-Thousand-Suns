@@ -42,7 +42,7 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 | Ancient gate network | gate networks in both shows | Neutral gates on the map. Claim one and fleets jump between gates in one turn; lose it and the enemy uses it. | idea | Fits the elder-powers stage; the Serevahn "Slipstream Rings" in `data/lateGameLore.ts` are this. Velari already travel by "gates". |
 | Occupation and resistance | one race occupying another | Conquered worlds have unrest: lower output, rebels, sometimes a revolt that frees them. Conquest stops being a pure win. | done | **Top pick.** Also tackles the open problem that conquest rarely decides games. |
 | Surrender offers | wars ending at the brink | A losing empire offers worlds or tech to stop a war. | idea | Part of Gemini's coding test ("AI reactions"); waiting for its answer. |
-| Galactic Council resolutions | the station's council | Between elections the council votes on sanctions, trade embargoes or condemning an aggressor, giving smaller empires power. | idea | **Top pick.** Gives the council something to do every 25 turns. |
+| Galactic Council resolutions | the station's council | Between elections the council votes on sanctions, trade embargoes or condemning an aggressor, giving smaller empires power. | done (2026-11-25) | **Top pick.** Gives the council something to do every 25 turns. |
 | Parasite overlords | Stargate's ruling parasites | A neutral tyrant holding enslaved worlds. Free them for loyal colonies, or take its tech. | idea | Could be a big neutral "lair" with planets. |
 | Self-replicating machines | Stargate's machine swarm | A lair that grows every turn if ignored, and eventually threatens everyone. | idea | Fits the "hive" lair in `gemini-task-lairs.md`. |
 | Crusading faith | Stargate's preachers | A late crisis that converts planets through culture rather than war; culture becomes defence. | idea | A late-game crisis, like the Glass Mottle plague. |
@@ -55,7 +55,7 @@ Danny remembers a massive armada gathering in hyperspace before an invasion. Bui
 | Idea | Inspired by | How it plays in our game | Status | Notes |
 |---|---|---|---|---|
 | Minor races | Babylon 5's league of small worlds | Small neutral peoples with a few worlds. Court them with gifts and treaties for votes, bases and troops, or conquer them. | idea | Great with the council. |
-| Prophecies | Babylon 5's seers | See "Prophecies" above. | idea | **Must-have.** |
+| Prophecies | Babylon 5's seers | See "Prophecies" above. | building (plague, golden age, invasion done) | **Must-have.** |
 | Dangerous deep routes | Babylon 5's hyperspace | Fast shortcuts between far stars, risky without navigation beacons. | idea | Pairs with the gate network. |
 | Expeditions | Stargate's off-world teams | Send a small team to ruins; each mission is a short story with success, failure or a surprise. | idea | Gemini can write the missions. |
 | Protected worlds | Stargate's protected planets treaty | A powerful elder race forbids attacks on some young worlds; break it and face its anger. | idea | **Must-have.** Elder-powers stage. |

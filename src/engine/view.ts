@@ -1,6 +1,8 @@
 // EmpireView: everything one empire is allowed to know. AI code reads ONLY this.
 // It is a deep copy, so nothing done to it can touch the real game.
 
+import { RESOLUTION_BY_ID } from "./resolutions";
+import type { EmpireBonus } from "./data/buildings";
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
 import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
@@ -107,6 +109,10 @@ export interface EmpireView {
     /** Current research project and its cost in each field. */
     projects: Record<ResearchField, ResearchProject | null>;
   };
+  /** Council resolution being voted on (public), or null. */
+  resolution: { id: string; name: string; description: string; targetId: Id | null; myVote: boolean | null | undefined; bonus: EmpireBonus; rule: string } | null;
+  /** Council resolutions in force (public). */
+  activeResolutions: { id: string; name: string; targetId: Id | null; until: number }[];
   /** Treasury projects we could buy (money sinks), with cost and what stops us. */
   moneySinks: SinkOption[];
   /** Buildings a colony of ours could start now. */
@@ -187,6 +193,11 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
       growthBonus: ts.growth, researchBonus: ts.research, projects,
     },
     moneySinks: sinkOptions(state, e),
+    resolution: state.resolutionSession ? (() => {
+      const s = state.resolutionSession!, d = RESOLUTION_BY_ID.get(s.id)!;
+      return { id: s.id, name: d.name, description: d.description, targetId: s.targetId, myVote: s.votes[empireId], bonus: { ...d.bonus }, rule: d.rule ?? "none" };
+    })() : null,
+    activeResolutions: (state.activeResolutions ?? []).map((a) => ({ id: a.id, name: RESOLUTION_BY_ID.get(a.id)!.name, targetId: a.targetId, until: a.until })),
     buildable: (starId) => {
       const c = state.colonies[starId];
       return c && c.empireId === empireId ? buildable(state, e, c).map((b) => b.id) : [];

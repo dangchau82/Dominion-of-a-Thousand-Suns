@@ -2,6 +2,7 @@
 // The same rules for every empire. AI empires answer proposals from their
 // own EmpireView through the same "respond" command the player uses.
 
+import { underRule } from "./resolutions";
 import { race } from "./data/races";
 import { SPY_MISSION_TEXTS } from "./data/unrest";
 import { say } from "./dialogue";
@@ -308,6 +309,8 @@ export function applyTreaties(state: GameState): void {
       if (t.trade === undefined) continue;
       const b = state.empires[Number(bid)]!;
       if (!b.alive) continue;
+      // An embargo stops trade income for the sanctioned empire and its partners.
+      if (underRule(state, a, "noTrade") || underRule(state, b, "noTrade")) continue;
       const ramp = Math.min(1, (state.turn - t.trade) / 10);
       a.treasury += 0.02 * Math.min(prod.get(a.id)!, prod.get(b.id)!) * ramp * (1 + empireBonus(a).trade) * tradeMultiplier(a);
     }
@@ -325,6 +328,7 @@ export function processEspionage(state: GameState): void {
   const rng = state.rng;
   for (const e of state.empires) {
     if (!e.alive) continue;
+    if (underRule(state, e, "noSpies")) continue; // a disarmament pact grounds every agent
     const total = grossProduction(state, e);
     for (const [tid, net] of Object.entries(e.spies).sort((a, b) => Number(a[0]) - Number(b[0]))) {
       const t = state.empires[Number(tid)]!;

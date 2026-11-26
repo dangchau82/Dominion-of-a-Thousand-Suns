@@ -33,6 +33,8 @@ export interface Fate {
   prophecyId: string;
   /** Fleet whose arrival this foretells (invasions). */
   fleetId?: Id;
+  /** Golden ages: which one (index into GOLDEN_AGE_AT) was foretold. */
+  goldenAge?: number;
 }
 
 function direction(state: GameState, e: Empire, starId: Id): string {
@@ -96,8 +98,9 @@ export function processProphecies(state: GameState): void {
       c.population = Math.max(1, c.population * (1 - (quarantined ? PLAGUE_LOSS_QUARANTINED : PLAGUE_LOSS)));
       settle(state, e, f, "fulfilled", fillText(state, e, f, def.fulfilled) + (quarantined ? " Quarantine held most of it back." : ""));
     } else if (f.kind === "goldenAge") {
+      // It arrives no later than foretold: only the foretold golden age, and only if it hasn't come already.
       const next = GOLDEN_AGE_AT[e.goldenAges];
-      if (next !== undefined && e.culture < next) e.culture = next; // it arrives no later than foretold
+      if (f.goldenAge === e.goldenAges && next !== undefined && e.culture < next) e.culture = next;
       settle(state, e, f, "fulfilled", fillText(state, e, f, def.fulfilled));
     } else if (f.kind === "invasion") {
       const fleet = state.fleets.find((x) => x.id === f.fleetId);
@@ -128,7 +131,7 @@ export function processProphecies(state: GameState): void {
     if (next !== undefined && !e.goldenAge && !mine("goldenAge") && rate > 0) {
       const turns = Math.ceil((next - e.culture) / rate);
       if (turns >= 6 && turns <= 15 && (seer || R.chance(state.rng, 0.15))) {
-        foretell(state, e, { empireId: e.id, kind: "goldenAge", due: state.turn + turns, starId: e.capitalStarId, rivalId: null, prophecyId: pickProphecy(state, "goldenAge").id });
+        foretell(state, e, { empireId: e.id, kind: "goldenAge", due: state.turn + turns, starId: e.capitalStarId, rivalId: null, prophecyId: pickProphecy(state, "goldenAge").id, goldenAge: e.goldenAges });
       }
     }
     // Invasion: an unseen enemy fleet heading for one of our worlds, 3+ turns out.

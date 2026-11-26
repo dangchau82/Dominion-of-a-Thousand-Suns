@@ -37,9 +37,16 @@ describe("prophecies", () => {
     const e = g.empires[0]!;
     e.culture = GOLDEN_AGE_AT[0]! - 10;
     g.turn = 60;
-    g.fates = [{ empireId: 0, kind: "goldenAge", due: 60, starId: e.capitalStarId, rivalId: null, prophecyId: PROPHECIES.find((p) => p.threat === "goldenAge")!.id }];
+    g.fates = [{ empireId: 0, kind: "goldenAge", due: 60, starId: e.capitalStarId, rivalId: null, prophecyId: PROPHECIES.find((p) => p.threat === "goldenAge")!.id, goldenAge: 0 }];
     processProphecies(g);
     expect(e.culture).toBeGreaterThanOrEqual(GOLDEN_AGE_AT[0]!);
+    // If that golden age already came on its own, nothing more is given (no jump to the next one).
+    e.goldenAges = 1;
+    e.culture = GOLDEN_AGE_AT[0]! + 5;
+    g.turn = 70;
+    g.fates = [{ empireId: 0, kind: "goldenAge", due: 70, starId: e.capitalStarId, rivalId: null, prophecyId: PROPHECIES.find((p) => p.threat === "goldenAge")!.id, goldenAge: 0 }];
+    processProphecies(g);
+    expect(e.culture).toBe(GOLDEN_AGE_AT[0]! + 5);
   });
 
   it("seers (Velari) hear plain words; others hear riddles with colour, direction and turns", () => {

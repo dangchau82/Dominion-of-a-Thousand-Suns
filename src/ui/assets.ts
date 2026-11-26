@@ -26,6 +26,7 @@ export const art = {
   planet: (climate: string) => `art/planets/planet-${climate}.png`,
   bg: (name: "menu" | "menu-2" | "council" | "diplomacy") => `art/backgrounds/bg-${name}.png`,
   event: (name: string) => `art/events/event-${name}.png`,
+  title: (shape: "wide" | "tall") => `art/backgrounds/title-${shape}.jpg`,
 };
 
 /** Races that have a "living portrait" loop (made with Google Flow, cropped and looped with ffmpeg). */

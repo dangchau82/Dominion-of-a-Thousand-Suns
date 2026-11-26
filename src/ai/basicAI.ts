@@ -425,6 +425,28 @@ function council(ctx: Ctx): void {
   ctx.cmds.push({ type: "councilVote", candidateId: ally || feel(best) >= 40 + ctx.aggression * 20 ? best : null });
 }
 
+/** Council resolutions: sanctions on rivals we dislike or fear, measures that help us. */
+function resolutionVote(ctx: Ctx): void {
+  const r = ctx.view.resolution;
+  const me = ctx.view.me.id;
+  if (!r || r.myVote !== undefined) return;
+  let yes: boolean | null;
+  if (r.targetId === me) yes = false;
+  else if (r.targetId !== null) {
+    const feel = ctx.view.contacts.find((c) => c.id === r.targetId)?.ourFeeling ?? 0;
+    const atWar = ctx.wars.some((w) => w.id === r.targetId);
+    yes = r.targetId === ctx.threat || atWar || feel < 20 ? true : feel >= 50 ? false : null;
+  } else {
+    const b = r.bonus;
+    let score = (b.production ?? 0) * 100 + (b.research ?? 0) * 80 * (0.5 + ctx.curiosity) + (b.growth ?? 0) * 50 + (b.culture ?? 0) * 30
+      + (b.trade ?? 0) * 40 + (b.attack ?? 0) * 6 * ctx.aggression + (b.relations ?? 0) * 0.5 * ctx.honor + (b.range ?? 0) * 3 + (b.spying ?? 0) * 3 * ctx.focus.spies;
+    if (r.rule === "noNewWars") score += ctx.wars.length || ctx.aggression > 0.6 ? -8 : 2;
+    if (r.rule === "noSpies") score += ctx.focus.spies ? -8 : 1;
+    yes = score > 0.5 ? true : score < -0.5 ? false : null;
+  }
+  ctx.cmds.push({ type: "resolutionVote", yes });
+}
+
 // ---------- research ----------
 
 function research(ctx: Ctx): void {
@@ -897,6 +919,7 @@ export function basicAITurn(view: EmpireView): Command[] {
   answers(ctx);
   randomEvents(ctx);
   council(ctx);
+  resolutionVote(ctx);
   diplomacy(ctx);
   deals(ctx);
   espionage(ctx);

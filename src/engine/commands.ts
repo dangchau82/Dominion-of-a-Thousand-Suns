@@ -1,6 +1,7 @@
 // Every action a player OR an AI can take goes through applyCommand.
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
+import { castResolutionVote, underRule } from "./resolutions";
 import { investSink } from "./moneySinks";
 import { researchChoices } from "./tech";
 import { atWar, crackPlanet, declareWar, offerPeace } from "./combat";
@@ -39,6 +40,7 @@ export type Command =
   | { type: "setAutoExplore"; on: boolean }
   | { type: "setAutopilotAI"; ai: "basic" | "master" }
   | { type: "investSink"; sinkId: string; starId?: Id }
+  | { type: "resolutionVote"; yes: boolean | null }
   | { type: "setBuilding"; starId: Id; buildingId: string | null }
   | { type: "buyBuilding"; starId: Id }
   | { type: "hireLeader" }
@@ -148,6 +150,8 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if (!t || t.id === e.id || !t.alive) return fail("No such empire");
       if (!e.contacts.includes(t.id)) return fail("You haven't met them");
       if (atWar(e, t)) return fail("Already at war");
+      const peace = underRule(state, e, "noNewWars");
+      if (peace) return fail(`${peace.name} forbids new wars for now`);
       declareWar(state, e, t);
       return { ok: true };
     }
@@ -251,6 +255,10 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
       if (!(AUTOPILOT_FOCI as readonly string[]).includes(cmd.focus)) return fail("Unknown focus");
       e.focus = cmd.focus;
       return { ok: true };
+    }
+    case "resolutionVote": {
+      const err = castResolutionVote(state, e, cmd.yes);
+      return err ? fail(err) : { ok: true };
     }
     case "investSink": {
       const err = investSink(state, e, cmd.sinkId, cmd.starId);

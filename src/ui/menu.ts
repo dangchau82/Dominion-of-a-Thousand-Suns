@@ -10,27 +10,32 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 export function showMainMenu(root: HTMLElement, start: (g: GameState) => void): void {
   root.innerHTML = "";
   const m = document.createElement("div");
-  m.className = "menu";
-  m.style.backgroundImage = `url(${Math.random() < 0.5 ? art.bg("menu") : art.bg("menu-2")})`;
-  m.innerHTML = `<h1>DOMINION OF A<br>THOUSAND SUNS</h1><div class="tag">Start with one world. End with a galaxy.</div>`;
+  m.className = "menu title";
+  // Title art by Gemini: a wide picture for landscape screens, a tall one for phones held upright.
+  const tall = typeof matchMedia === "function" && matchMedia("(orientation: portrait)").matches;
+  m.style.backgroundImage = `url(${art.title(tall ? "tall" : "wide")})`;
+  m.innerHTML = `<div class="title-head"><h1>DOMINION OF A<br>THOUSAND SUNS</h1><div class="tag">Start with one world. End with a galaxy.</div></div>`;
+  const actions = document.createElement("div");
+  actions.className = "title-actions";
   if (hasAutosave()) {
     const cont = document.createElement("button");
     cont.className = "primary";
     cont.textContent = "Continue";
     cont.onclick = () => { const g = loadAutosave(); if (g) start(g); };
-    m.append(cont);
+    actions.append(cont);
   }
   const ng = document.createElement("button");
   ng.className = hasAutosave() ? "" : "primary";
   ng.textContent = "New Game";
   ng.onclick = () => showSetup(root, start);
-  m.append(ng);
+  actions.append(ng);
   const ver = document.createElement("div");
   ver.className = "tag";
   ver.style.marginTop = "18px";
   ver.style.fontSize = "12px";
   ver.textContent = "A turn-based space strategy game · 18 races · free and open source";
-  m.append(ver);
+  actions.append(ver);
+  m.append(actions);
   root.append(m);
 }
 

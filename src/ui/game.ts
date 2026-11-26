@@ -322,6 +322,7 @@ export class GameScreen {
       else if (evs.some((e) => e.kind === "invasion" && e.empireId === PLAYER && e.text.includes("captured"))) stopReason = "A planet changed hands.";
       else if (evs.some((e) => e.kind === "unrest" && (e.text.includes(me.name) || e.empireId === PLAYER))) stopReason = "Unrest: a world rose up in your empire.";
       else if (this.state.council.session || this.state.council.awaitingVerdict !== null) stopReason = "The Galactic Council is in session.";
+      else if (this.state.resolutionSession && this.state.resolutionSession.votes[PLAYER] === undefined) stopReason = "The Galactic Council is voting on a resolution.";
       else if (!me.alive) stopReason = "Your empire has fallen.";
       else if (me.contacts.length > knownBefore) stopReason = "You have met a new race.";
       this.refresh();
@@ -799,8 +800,30 @@ export class GameScreen {
     if (v.winner && !v.keepPlaying) return this.showGameOver();
     if (v.council.awaitingVerdict !== null) return this.showVerdict();
     if (v.council.session && v.council.session.myVote === undefined && v.council.session.weight[PLAYER] !== undefined) return this.showCouncil();
+    if (v.resolution && v.resolution.myVote === undefined) return this.showResolution();
     if (v.pendingEvents.length) return this.showRandomEvent();
     this.showMessages();
+  }
+
+  /** A council resolution is up for a vote: yes, no or abstain. */
+  private showResolution(): void {
+    const v = makeView(this.state, PLAYER);
+    const r = v.resolution!;
+    const target = r.targetId !== null ? this.state.empires[r.targetId]!.name : null;
+    const bonusText = Object.entries(r.bonus).map(([k, n]) => `${k} ${Number(n) > 0 ? "+" : ""}${Math.abs(Number(n)) < 1 ? `${Math.round(Number(n) * 100)}%` : n}`).join(", ");
+    const ruleText: Record<string, string> = { noNewWars: "No new wars may be declared.", noTrade: "Trade treaties pay nothing.", noSpies: "No spy missions.", openBorders: "", none: "" };
+    this.modal((box, close) => {
+      box.innerHTML = `<img class="event-pic" src="${art.event("council")}" alt=""><h2>${esc(r.name)}</h2>
+        <p>${esc(r.description)}</p>
+        <p class="dim">${target ? `Aimed at the ${esc(target)}${r.targetId === PLAYER ? " (you!)" : ""}` : "Applies to every empire"} · ${esc(bonusText)}${ruleText[r.rule] ? ` · ${ruleText[r.rule]}` : ""}</p>
+        <p class="dim">Passes with more than half of all council votes. ${r.targetId === PLAYER ? "You can't vote for your own sanction." : ""}</p>`;
+      const row = el("div", { class: "row", style: "flex-wrap:wrap" });
+      const vote = (yes: boolean | null) => { this.cmd({ type: "resolutionVote", yes }); close(); this.showProposals(); };
+      if (r.targetId !== PLAYER) { const y = el("button", { class: "primary" }, "Vote yes"); y.onclick = () => vote(true); row.append(y); }
+      const n = el("button", {}, "Vote no"); n.onclick = () => vote(false); row.append(n);
+      const a = el("button", {}, "Abstain"); a.onclick = () => vote(null); row.append(a);
+      box.append(row);
+    });
   }
 
   private showRandomEvent(): void {
@@ -835,7 +858,7 @@ export class GameScreen {
     const name = (id: Id) => this.state.empires[id]!.name;
     this.modal((box, close) => {
       box.innerHTML = `<img class="event-pic" src="${art.event("council")}" alt=""><h2>The Galactic Council</h2>
-        <p>The council must choose a ruler for the galaxy. Two thirds of all votes (<b>${Math.ceil(total * 2 / 3)}</b> of ${total}) are needed to win.</p>
+        <p>The council must choose a ruler for the galaxy. Three fifths of all votes (<b>${Math.ceil(total * 0.6)}</b> of ${total}) are needed to win.</p>
         <ul>${Object.entries(s.weight).sort((a, b) => b[1] - a[1]).map(([id, w]) => `<li>${esc(name(Number(id)))}${s.candidates.includes(Number(id)) ? " <b>(candidate)</b>" : ""}: ${w} votes</li>`).join("")}</ul>
         <p class="dim">Votes come from population. If someone else is elected you may accept (you lose) or defy the council (every empire declares war on you).</p>`;
       const row = el("div", { class: "row", style: "flex-wrap:wrap" });
