@@ -13,8 +13,12 @@ Turn-based space 4X for phone and PC: Master of Orion 1 core plus the best of Mo
 5. **Every stage ends playable**, and `npm test` must pass before pushing.
 6. Never commit API keys (Gemini key stays on the device).
 
-## Claude 2 (secondary developer)
-Danny has a second Claude account working on the same repo as **secondary developer**. **At the start of every session, read `docs/CLAUDE-2-UPDATES.md`**: it lists everything Claude 2 added, which shared files it hooked into, the latest save version, and anything it wants you to decide. You lead; change or remove its work as you see fit and note it there.
+## Two developers: main Claude and Claude 2
+Danny has two Claude accounts on this repo. The **main Claude leads** (AIs, balance, victory rules, combat, UI); **Claude 2** is the secondary developer (content from the ideas pipeline). They coordinate through two files, like a shared logbook:
+- **`docs/CLAUDE-2-UPDATES.md`**: written by Claude 2. The main Claude reads it at the start of every session.
+- **`docs/MAIN-CLAUDE-UPDATES.md`**: written by the main Claude. Claude 2 reads it at the start of every session. It also holds the rules for staying in step, the "Working on now" claims and the **playtest queue** (Claude 2 lists new features; the main Claude tests them and records the result).
+
+Both: pull first, read the other's file, claim what you are about to touch, log after every push. The main Claude has the final say on anything in the game.
 
 ## Layout
 - `src/engine/` — rules: types, data tables, formulas, galaxy generation, turn processing, commands, per-empire views, saves
