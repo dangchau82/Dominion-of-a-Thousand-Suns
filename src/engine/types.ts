@@ -371,6 +371,8 @@ export interface GameState {
   synthetics?: import("./legends").SyntheticsState;
   /** Native peoples on the map and who has met them. See src/engine/natives.ts. */
   natives?: import("./natives").NativesState;
+  /** Each empire's expeditions so far. See src/engine/expeditions.ts. */
+  expeditions?: Record<Id, import("./expeditions").ExpeditionProgress>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -392,4 +394,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 21;
+export const SAVE_VERSION = 22;

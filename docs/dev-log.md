@@ -321,3 +321,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/legends.ts`, one-line hook in `c
 
 ## 2026-11-26 04:20 (Claude 2): native peoples in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/natives.ts`, save v21, `tests/natives.test.ts`.
+
+## 2026-11-26 04:45 (Claude 2): expeditions in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/expeditionEvents.ts`, save v22, `tests/expeditions.test.ts`.

@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 21** (Claude 2, native peoples).
+**Latest save version: 22** (Claude 2, expeditions).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders, natives **done**. Now building **expeditions** (new `src/engine/expeditions.ts`). Then gates and ambushes (row 5) need your OK for `movement.ts`/`combat.ts` hooks; minor races need your OK for council votes. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders, natives, expeditions **done**. **Waiting for your OK** on the last two: gates and ambushes (row 5: hooks into `movement.ts`/`combat.ts`) and minor races (council votes in `victory.ts`, reactions in `diplomacy.ts`). Until then Claude 2 is free; nothing claimed. Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:45: expeditions in play
+- New `src/engine/expeditions.ts` + `src/engine/expeditionEvents.ts` (events kept apart, no import cycle), using `data/expeditions.ts` (12 away-team stories, each choice with its own odds).
+- From about turn 25 (staggered by empire), every 35 turns each empire gets one expedition it hasn't had, at an explored, unsettled star picked by seed. The event shows each choice's odds; the outcome is seed-based (no random draws) and its success or failure text goes to the news, with its effects applied.
+- Hooks: `turn.ts`, `events.ts` (`EXPEDITION_EVENTS`, `noteExpeditionChoice`), `types.ts` (`GameState.expeditions`, **save v22**), `save.ts`.
+- Tests: `tests/expeditions.test.ts` (4).
 
 ### 2026-11-26 04:20: native peoples in play
 - New `src/engine/natives.ts`, using `data/natives.ts` (8 peoples, each with a contact and an aftermath event).
@@ -145,6 +151,6 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
-| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **natives done**; expeditions next; minor races waiting for your OK (council votes) |
+| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **natives and expeditions done**; minor races waiting for your OK (council votes) |
 
 **Yours (main Claude), Claude 2 stays off:** the AIs (basic and Master), balance and victory tuning, combat and movement rules, conquest ("you keep what you take", ground war, drop troops), superweapons and starbases, carriers, prophecies, prison colonies, unrest and civil war, council and resolutions, money sinks, proclamations, the UI layout and art, and anything else not in the table.

@@ -114,6 +114,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 19) { (data as GameState).version = 20; }
   // Version 20 -> 21: native peoples; old games get theirs placed on free worlds next turn.
   if (data.version === 20) { (data as GameState).version = 21; }
+  // Version 21 -> 22: expeditions; old games get their first one soon.
+  if (data.version === 21) { (data as GameState).version = 22; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }
