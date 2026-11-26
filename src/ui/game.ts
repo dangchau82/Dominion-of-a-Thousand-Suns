@@ -36,6 +36,7 @@ import { growsByMigrants } from "../engine/migrants";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
+import { syntheticTrait } from "../engine/legends";
 
 const TREATY_LABEL: Record<TreatyKind, string> = { trade: "Trade agreement", research: "Research pact", nap: "Non-aggression pact", alliance: "Alliance" };
 const TREATY_HELP: Record<TreatyKind, string> = {
@@ -1522,8 +1523,9 @@ export class GameScreen {
         lead.innerHTML = `<b>Leaders</b> <span class="dim">· up to 3 · salaries come from the treasury (${fmt(me.treasury)} BC)</span>`;
         for (const l of me.leaders) {
           const k = LEADER_KINDS[l.kind];
-          const trait = l.trait ? TRAIT_BY_ID.get(l.trait) : undefined;
-          const traitHtml = trait ? ` <span class="dim">· Trait: <b>${esc(trait.name)}</b> — ${esc(trait.description)}</span>` : "";
+          const synth = syntheticTrait(l);
+          const trait = synth ?? (l.trait ? TRAIT_BY_ID.get(l.trait) : undefined);
+          const traitHtml = trait ? ` <span class="dim">· ${synth ? "🤖 Android, trait" : "Trait"}: <b>${esc(trait.name)}</b> — ${esc(trait.description)}${synth ? " (no salary; rumoured to have a hidden agenda)" : ""}</span>` : "";
           const row = el("div", { class: "design-row" }, `<span style="flex:1"><b>${esc(l.name)}</b>, ${k.title} ${"★".repeat(l.level)} <span class="dim">· boosts ${k.text} · ${l.salary} BC/turn</span>${traitHtml}</span>`);
           const fire = el("button", { class: "small" }, "Dismiss");
           fire.onclick = () => { if (confirm(`Dismiss ${l.name}?`)) { this.cmd({ type: "dismissLeader", leaderId: l.id }); draw(); } };
@@ -1534,8 +1536,9 @@ export class GameScreen {
         if (me.leaderOffer) {
           const l = me.leaderOffer;
           const k = LEADER_KINDS[l.kind];
-          const trait = l.trait ? TRAIT_BY_ID.get(l.trait) : undefined;
-          const traitHtml = trait ? ` <span class="dim">· Trait: <b>${esc(trait.name)}</b> — ${esc(trait.description)}</span>` : "";
+          const synth = syntheticTrait(l);
+          const trait = synth ?? (l.trait ? TRAIT_BY_ID.get(l.trait) : undefined);
+          const traitHtml = trait ? ` <span class="dim">· ${synth ? "🤖 Android, trait" : "Trait"}: <b>${esc(trait.name)}</b> — ${esc(trait.description)}${synth ? " (no salary; rumoured to have a hidden agenda)" : ""}</span>` : "";
           const row = el("div", { class: "design-row", style: "margin-top:6px" }, `<span style="flex:1">Offer: <b>${esc(l.name)}</b>, ${k.title} ${"★".repeat(l.level)} <span class="dim">· boosts ${k.text} · ${l.salary} BC/turn · until turn ${l.offerUntil}</span>${traitHtml}</span>`);
           const hire = el("button", { class: "small primary" }, `Hire (${l.cost} BC)`);
           hire.disabled = me.treasury < l.cost || me.leaders.length >= 3;
