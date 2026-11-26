@@ -16,6 +16,7 @@ import { TECHS, type Tech } from "../engine/data/techs";
 
 const TECH_TIERS = new Map(TECHS.map((t) => [t.id, t.tier]));
 import type { ColonyInfo, EmpireView, KnownEmpire, PublicStar } from "../engine/view";
+import { BLAST_LOSS, INNER as SUPERNOVA_INNER, REACH as SUPERNOVA_REACH, supernovaPlanOf } from "../engine/supernova";
 import type { AutopilotFocus, Fleet, Id, ResearchField, SliderSet } from "../engine/types";
 
 // ---------- helpers ----------
@@ -477,6 +478,17 @@ function randomEvents(ctx: Ctx): void {
           case "planetSize": s += fx.amount * 15; break;
           case "revealStars": s += fx.count * (view.turn < 100 ? 25 : 8); break;
           default: break;
+        }
+      }
+      // A dying star nearby: weigh what each plan would cost our colonies in the blast (public rules).
+      const plan = supernovaPlanOf(ev.eventId, i);
+      const star = ev.starId !== null ? ctx.starById.get(ev.starId) : undefined;
+      if (plan && star) {
+        for (const c of view.colonies) {
+          const d = dist(ctx.starById.get(c.starId)!, star);
+          if (d > SUPERNOVA_REACH) continue;
+          const loss = BLAST_LOSS[plan][d <= SUPERNOVA_INNER ? 0 : 1];
+          s -= loss * (c.population * 25 + c.factories * 10);
         }
       }
       if (s > bestScore) { bestScore = s; best = i; }

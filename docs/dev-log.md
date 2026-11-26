@@ -337,3 +337,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 ## 2026-11-26 04:50 The galaxy's story (end-of-game history)
 - New `src/engine/history.ts`: `galaxyHistory(state)` turns the chronicle into a short history: the beginning, one chapter per 100 turns (who led and with what share of the people, first contacts, wars begun and peace made, worlds lost to invasion and handed over by treaty, golden ages, empires that fell, near-conquest warnings), and the ending (winner and final standings).
 - Shown from the game-over screen ("📜 The galaxy's story") and the History screen ("so far"), with a Copy button; also added to the downloadable game log. Tests: `tests/history.test.ts` (2).
+
+## 2026-11-26 05:20 AI weighs the supernova blast
+- The AI's event scoring now subtracts what each supernova plan would cost its colonies in the blast (public rules: `BLAST_LOSS`, inner 2 ly, reach 4 ly). 8 games: 23 evacuations, 2 harvests (before: always harvest). `EmpireView.pendingEvents` now carries `eventId` and `starId`; `supernovaPlanOf` exported from `supernova.ts`.

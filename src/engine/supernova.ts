@@ -54,6 +54,11 @@ const PLAN_BY_CHOICE: Record<string, SupernovaPlan[]> = {
   "supernova-warning-4-five-turns": ["evacuated", "harvested", "stayed"],
 };
 const RANK: Record<SupernovaPlan, number> = { stayed: 0, harvested: 1, evacuated: 2 };
+
+/** The plan an answer to a supernova warning commits to (null for other events). Public rules, used by the AI too. */
+export function supernovaPlanOf(eventId: string, choice: number): SupernovaPlan | null {
+  return PLAN_BY_CHOICE[eventId]?.[choice] ?? null;
+}
 const AFTERMATH_ID: Record<SupernovaPlan, string> = {
   evacuated: "supernova-aftermath-evacuated",
   stayed: "supernova-aftermath-stayed",
