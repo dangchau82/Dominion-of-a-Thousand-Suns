@@ -17,6 +17,7 @@ import { processDeathWorlds } from "./deathWorlds";
 import { processSynthetics } from "./legends";
 import { processNatives } from "./natives";
 import { processExpeditions } from "./expeditions";
+import { processMinorRaces } from "./minorRaces";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -259,6 +260,7 @@ export function endTurn(state: GameState): void {
   processSynthetics(state);
   processNatives(state);
   processExpeditions(state);
+  processMinorRaces(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

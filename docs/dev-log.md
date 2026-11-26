@@ -385,3 +385,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 - Velari wonders 35% cheaper (was 25%); Vossari research 1.25 (was 1.2).
 - **162 games:** culture 54, council 47, technology 34, conquest 27, median T295. Races now 6-27% (start of the night: 4-35%, with Quorai/Nyx/Ruuvak far ahead). Velari 19% (was 7%). Still low: Raxxan 6%, Vossari 8%, Humans 9%; high: Quorai 27%, Verdane 27%.
 - With ~55 games a race the noise is about +-10% (Raxxan read 21%, 12% and 6% in three checks with no change to them), so further tuning needs 300+ games per check. Suggested next step: a longer overnight balance run (5-6 seed sets) before touching the races again.
+
+## 2026-11-26 04:31 (Claude 2): minor races in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/minorRaces.ts`, `src/engine/minorRaceEvents.ts`, hook in `victory.ts` `votesOf`, save v23, `tests/minorRaces.test.ts`. 54-game check: council wins 30%.

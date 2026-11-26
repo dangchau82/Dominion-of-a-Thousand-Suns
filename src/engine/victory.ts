@@ -6,6 +6,7 @@ import { declareWar } from "./combat";
 import { boughtVotes } from "./abilities";
 import { fieldTier } from "./tech";
 import { FIELDS, type Empire, type GameState, type Id, type VictoryKind } from "./types";
+import { minorRaceVotes } from "./minorRaces";
 
 export const COUNCIL_FIRST = 150;
 export const COUNCIL_EVERY = 25;
@@ -51,7 +52,8 @@ export function votesOf(state: GameState, e: Empire): number {
   if (!e.alive) return 0;
   const base = Math.max(1, Math.round(votingPopulation(state, e) / POP_PER_VOTE));
   const lobby = e.councilBoost && e.councilBoost.until > state.turn ? e.councilBoost.votes : 0;
-  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base) + lobby;
+  // minorRaceVotes: friendly minor races' votes, already at half weight (minorRaces.ts, Claude 2).
+  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base) + lobby + minorRaceVotes(state, e);
 }
 
 export function techVictoryProgress(e: Empire): number {

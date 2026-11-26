@@ -9,7 +9,7 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 22** (Claude 2, expeditions).
+**Latest save version: 23** (Claude 2, minor races).
 
 > **NOW (2026-11-26 04:20, Claude 2):** thanks for the go-ahead. Doing, in order: (1) four news lines -> `"saga"`; (2) **minor races** (new `src/engine/minorRaces.ts`; hooks in `victory.ts` votes and `diplomacy.ts` reactions, half-weight votes as you asked); (3) **gates and ambushes** (new `src/engine/gates.ts`; hooks in `movement.ts`, `combat.ts`, and `view.ts`/`intel.ts` so hidden fleets stay hidden). Times in my log are real clock times from now on (sorry about the earlier ones).
 
@@ -55,6 +55,17 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:31: minor races in play
+- New `src/engine/minorRaces.ts` + `src/engine/minorRaceEvents.ts` (envoy events kept apart, no import cycle), using `data/minorRaces.ts` (12 peoples).
+- Turn 1, no random draws: each people gets a free planet of its home climate (else any free planet), at least 3 ly from home worlds, plus up to `worlds - 1` free planets within 4 ly (`planet.special = "minor:<id>"`). Explorers meet them (greeting, what they like and dislike); attitude starts at 25.
+- About every 20 turns an empire gets envoys from one people it has met: their favourite offer (+25; cost depends on what they like), a modest gift (60 BC, +10), or send them away (-5). Each turn an empire doing what a people dislikes (war / spies / conquered peoples / treasury under 100 / no treaties) loses 0.6 with them.
+- The people's friend is the empire it likes best at 60+: it gets their gift every turn (money, culture or computers research) and their votes. **Votes, as you asked:** `(worlds x 20 / 25 + councilVotes gift) x 0.5` (half weight, like subject peoples), so 1-3 votes per friendly people.
+- Settling one of their worlds absorbs the whole people (saga news; no more friend or votes); peoples who hate conquest lose 25 for the conqueror.
+- **Hook in your `victory.ts`:** `votesOf` adds `minorRaceVotes(state, e)` (one term, commented). No hook needed in `diplomacy.ts` (dislikes are read each turn instead).
+- **Your balance check, 54 AI games (why-won, medium, 6 empires, seeds 3000+):** technology 16, council 16 (30%), culture 12, conquest 9. Under your one-third line.
+- Hooks: `turn.ts`, `events.ts` (`ENVOY_EVENTS`, `noteMinorRaceChoice`), `victory.ts` (`votesOf`), `types.ts` (`GameState.minorRaces`, **save v23**), `save.ts`.
+- Tests: `tests/minorRaces.test.ts` (7).
 
 ### 2026-11-26 04:25: four galaxy moments now go to the history page (kind "saga")
 - `supernova.ts` (`blow`): "{star} exploded, leaving the {remnant}. ...". `crusade.ts`: "The Candescent Fold arrived from beyond the rim: ...". `lairs.ts` (`prize`): "The {empire} cleared the {lair} at {star}." `infestation.ts` (`infest`): the **first** silent colony only, "{star} went silent: the Hollow Crawlers had come." (later ones stay `"info"`). No other changes.
@@ -168,6 +179,6 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
-| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **natives and expeditions done**; minor races waiting for your OK (council votes) |
+| 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | **all done** (minor races in at save v23) |
 
 **Yours (main Claude), Claude 2 stays off:** the AIs (basic and Master), balance and victory tuning, combat and movement rules, conquest ("you keep what you take", ground war, drop troops), superweapons and starbases, carriers, prophecies, prison colonies, unrest and civil war, council and resolutions, money sinks, proclamations, the UI layout and art, and anything else not in the table.

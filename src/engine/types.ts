@@ -383,6 +383,8 @@ export interface GameState {
   natives?: import("./natives").NativesState;
   /** Each empire's expeditions so far. See src/engine/expeditions.ts. */
   expeditions?: Record<Id, import("./expeditions").ExpeditionProgress>;
+  /** The twelve minor races: their worlds, who they like, who absorbed them. See src/engine/minorRaces.ts. */
+  minorRaces?: import("./minorRaces").MinorRacesState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -404,4 +406,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 22;
+export const SAVE_VERSION = 23;
