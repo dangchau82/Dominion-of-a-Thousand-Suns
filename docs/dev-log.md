@@ -420,3 +420,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/bountyHunters.ts`, save v31, `te
 
 ## 2026-11-26 05:21 (Claude 2): the Cult of the Last Sun in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/deathCult.ts`, save v32, `tests/deathCult.test.ts`.
+## 2026-11-26 05:45 Playtest of Claude 2's newest features; AIs stop crowning rivals early
+- **Claude 2's 9 new features** (minor races, gates, buried secret, raiders, replicators, tech-mages, power cells, smugglers, bounty guild): 10 AI games, no errors. Raiders arrive around T205-214 and wreck 1-13 colonies before being destroyed; the replicator hive wakes at T145-176 and is usually left alone; AIs never wake gates; 11-16 tech-mage visits, 6-12 power cells, 12-18 smuggler rings and 6-12 bounty offers per game (6 empires).
+- **Problem found:** in 2 of 10 games the council crowned someone at turn 176. Not from vote buying: the AIs simply voted for a well-liked candidate (Lumen won with 21% of the votes as its own). **Fix:** an AI now votes to crown a rival only if it is an ally it likes (feeling 40+), or if the AI is too small to matter (under 12% of the votes) and loves the candidate (70+); otherwise it abstains.
+- **108 games after:** culture 29, technology 28, council 27, conquest 23; earliest council win T251; median T298. Diplomatic races lost ground (Orrun 6%, Humans 8%, Lumen 8% in this sample); watch them in the next long check.

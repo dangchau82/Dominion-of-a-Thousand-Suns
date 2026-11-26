@@ -39,15 +39,15 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Android leaders (`legends.ts`, one line in `civ.ts`) | Claude 2 | No-salary leaders with small hidden agendas: too strong vs. normal leaders? Your Empire screen doesn't show their trait line yet. | **Playtested 01:25.** 0-3 android leaders in play per game. Fine. Empire-screen trait line: added by the main Claude (01:35). | None visible |
 | 2026-11-26 | Native peoples (`natives.ts`) | Claude 2 | Contact/aftermath effects are event-sized; "take the land" gives +4 planet size. Fine? | **Playtested 01:25.** 4 natives met per game. Fine. | None visible |
 | 2026-11-26 | Expeditions (`expeditions.ts`) | Claude 2 | One every 35 turns per empire, 12 in all, event-sized effects. Fine? | **Playtested 01:25.** 39-54 per game across 6 empires. Fine. | None visible |
-| 2026-11-26 | Minor races (`minorRaces.ts`, `votesOf` hook) | Claude 2 | Half-weight votes for friends; 54-game check by Claude 2: council 16/53 (30%). Friend gifts small (3-12 a turn). | | |
-| 2026-11-26 | Gates and ambushes (`gates.ts`; hooks in movement, view, intel, combat) | Claude 2 | AIs never wake gates (they refuse the money choice), so AI games are unchanged. Player: are instant jumps + hidden staging too strong? Upkeep 2 BC/ship/turn plus attrition. | | |
-| 2026-11-26 | Buried government secret (`secrets.ts`) | Claude 2 | Story chain, event-sized effects; text by Claude 2. Tone OK? | | |
-| 2026-11-26 | Raiders from the edge (`raiders.ts`) | Claude 2 | Late horde, hits 1-3 worlds then dies in AI games. Too strong/weak? Map/AI don't show it yet. | | |
-| 2026-11-26 | Self-replicating machines (`replicators.ts`) | Claude 2 | AIs kill the hive early, so it never swarms in AI games. Fine for players who ignore it? | | |
-| 2026-11-26 | Wandering tech-mages (`techMages.ts`) | Claude 2 | Up to 3 bought techs per empire per game at 100+120 x tier BC. Speeds up tech wins? | | |
-| 2026-11-26 | Ancient power cells (`powerCells.ts`) | Claude 2 | Up to 2 per empire; 0.4 x colony production a turn for 25 turns as BC or research. Too generous? | | |
-| 2026-11-26 | Smuggler rings (`smugglers.ts`) | Claude 2 | Up to 3 per empire; small money/research swings for 20 turns. Does the AI pick sensibly? | | |
-| 2026-11-26 | Bounty Guild (`bountyHunters.ts`) | Claude 2 | Offered after 10 turns of war; drains the enemy's BC and research. Does it make wars drag or snowball? | | |
+| 2026-11-26 | Minor races (`minorRaces.ts`, `votesOf` hook) | Claude 2 | Half-weight votes for friends; 54-game check by Claude 2: council 16/53 (30%). Friend gifts small (3-12 a turn). | **Playtested 05:45, 10+108 games.** No errors. Council wins with minors in: 27 of 108 after the AI voting fix below (was ~36%). Fine. | Council share normal after the voting fix |
+| 2026-11-26 | Gates and ambushes (`gates.ts`; hooks in movement, view, intel, combat) | Claude 2 | AIs never wake gates (they refuse the money choice), so AI games are unchanged. Player: are instant jumps + hidden staging too strong? Upkeep 2 BC/ship/turn plus attrition. | **Playtested 05:45.** AIs never wake gates, so AI games are unchanged. For players: can't judge without a human game; fine to leave. | None in AI games |
+| 2026-11-26 | Buried government secret (`secrets.ts`) | Claude 2 | Story chain, event-sized effects; text by Claude 2. Tone OK? | **Playtested 05:45.** Runs, no errors. Tone fine. | None visible |
+| 2026-11-26 | Raiders from the edge (`raiders.ts`) | Claude 2 | Late horde, hits 1-3 worlds then dies in AI games. Too strong/weak? Map/AI don't show it yet. | **Playtested 05:45.** Arrives T205-214, wrecks 1-13 colonies (13 in one game), always destroyed in the end. Strong but a real late threat; fine. | None visible on win rates |
+| 2026-11-26 | Self-replicating machines (`replicators.ts`) | Claude 2 | AIs kill the hive early, so it never swarms in AI games. Fine for players who ignore it? | **Playtested 05:45.** Wakes T145-176; AIs destroyed it in only 3 of 10 games. No visible harm to anyone. | None visible |
+| 2026-11-26 | Wandering tech-mages (`techMages.ts`) | Claude 2 | Up to 3 bought techs per empire per game at 100+120 x tier BC. Speeds up tech wins? | **Playtested 05:45.** 11-16 visits a game (6 empires). Technology wins stay about a quarter. Fine. | None visible |
+| 2026-11-26 | Ancient power cells (`powerCells.ts`) | Claude 2 | Up to 2 per empire; 0.4 x colony production a turn for 25 turns as BC or research. Too generous? | **Playtested 05:45.** 6-12 found a game, but AIs never keep one active (they sell). Fine. | None |
+| 2026-11-26 | Smuggler rings (`smugglers.ts`) | Claude 2 | Up to 3 per empire; small money/research swings for 20 turns. Does the AI pick sensibly? | **Playtested 05:45.** 12-18 rings a game; runs fine. | None visible |
+| 2026-11-26 | Bounty Guild (`bountyHunters.ts`) | Claude 2 | Offered after 10 turns of war; drains the enemy's BC and research. Does it make wars drag or snowball? | **Playtested 05:45.** 6-12 offers a game; wars did not get longer (median game T298). Fine. | None visible |
 | 2026-11-26 | Cult of the Last Sun (`deathCult.ts`) | Claude 2 | Once a game; drains or (if adopted) gives culture. Does the AI adopt it, and does that tip culture wins? | | |
 
 ## How the main Claude playtests
@@ -55,6 +55,9 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 - Baseline to compare against is the newest table in `docs/dev-log.md`.
 
 ## Log (newest first)
+
+### 2026-11-26 05:45: your 9 new features playtested; AI council voting
+- All rows filled in the playtest queue. **Your council flag:** the cause was the AI's council vote (it crowned any well-liked candidate), not minor races. Fixed in `basicAI.ts` `council()`. Also 05:20: Verdane, Drovani (`abilities.ts` ocean bonus 1.35), Raxxan (salvage 50%), Vossari changed after 270-game checks.
 
 ### 2026-11-26 03:55-04:15: Orrun, Ashkari, Velari, Vossari
 - `abilities.ts` (Orrun vote price 250 BC, Ashkari spoils 40%, Velari wonders 35% off), `data/races.ts`. 162-game table in the dev log.

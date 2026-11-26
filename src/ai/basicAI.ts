@@ -507,9 +507,14 @@ function council(ctx: Ctx): void {
   const feel = (id: Id) => ctx.view.contacts.find((c) => c.id === id)?.ourFeeling ?? -5;
   const [a, b] = s.candidates;
   const best = a === ctx.threat ? b : b === ctx.threat ? a : feel(a) >= feel(b) ? a : b;
-  // Abstain rather than crown someone we dislike; warlike races hate handing over the galaxy.
+  // A vote for someone is a vote to lose the game to them: only for a close ally we like, or, when we are too small
+  // to matter, for a patron we truly love. Otherwise abstain. (2026-11-26: liked candidates were being crowned by
+  // the whole galaxy as early as turn 176.)
   const ally = ctx.view.contacts.find((c) => c.id === best)?.treaties.includes("alliance");
-  ctx.cmds.push({ type: "councilVote", candidateId: ally || feel(best) >= 40 + ctx.aggression * 20 ? best : null });
+  const total = Object.values(s.weight).reduce((x, w) => x + w, 0);
+  const small = total > 0 && (s.weight[me] ?? 0) / total < 0.12;
+  const crown = (ally && feel(best) >= 40) || (small && feel(best) >= 70 + ctx.aggression * 20);
+  ctx.cmds.push({ type: "councilVote", candidateId: crown ? best : null });
 }
 
 /** Council resolutions: sanctions on rivals we dislike or fear, measures that help us. */
