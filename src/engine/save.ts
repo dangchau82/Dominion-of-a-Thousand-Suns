@@ -100,6 +100,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 12) { (data as GameState).version = 13; }
   // Version 13 -> 14: neutral lairs; old games get theirs placed on the next turn.
   if (data.version === 13) { (data as GameState).version = 14; }
+  // Version 14 -> 15: the Crusade; in old games it simply hasn't arrived yet.
+  if (data.version === 14) { (data as GameState).version = 15; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

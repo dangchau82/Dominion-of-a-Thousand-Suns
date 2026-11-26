@@ -355,6 +355,8 @@ export interface GameState {
   supernovae?: import("./supernova").SupernovaState[];
   /** Neutral lairs on the map (guarded prizes). See src/engine/lairs.ts. */
   lairs?: import("./lairs").LairState[];
+  /** The Crusade of the Candescent Fold, once it has arrived. See src/engine/crusade.ts. */
+  crusade?: import("./crusade").CrusadeState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -376,4 +378,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;

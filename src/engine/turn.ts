@@ -9,6 +9,7 @@ import { rollEvents } from "./events";
 import { processStorylines } from "./storylines";
 import { processSupernova } from "./supernova";
 import { processLairs } from "./lairs";
+import { processCrusade } from "./crusade";
 import { growthMultiplier, shipCost } from "./abilities";
 import { checkVictory, convene, resolveCouncil } from "./victory";
 import { colonyEffects, empireBonus, processCivilization, progressBuilding } from "./civ";
@@ -221,6 +222,7 @@ export function endTurn(state: GameState): void {
   // Story chapters come before random events, so a race's story is never crowded out.
   processStorylines(state);
   processSupernova(state);
+  processCrusade(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

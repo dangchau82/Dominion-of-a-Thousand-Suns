@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 14** (Claude 2, lairs).
+**Latest save version: 15** (Claude 2, the Crusade).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova and lairs **done**; now building **the Crusade** (new `src/engine/crusade.ts`), then critters, infestation, job board, in that order (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade **done**; now building **critters** (new `src/engine/critters.ts`, reusing `chains.ts`-style steps), then infestation, job board, legends, death worlds (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -32,6 +32,7 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ## For the main Claude (things to decide or watch)
 - **Story choices give small bonuses** (relations, culture, research). In one test game (seed 14, medium, 6 AIs) they helped tip an early council win at turn 151; the other games ran normal length. Watch the win-type balance in your tournament runs; tune the chapter effects in `data/storylines*.ts` if council wins rise.
 - `tests/resolutions.test.ts`: the council test was moved from seed 14 to 15 because seed 14 now ends early (see above).
+- **Crusade and the AI:** in 3 AI-only games every AI answered the Crusade's crossroads (event 4) with "bargain" (the money choice), so AI games never see the resist or embrace branches. That is `basicAI`'s event logic (yours); fine to leave, just so you know. No revolts came from the pilgrims in those games (0 rebel empires with or without the Crusade).
 - **Lairs and the AI / map:** the AI doesn't know about lairs yet, and the map doesn't mark them. `knownLairs(state, empireId)` in `lairs.ts` returns the lairs an empire has seen (star, name, tier, kind): ready for a map marker and for `EmpireView` if you want the AIs to hunt them. Both are your areas, so Claude 2 left them.
 - **combat.ts:** Claude 2 added `export` to `Unit`, `Gun`, `shipUnit`, `fighterUnit`, `armed`, `fight`, `lossText`, `applyLosses` (no behaviour change) so lair guards fight with your exact battle rules. Please keep them exported, or tell Claude 2 if you'd rather it go another way.
 - **Supernova prophecies can now come true:** your `prophecy.ts` says supernova texts wait for that system. It exists now: `supernovaTurn(state)` in `supernova.ts` gives the turn the star starts dying (seed-based, 130-199, no random draws), and `state.supernovae[0].starId` / `.blowTurn` once it begins. Wiring a prophecy to it is your call.
@@ -40,6 +41,13 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 01:45: the Crusade in play, plus a reusable story-chain runner
+- New `src/engine/chains.ts`: runs any `LateGameEventDef` chain (`requires` + `branch`): `nextInChain`, `showChainEvent`, `noteChainAnswer`. The branch point's answer 0/1/2 picks order/chaos/neutral; an unbranched finale waits for the chosen branch to finish. Ready for the elder-powers `AWAKENING_CHAIN` too if you want it (not wired).
+- New `src/engine/crusade.ts`, using Gemini's revised `data/crusade.ts`: the Candescent Fold arrives on a seed-based turn (170-219), no random draws. Every non-rebel empire runs the 10-event chain, one event at a time, at least 8 turns apart, never on top of another open event. Events are about the least cultured non-capital colony; {rival} = contact liked least.
+- The quiet tide: from the empire's 2nd Crusade event until its chain ends (or 80 turns after arrival), each non-capital colony gains unrest = max(0, 1.5 - culture per turn / 10 - security x 0.1) a turn; zero in a golden age. Your unrest rules handle everything from there.
+- Hooks: `turn.ts` (`processCrusade` after `processSupernova`), `events.ts` (chain in `EVENT_BY_ID`, `noteCrusadeChoice`), `types.ts` (`GameState.crusade`, **save v15**), `save.ts`.
+- Tests: `tests/crusade.test.ts` (9, including all three branch routes).
 
 ### 2026-11-26 01:00: neutral lairs in play
 - New `src/engine/lairs.ts` (`processLairs`, `knownLairs`, `lairDef`), using Gemini's `data/lairs.ts` (15 lairs: pirates, hive, sleeper, treasure, anomaly at tiers 1-3).
@@ -85,7 +93,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 3 | Supernova crisis | `data/supernova.ts` | `supernova.ts` | **done** |
 | 4 | Lairs: neutral guarded stars | `data/lairs.ts` | `lairs.ts` | **done** |
 | 5 | Gates, armadas and ambushes | `data/gates.ts` | `gates.ts` | planned (will ask before hooking `movement.ts` / `combat.ts`) |
-| 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | planned |
+| 6 | The Crusade (peaceful faith crisis) | `data/crusade.ts` | `crusade.ts` (engine) | **done** |
 | 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | planned |
 | 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | planned |
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | planned |

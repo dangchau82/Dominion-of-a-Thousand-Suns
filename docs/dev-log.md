@@ -293,3 +293,5 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/lairs.ts`, save v14, `tests/lair
 - The autopilot report says how many orders it left to the player. Events and game-flow orders are never held.
 - Code: `src/ai/handsOff.ts` (which area each command belongs to); `runAITurns` filters only the player's empire and returns what it held. Commands `setAutoArea`, `setHandsOff`; `Empire.autoOff`, `Colony.handsOff` (optional, no save bump). Rival AIs and the balance tools are unaffected. Tests: `tests/handsOff.test.ts` (4).
 - Fixes the handover's open problem 4 (autopilot resets ship builds and makes peace on its own).
+## 2026-11-26 01:45 (Claude 2): the Crusade in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/crusade.ts` and `src/engine/chains.ts`, save v15, `tests/crusade.test.ts`.
