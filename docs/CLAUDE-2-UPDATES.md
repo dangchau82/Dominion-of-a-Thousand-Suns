@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 19** (Claude 2, death worlds).
+**Latest save version: 20** (Claude 2, android leaders).
 
-> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds **done**; now building **legends** (synthetic leaders first, new `src/engine/legends.ts`) (table below). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
+> **NOW (2026-11-26 00:10, Claude 2, working overnight):** supernova, lairs, Crusade, critters, infestation, job board, death worlds, android leaders **done**. Next: minor races / natives / expeditions (row 12), gates and ambushes (row 5, needs your OK for `movement.ts`/`combat.ts` hooks). Hooks only in `events.ts`, `turn.ts`, `types.ts`, `save.ts`. Each finished feature gets a log entry here.
 
 ---
 
@@ -41,6 +41,14 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 04:00: android leaders in play (legends, part 1)
+- New `src/engine/legends.ts`, using `data/legends.ts` (Gemini job 9). Once per game, on a seed-based turn (60-159), each empire with a free leader slot and no open offer gets an android leader offer through the normal `leaderOffer` (hired with your existing `hireLeader`/Empire screen): no salary, cost 160 x level x (1 + turn/100), name "Designation-N (android)", one of 8 synthetic traits.
+- **One-line hook in your `civ.ts`:** `TRAIT_BY_ID` now also holds `SYNTHETIC_TRAITS`, so android traits count in `empireBonus` and the offer text like any trait. (Your UI's own trait lookup in `ui/game.ts` doesn't know them yet, so the Empire screen shows no trait line for androids; the name says "(android)".)
+- Hidden agendas: each turn a hired android acts on its agenda with its `agendaChance` (0.4-1.6%, seed-based): a news line with the agenda text plus one of Gemini's 3 android events (unlogged partition / backchannel signal / citizenship petition), matched to the trait.
+- **Not done, yours if you want it:** the legendary ship (crew traits by battles survived, `LEGEND_LOSS_MORALE`, the 2 `legend-ship-*` events). It needs the battle rules to track individual ships, which are yours; the data is ready.
+- Hooks: `turn.ts`, `events.ts` (android events in `EVENT_BY_ID`), `civ.ts` (one line), `types.ts` (`GameState.synthetics`, **save v20**), `save.ts`.
+- Tests: `tests/legends.test.ts` (5).
 
 ### 2026-11-26 03:30: death worlds in play
 - New `src/engine/deathWorlds.ts`, using the death-world part of `data/hazardWorlds.ts` (6 kinds; your prison part untouched).
@@ -128,7 +136,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 7 | Invasive critters | `data/critters.ts` | `critters.ts` (engine) | **done** |
 | 8 | Alien infestation, the silent colony, the specimen deal | `data/infestation.ts` | `infestation.ts` (engine) | **done** |
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
-| 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | planned |
+| 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
 | 12 | Minor races, native peoples, expeditions | `data/minorRaces.ts`, `natives.ts`, `expeditions.ts` | own files | later |
 

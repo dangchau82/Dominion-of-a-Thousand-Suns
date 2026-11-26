@@ -110,6 +110,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 17) { (data as GameState).version = 18; }
   // Version 18 -> 19: death worlds; old games get theirs marked on their next turn.
   if (data.version === 18) { (data as GameState).version = 19; }
+  // Version 19 -> 20: android leaders; old games get their offer in time.
+  if (data.version === 19) { (data as GameState).version = 20; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

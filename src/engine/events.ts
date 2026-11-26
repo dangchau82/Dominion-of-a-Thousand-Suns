@@ -10,6 +10,7 @@ import { CRUSADE_EVENTS, noteCrusadeChoice } from "./crusade";
 import { CRITTER_EVENTS, noteCritterChoice } from "./critters";
 import { INFESTATION_EVENTS, noteInfestationChoice } from "./infestation";
 import { CONTRACT_EVENTS } from "./contractEvents";
+import { SYNTH_EVENTS } from "./legends";
 import { noteContractChoice } from "./contracts";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
@@ -21,7 +22,7 @@ export const EVENT_CHANCE = 1 / 14;
 /** Unanswered events resolve with their first choice after this many turns. */
 export const EVENT_TIMEOUT = 5;
 
-export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS, ...SUPERNOVA_EVENTS, ...CRUSADE_EVENTS, ...CRITTER_EVENTS, ...INFESTATION_EVENTS, ...CONTRACT_EVENTS].map((e) => [e.id, e]));
+export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS, ...SUPERNOVA_EVENTS, ...CRUSADE_EVENTS, ...CRITTER_EVENTS, ...INFESTATION_EVENTS, ...CONTRACT_EVENTS, ...SYNTH_EVENTS].map((e) => [e.id, e]));
 
 function fill(text: string, state: GameState, p: PendingEvent): string {
   return text

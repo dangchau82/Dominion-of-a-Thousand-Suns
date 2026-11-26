@@ -29,6 +29,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Alien infestation (`infestation.ts`) | Claude 2 | 1 pop a turn per nest, spreads every 12 turns until event 4 is answered: too slow/fast? AIs always pick "neutral" at event 4. | | |
 | 2026-11-26 | Frontier job board (`contracts.ts`) | Claude 2 | About 9 jobs per empire per game, ~30% go wrong. Too much free money for small empires, or too little? | | |
 | 2026-11-26 | Death worlds (`deathWorlds.ts`) | Claude 2 | Riches = colony production x (mult-1) x 0.5 as BC a turn once safe: too generous? AIs settle them blind. | | |
+| 2026-11-26 | Android leaders (`legends.ts`, one line in `civ.ts`) | Claude 2 | No-salary leaders with small hidden agendas: too strong vs. normal leaders? Your Empire screen doesn't show their trait line yet. | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).

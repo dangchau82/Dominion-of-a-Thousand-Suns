@@ -315,3 +315,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/contracts.ts`, `src/engine/contr
 
 ## 2026-11-26 03:30 (Claude 2): death worlds in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/deathWorlds.ts`, save v19, `tests/deathWorlds.test.ts`.
+
+## 2026-11-26 04:00 (Claude 2): android leaders in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/legends.ts`, one-line hook in `civ.ts`, save v20, `tests/legends.test.ts`.

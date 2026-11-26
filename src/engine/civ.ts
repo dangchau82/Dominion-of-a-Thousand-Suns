@@ -9,6 +9,7 @@ import {
   type BuildingDef, type BuildingEffects, type EmpireBonus, type LeaderKind,
 } from "./data/buildings";
 import { LEADER_TRAITS } from "./data/leaderTraits";
+import { SYNTHETIC_TRAITS } from "./data/legends";
 import * as R from "./rng";
 import { buildingCost, is, LARVAE_EVERY } from "./abilities";
 import { canColonize, distance } from "./formulas";
@@ -17,7 +18,8 @@ import { fieldTier } from "./tech";
 import { FIELDS, type Colony, type Empire, type GameState, type Id, type Leader } from "./types";
 
 const KEYS = ["production", "research", "growth", "range", "attack", "spying", "relations", "trade", "culture"] as const;
-const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
+// Android leaders (legends.ts, Claude 2) carry synthetic traits; they count like any other trait.
+const TRAIT_BY_ID = new Map([...LEADER_TRAITS, ...SYNTHETIC_TRAITS].map((t) => [t.id, t]));
 
 function add(into: Required<EmpireBonus>, b: EmpireBonus, times = 1): void {
   for (const k of KEYS) into[k] += (b[k] ?? 0) * times;

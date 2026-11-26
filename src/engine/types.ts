@@ -367,6 +367,8 @@ export interface GameState {
   contracts?: Record<Id, import("./contracts").ContractProgress>;
   /** Death worlds marked on the map, and who has been warned. See src/engine/deathWorlds.ts. */
   deathWorlds?: import("./deathWorlds").DeathWorldsState;
+  /** Android leader offers made so far. See src/engine/legends.ts. */
+  synthetics?: import("./legends").SyntheticsState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -388,4 +390,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 19;
+export const SAVE_VERSION = 20;
