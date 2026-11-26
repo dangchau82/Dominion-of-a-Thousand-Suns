@@ -30,6 +30,7 @@ import { LEADER_TRAITS } from "../engine/data/leaderTraits";
 import { PRISON_COLONY } from "../engine/data/hazardWorlds";
 import { EDICT_BY_ID } from "../engine/decrees";
 import { CULTURE_VICTORY } from "../engine/victory";
+import { galaxyHistory, galaxyHistoryText } from "../engine/history";
 import { MAX_CEDED } from "../engine/diplomacy";
 import { growsByMigrants } from "../engine/migrants";
 import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarget } from "../engine/unrest";
@@ -259,6 +260,9 @@ export class GameScreen {
         box.append(el("div", { class: "dim", style: "margin-top:4px" }, "Key moments (newest first)"), list);
       }
       const row = el("div", { class: "row" });
+      const tale = el("button", {}, "📜 The galaxy's story so far");
+      tale.onclick = () => { close(); this.showGalaxyHistory(() => this.showHistory(stat)); };
+      row.append(tale);
       const dl = el("button", { title: "A text file of every turn for every empire. Send it to the developer to help balance the game." }, "⬇ Download game log");
       dl.onclick = () => this.downloadLog();
       const ok = el("button", { class: "primary" }, "Close");
@@ -959,9 +963,27 @@ export class GameScreen {
         keep.onclick = () => { this.cmd({ type: "keepPlaying" }); autosave(this.state); close(); this.refresh(); };
         row.append(keep);
       }
+      const story = el("button", {}, "📜 The galaxy's story");
+      story.onclick = () => { close(); this.showGalaxyHistory(() => this.showGameOver()); };
+      row.append(story);
       const menu = el("button", { class: "primary" }, "Main menu");
       menu.onclick = () => { close(); location.reload(); };
       row.append(menu);
+      box.append(row);
+    });
+  }
+
+  /** The whole game told as a short history, age by age. */
+  private showGalaxyHistory(back?: () => void): void {
+    this.modal((box, close) => {
+      box.innerHTML = `<h2>📜 The story of the galaxy</h2>` + galaxyHistory(this.state).map((c) =>
+        `<h3 style="margin:10px 0 4px">${esc(c.title)}</h3>${c.lines.map((l) => `<p style="margin:2px 0">${esc(l)}</p>`).join("")}`).join("");
+      const row = el("div", { class: "row" });
+      const copy = el("button", {}, "Copy text");
+      copy.onclick = () => { void navigator.clipboard?.writeText(galaxyHistoryText(this.state)); this.toast("Copied."); };
+      const ok = el("button", { class: "primary" }, back ? "Back" : "Close");
+      ok.onclick = () => { close(); back?.(); };
+      row.append(copy, ok);
       box.append(row);
     });
   }

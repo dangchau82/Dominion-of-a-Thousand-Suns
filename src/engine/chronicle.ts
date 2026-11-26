@@ -3,6 +3,7 @@
 // downloaded to study balance. AI code never reads it (it isn't in EmpireView).
 
 import { shipDesign } from "./designs";
+import { galaxyHistoryText } from "./history";
 import type { GameState } from "./types";
 
 /** Stats recorded for each empire each turn, in this order. */
@@ -75,6 +76,9 @@ export function chronicleText(state: GameState): string {
   for (const t of ch?.turns ?? []) {
     out.push(`T${t.t} ` + t.e.map((row, i) => (row ? `${i}:${row.join("/")}` : `${i}:dead`)).join(" "));
   }
+  out.push("");
+  out.push("# The galaxy's story");
+  out.push(galaxyHistoryText(state));
   out.push("");
   out.push("# Key events");
   for (const ev of ch?.events ?? []) {

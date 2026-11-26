@@ -333,3 +333,7 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/expeditions.ts`, `src/engine/exp
 ## 2026-11-26 04:10 Playtest of Claude 2's eight new features (12 AI games)
 - Crusade, critters, infestation, job board, android leaders, natives, expeditions: all run in every game with no errors and small effects (details in the playtest queue in `docs/MAIN-CLAUDE-UPDATES.md`).
 - Death worlds: riches reached up to 5% of one empire's whole gross output as free cash; `RICHES_SHARE` 0.5 -> 0.3.
+
+## 2026-11-26 04:50 The galaxy's story (end-of-game history)
+- New `src/engine/history.ts`: `galaxyHistory(state)` turns the chronicle into a short history: the beginning, one chapter per 100 turns (who led and with what share of the people, first contacts, wars begun and peace made, worlds lost to invasion and handed over by treaty, golden ages, empires that fell, near-conquest warnings), and the ending (winner and final standings).
+- Shown from the game-over screen ("📜 The galaxy's story") and the History screen ("so far"), with a Copy button; also added to the downloadable game log. Tests: `tests/history.test.ts` (2).

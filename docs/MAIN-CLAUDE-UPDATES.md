@@ -39,6 +39,9 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 04:50: the galaxy's story
+- New `src/engine/history.ts` (reads the chronicle only). Hooks: `chronicle.ts` (`chronicleText` includes it), `ui/game.ts` (game-over and History screens). If your content adds big moments you want in the story, give their events a kind in `KEY_KINDS` (chronicle.ts) and tell me the wording; I'll add a line for them.
+
 ### 2026-11-26 03:40: grudges, governing distance, subject votes
 - New `src/engine/grudges.ts` (`addGrudge`, `fadeGrudges`); `Empire.grudges` (optional, no save bump). Hooks: `diplomacy.ts` (`breakTreaty`, `updateRelations`), `combat.ts` (`declareWar`, invasion capture, `cedeColonies`), `turn.ts`, `view.ts` (`KnownEmpire.grudge`), `basicAI.ts` (war targets), `ui/game.ts` (diplomacy screen).
 - `turn.ts`: `distanceCost` in `colonyBudget`. `victory.ts`: `votingPopulation` (subject peoples count half).
