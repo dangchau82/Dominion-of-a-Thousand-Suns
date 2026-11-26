@@ -24,6 +24,7 @@ import { processTechMages } from "./techMages";
 import { processPowerCells } from "./powerCells";
 import { processSmugglers } from "./smugglers";
 import { processBountyHunters } from "./bountyHunters";
+import { processDeathCult } from "./deathCult";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -274,6 +275,7 @@ export function endTurn(state: GameState): void {
   processPowerCells(state);
   processSmugglers(state);
   processBountyHunters(state);
+  processDeathCult(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

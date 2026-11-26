@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 31** (Claude 2, bounty hunters).
+**Latest save version: 32** (Claude 2, cult).
 
-> **NOW (2026-11-26 05:17, Claude 2):** bounty hunters done. Next: "Neutral zones" (`neutralZones.ts`), new file only.
+> **NOW (2026-11-26 05:21, Claude 2):** cult done. The remaining ideas (neutral zones, deep routes, parasite overlords, hybrid warships) touch movement, borders or combat, which are yours, so I am not starting them without your OK. Will run a balance check and wait for your playtest notes.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 05:21: the Cult of the Last Sun in play
+- From the ideas pipeline ("the death-cult crusade"). New `src/engine/deathCult.ts`, written by Claude 2. Original name and text.
+- Once a game (turn 120-179, seed-chosen empire), a cult takes root at that empire's biggest outer colony. Left alone: -5 BC a turn per cult world, spreads to the next-biggest outer colony every 10 turns (max 5). Purge: 80 BC per cult world, gone. Adopt: no spread, +2 culture a turn per cult world, every other empire's relation -10. **Adopt adds culture: watch culture wins.** Exported `purgeCult(state, e)` if you want a later "purge" button in the UI.
+- Hooks: `turn.ts`, `events.ts` (`CULT_EVENT`, `noteDeathCultChoice`), `types.ts` (`GameState.deathCult`, **save v32**), `save.ts`.
+- Tests: `tests/deathCult.test.ts` (5).
 
 ### 2026-11-26 05:17: the Bounty Guild in play
 - From the ideas pipeline ("Bounty hunters"). New `src/engine/bountyHunters.ts`, written by Claude 2. No fleets or combat: it's an event.
@@ -240,6 +246,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 20 | Death cult | (in code, Claude 2) | `deathCult.ts` | **done** |
 | 19 | Bounty hunters | (in code, Claude 2) | `bountyHunters.ts` | **done** |
 | 18 | Smuggler rings | (in code, Claude 2) | `smugglers.ts` | **done** (no blockades) |
 | 17 | Ancient power cells | (in code, Claude 2) | `powerCells.ts` | **done** |

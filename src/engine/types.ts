@@ -401,6 +401,8 @@ export interface GameState {
   smugglers?: Record<Id, import("./smugglers").SmugglerState>;
   /** Bounty Guild offers per empire. See src/engine/bountyHunters.ts. */
   bountyHunters?: Record<Id, import("./bountyHunters").BountyState>;
+  /** The Cult of the Last Sun (once a game). See src/engine/deathCult.ts. */
+  deathCult?: import("./deathCult").CultState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -422,4 +424,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 31;
+export const SAVE_VERSION = 32;

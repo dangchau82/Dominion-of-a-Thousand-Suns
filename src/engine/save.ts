@@ -134,6 +134,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 29) { (data as GameState).version = 30; }
   // Version 30 -> 31: the Bounty Guild.
   if (data.version === 30) { (data as GameState).version = 31; }
+  // Version 31 -> 32: the Cult of the Last Sun.
+  if (data.version === 31) { (data as GameState).version = 32; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }
