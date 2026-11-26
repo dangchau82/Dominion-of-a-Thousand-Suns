@@ -210,3 +210,4 @@ Danny passed 5 Gemini answers to the main session. All added as **data only** wi
 
 - 19:15 Gemini Set B (moving scenes): first clip in, `public/art/scenes-video/ruuvak-science.mp4` (17a, egg hatching, plays once). Not shown in game yet; wire up with the scene pictures.
 - 19:15 Set B 17b in: `ruuvak-war.mp4` (guarding the nest, frill lowers; little battle damage shown, plays once).
+- 19:17 Set B 17c in: `ruuvak-invasion.mp4` (ships lower eggs onto the captured world, she blesses the nests; only 640x360 from Gemini).
