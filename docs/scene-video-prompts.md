@@ -1,6 +1,6 @@
 # Race scene videos: prompts for Google Flow (or Gemini/Veo)
 
-Written by Claude 2 for Danny, 2026-11-26. The game already plays a drawn scene for every race; **a video replaces it as soon as you add the file.**
+Written by Claude 2 for Danny, 2026-11-26. There are 126 clips (18 races x 7 scenes). The game already plays a drawn scene for every race; **a video replaces it as soon as you add the file.**
 
 ## How to make one
 1. In Flow, start a new clip from an image: attach the race's portrait (`public/art/races/race-<race>.png`) as the reference.
@@ -13,7 +13,7 @@ Every prompt starts with the same rules so the 90 clips look like one game:
 
 > Use the attached portrait only as a reference for this race's look and the painting style; keep the same species, armour and colours. Cinematic science-fiction, painterly, dramatic lighting. No text, no logos, no real-world brands, nothing from existing films or games. 16:9, 8 seconds.
 
-Scenes: **colony** (new world founded), **science** (technology discovered), **spy** (spy mission done), **war** (war declared), **invasion** (world conquered).
+Scenes: **colony** (new world founded), **science** (technology discovered), **spy** (spy mission done), **war** (war declared), **invasion** (world conquered), **battle** (a battle won), **wonder** (our great work finished).
 
 ## Terran Accord (`humans`): Diplomats, colour blue, home terran
 
@@ -27,6 +27,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`humans-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "Marines hold the new world. The governor's first order: open the markets."
 
+**`humans-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Their line broke first. The Accord will be generous in victory; it always is."
+
+**`humans-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work stands finished, and every embassy in the galaxy sends its congratulations."
+
 ## Vossari (`vossari`): Scientists, colour pale ice-blue, home arid
 
 **`vossari-colony.mp4`**: A colony ship of this race descends through the sky of a new arid world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "Survey drones blanket the new world. Every grain of sand is catalogued before the first dome rises."
@@ -38,6 +42,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`vossari-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The Vossari have calculated the outcome. They see no reason to wait for it."
 
 **`vossari-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world falls on schedule. The occupation runs to a timetable accurate to the second."
+
+**`vossari-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Battle outcome within predicted margins. Enemy losses: total."
+
+**`vossari-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is complete. The Vossari measure it once more, for the joy of it."
 
 ## Kethrak Hive (`kethrak`): Hive, colour amber, home jungle
 
@@ -51,6 +59,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`kethrak-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is overrun. The Hive does not occupy a world. It digests it."
 
+**`kethrak-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The swarm feeds on the wreckage. The Hive is hungry for more."
+
+**`kethrak-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work breathes, pulses, and joins the Hive's endless chorus."
+
 ## Ashkari Dominion (`ashkari`): Warriors, colour crimson, home desert
 
 **`ashkari-colony.mp4`**: A colony ship of this race descends through the sky of a new desert world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "An Ashkari banner is driven into the rock of the new world. It will never come down."
@@ -62,6 +74,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`ashkari-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The war-horns sound across the Dominion. Every Ashkari was born for this day."
 
 **`ashkari-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is taken by blade and fire. The spoils are counted before the smoke clears."
+
+**`ashkari-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Victory! Their ships burn, and the Dominion counts the spoils."
+
+**`ashkari-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work rises, a monument to every Ashkari who died to make the Dominion great."
 
 ## Lumen Choir (`lumen`): Telepaths, colour lavender, home ocean
 
@@ -75,6 +91,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`lumen-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world surrenders before the first shot. Their minds had already gone quiet."
 
+**`lumen-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The enemy's last thoughts were of fear. The Choir sings them to sleep."
+
+**`lumen-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work hums with a song that will never end."
+
 ## Thraal (`thraal`): Lithovores, colour stone-grey, home barren
 
 **`thraal-colony.mp4`**: A colony ship of this race descends through the sky of a new barren world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The Thraal sink into the stone of the new world and begin, very slowly, to make it home."
@@ -86,6 +106,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`thraal-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The mountains move. When the Thraal go to war, they do not stop."
 
 **`thraal-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is ground down beneath us. We will eat its mountains at our leisure."
+
+**`thraal-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The enemy broke against us like waves on a cliff."
+
+**`thraal-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is done, after ages of patient grinding. The mountains approve."
 
 ## Seraphine (`seraphine`): Pilots, colour ivory-gold, home steppe
 
@@ -99,6 +123,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`seraphine-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "Our dropships land on the new world exactly where we said they would. Resistance ends within the hour."
 
+**`seraphine-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Not a single pilot lost who could have been saved. The skies are ours."
+
+**`seraphine-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work soars above our worlds, and every pilot salutes it on the way past."
+
 ## Orrun Consortium (`orrun`): Traders, colour emerald-green, home ocean
 
 **`orrun-colony.mp4`**: A colony ship of this race descends through the sky of a new ocean world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The Consortium opens its newest branch office on the new world. Shares are already up."
@@ -110,6 +138,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`orrun-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The Consortium has decided war is profitable. The mercenaries are already paid."
 
 **`orrun-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is under new management. Contracts will be honoured. Some of them."
+
+**`orrun-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Victory, and the salvage rights alone will pay for the war."
+
+**`orrun-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work opens for business. The galaxy will pay to use it, one way or another."
 
 ## Nyx Collective (`nyx`): Machines, colour violet, home dead
 
@@ -123,6 +155,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`nyx-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "Nyx war-frames walk through the fire on the new world, guns blazing, and do not stop until it is quiet."
 
+**`nyx-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Hostile units eliminated. The Collective records the battle for later improvement."
+
+**`nyx-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work comes online. The Collective's thoughts grow larger."
+
 ## Velari (`velari`): Mystics, colour orchid-pink, home terran
 
 **`velari-colony.mp4`**: A colony ship of this race descends through the sky of a new terran world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "A Velari seer walks the hills of the new world and names it in a language older than stars."
@@ -134,6 +170,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`velari-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The Velari unveil weapons they swore never to use. The stars themselves seem to hold their breath."
 
 **`velari-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world bows to the Velari. Its temples will be rebuilt more beautiful than before."
+
+**`velari-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The enemy fell exactly as the seers foretold."
+
+**`velari-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is finished, and it is more beautiful than any vision of it."
 
 ## Drovani (`drovani`): Aquatic, colour teal, home ocean
 
@@ -147,6 +187,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`drovani-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "The seas of the new world are ours. On land, they will learn to swim or leave."
 
+**`drovani-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The tide turned, and it swept them away."
+
+**`drovani-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work rises from the deep, and the oceans of a hundred worlds sing."
+
 ## Gorrath Clans (`gorrath`): Nomads, colour bronze, home tundra
 
 **`gorrath-colony.mp4`**: A colony ship of this race descends through the sky of a new tundra world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The clan-ships circle the new world three times, then make camp. The hearth fires are lit."
@@ -158,6 +202,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`gorrath-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The war drums carry from ship to ship. The Gorrath clans ride together."
 
 **`gorrath-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is plundered and claimed. The clans will winter here."
+
+**`gorrath-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The clans howl their victory across the void. Tonight, there is feasting."
+
+**`gorrath-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is finished. Even the oldest clan-mothers come to see it."
 
 ## Ixil (`ixil`): Symbiotes, colour purple, home jungle
 
@@ -171,6 +219,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`ixil-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is joined to us. Its people will come to love the bond."
 
+**`ixil-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Their survivors will make fine hosts."
+
+**`ixil-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work grows its last tendril, and every Ixil feels it bloom."
+
 ## Verdane (`verdane`): Plant beings, colour leaf-green, home jungle
 
 **`verdane-colony.mp4`**: A colony ship of this race descends through the sky of a new jungle world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "Verdane seeds take root on the new world. In ten years it will be forest from pole to pole."
@@ -182,6 +234,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`verdane-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The Verdane forests close their canopies. What grows now has thorns."
 
 **`verdane-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "Roots crack the fortresses of the new world. The forest reclaims what was always going to be ours."
+
+**`verdane-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The battle is won. New seeds will grow in the ashes."
+
+**`verdane-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work unfurls its final branches into the light of a dozen suns."
 
 ## Quorai (`quorai`): Energy beings, colour golden, home radiated
 
@@ -195,6 +251,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`quorai-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world burns with our fire now. Nothing that does not shine will stay."
 
+**`quorai-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The enemy flickered and went out. We burn on."
+
+**`quorai-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work blazes into being, the brightest thing we have ever made."
+
 ## Raxxan Reavers (`raxxan`): Scavengers, colour rust-orange, home minimal
 
 **`raxxan-colony.mp4`**: A colony ship of this race descends through the sky of a new minimal world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The Reavers bolt three wrecks together on the new world and call it a city. It works."
@@ -206,6 +266,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`raxxan-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "Every Raxxan hull is patched, rusted and armed to the teeth. The Reavers are hunting."
 
 **`raxxan-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is ours, and so is everything in it that isn't bolted down. The rest we'll unbolt."
+
+**`raxxan-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "A good fight and a better haul. Strip the wrecks!"
+
+**`raxxan-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is done. Mostly. It's held together with wire, but it's done."
 
 ## Ruuvak Brood (`ruuvak`): Breeders, colour olive-green, home steppe
 
@@ -219,6 +283,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`ruuvak-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "Wave after wave lands on the new world. The defenders run out of bullets before we run out of Ruuvak."
 
+**`ruuvak-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "We lost many. They lost everything."
+
+**`ruuvak-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is finished by more hands than anyone could ever count."
+
 ## Tarkhan Hunt (`tarkhan`): Gunners, colour rose-pink, home arid
 
 **`tarkhan-colony.mp4`**: A colony ship of this race descends through the sky of a new arid world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "Tarkhan hunters stake out the new world. Good ground, good game, good lines of fire."
@@ -230,3 +298,8 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`tarkhan-war.mp4`**: Soldiers of this race in full battle armour charge forward, guns blazing, through smoke and explosions on an alien battlefield; their warships streak overhead. Fast, dramatic. Mood: "The Hunt has begun. Tarkhan guns always fire first."
 
 **`tarkhan-invasion.mp4`**: Troops of this race land from dropships on a conquered world, the defenders' fortress burning behind them; an officer of this race plants their banner. Heroic low angle. Mood: "the new world is taken one clean shot at a time. The Hunt claims its trophy."
+
+**`tarkhan-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Every shot found its mark. The Hunt is pleased."
+
+**`tarkhan-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is complete, a trophy no other people can ever hope to match."
+

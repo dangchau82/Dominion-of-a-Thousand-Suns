@@ -1,7 +1,8 @@
 // Race scenes (written by Claude 2; Danny: "scenes like colonising a planet per race, tech
 // done, spy done, war and conquest done, with a bit of CGI"). After a turn, the most
 // important moment for the player gets a short full-screen scene in the player's race:
-// a new colony, a discovery, a spy success, a declaration of war, or a conquest.
+// a new colony, a discovery, a spy success, a declaration of war, a won battle, a conquest
+// or a finished great work.
 //
 // If a video exists at art/scenes-video/<race>-<scene>.mp4 it plays (Danny makes these with
 // Google Flow; see docs/scene-video-prompts.md). Otherwise a drawn scene plays on a canvas,
@@ -36,10 +37,11 @@ export interface Scene {
   rivalColor?: string;
   rivalName?: string;
   tech?: string;
+  work?: string;
   text: string;
 }
 
-const PRIORITY: SceneKind[] = ["invasion", "war", "colony", "spy", "science"];
+const PRIORITY: SceneKind[] = ["wonder", "invasion", "war", "battle", "colony", "spy", "science"];
 
 /** Pick this turn's scene for the player, if any. */
 export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): Scene | null {
@@ -51,7 +53,17 @@ export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): S
     else if (ev.kind === "colonized" && ev.empireId === playerId) found.colony ??= ev;
     else if (ev.kind === "spy" && /^Our (agents stole|saboteurs)/.test(ev.text)) found.spy ??= ev;
     else if (ev.kind === "research" && /^Discovered /.test(ev.text)) found.science ??= ev;
+    else if (ev.kind === "saga" && ev.text.startsWith(`The ${me.name} have completed the `)) found.wonder ??= ev;
   }
+  // A clear win in a battle this turn: the enemy lost 3+ ships, and more than we did.
+  const turn = events[0]?.turn;
+  const won = (state.battles ?? []).find((b) => {
+    if (b.turn !== turn || !b.empires.includes(playerId)) return false;
+    const lost = (side: number) => b.units.filter((u) => u.side === side && u.key !== "planet").reduce((a, u) => a + u.start - u.end, 0);
+    const ours = b.empires[0] === playerId ? 0 : 1;
+    return lost(1 - ours) >= 3 && lost(1 - ours) > lost(ours);
+  });
+  if (won) found.battle = { turn: won.turn, empireId: playerId, kind: "battle", text: "", starId: won.starId };
   const kind = PRIORITY.find((k) => found[k]);
   if (!kind) return null;
   const ev = found[kind]!;
@@ -65,14 +77,17 @@ export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): S
     rival = from !== undefined ? state.empires[from] : undefined;
   }
   if (kind === "spy") rival = state.empires.find((o) => o.id !== playerId && ev.text.includes(o.name));
+  if (kind === "battle" && won) rival = state.empires[won.empires[0] === playerId ? won.empires[1] : won.empires[0]];
+  const work = kind === "wonder" ? /have completed the (.+?) at /.exec(ev.text)?.[1] : undefined;
   const tech = kind === "science" ? /^Discovered ([^:]+):/.exec(ev.text)?.[1] : undefined;
   const text = lines[kind]
     .replace(/\{star\}/g, star?.name ?? "the new world")
     .replace(/\{tech\}/g, tech ?? "A new discovery")
-    .replace(/\{rival\}/g, rival?.name ?? "our enemy");
+    .replace(/\{rival\}/g, rival?.name ?? "our enemy")
+    .replace(/\{work\}/g, work ? `The ${work}` : "Our great work");
   return {
     kind, raceId: me.raceId, color: me.color, starId: star?.id, climate: star?.planet?.climate,
-    rivalRaceId: rival?.raceId, rivalColor: rival?.color, rivalName: rival?.name, tech, text,
+    rivalRaceId: rival?.raceId, rivalColor: rival?.color, rivalName: rival?.name, tech, work, text,
   };
 }
 
@@ -120,7 +135,7 @@ export function showScene(scene: Scene, done: () => void): void {
   stage.append(cap, skip);
   back.append(stage);
   document.body.append(back);
-  play(scene.kind === "war" || scene.kind === "invasion" ? "war" : scene.kind === "colony" ? "colony" : "discovery");
+  play(scene.kind === "war" || scene.kind === "invasion" ? "war" : scene.kind === "battle" ? "battle" : scene.kind === "colony" ? "colony" : scene.kind === "wonder" ? "victory" : "discovery");
 
   let finished = false;
   let stopDraw = () => {};
@@ -243,6 +258,42 @@ function portrait(c: Ctx, raceId: string, x: number, y: number, h: number, alpha
 const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 const SCENES: Record<SceneKind, (c: Ctx) => void> = {
+  battle(c) {
+    // The battle lines from the war scene; after the exchange, the enemy line breaks apart.
+    SCENES.war({ ...c, t: Math.min(c.t, 3400) });
+    const { g, t, s } = c;
+    if (t > 3400) {
+      for (let i = 0; i < 5; i++) {
+        const k = (t - 3400 - i * 260) / 900;
+        if (k < 0 || k > 1.2) continue;
+        flash(c, W - 250 - (i % 2) * 40, H * 0.2 + i * H * 0.13 + 30, 60 + k * 120, "#ff8a2a", Math.max(0, 1.1 - k));
+      }
+      g.fillStyle = `rgba(255,255,255,${0.25 * Math.max(0, 1 - (t - 3400) / 400)})`; g.fillRect(0, 0, W, H);
+    }
+    if (t > 4600) portrait(c, s.raceId, W * 0.04, H * 0.08, H * 0.55, 0.8 * ease((t - 4600) / 800));
+  },
+  wonder(c) {
+    const { g, t, s } = c;
+    stars(c, 0.3);
+    const cx = W * 0.6, cy = H * 0.48;
+    flash(c, cx, cy, 160, "#ffe9a0", 1);
+    // The work assembles around the star: ring segments lock into place one by one.
+    const parts = Math.floor(ease(t / 4200) * 36);
+    for (let i = 0; i < 36; i++) {
+      const a = (i / 36) * Math.PI * 2 + t / 6000;
+      for (const [r, tilt] of [[230, 0.35], [290, -0.3]] as const) {
+        if (i >= parts) continue;
+        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * tilt;
+        g.fillStyle = rgba(s.color, 0.85);
+        g.fillRect(x - 9, y - 4, 18, 8);
+        g.strokeStyle = rgba(s.color, 0.12); g.lineWidth = 1;
+        g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke();
+      }
+    }
+    flash(c, cx, cy, 90 + 10 * Math.sin(t / 300), "#fff3c0", 1);
+    if (t > 4200) flash(c, cx, cy, 300 * ease((t - 4200) / 900), s.color, 0.6 * (1 - ease((t - 4900) / 900)));
+    portrait(c, s.raceId, W * 0.03, H * 0.12, H * 0.62, 0.75 * ease((t - 1500) / 1500));
+  },
   colony(c) {
     const { t, s } = c;
     stars(c, 1);

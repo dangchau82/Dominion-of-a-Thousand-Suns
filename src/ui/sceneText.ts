@@ -1,7 +1,7 @@
 // Words for the race scenes (written by Claude 2). One line per race per scene, shown under
-// the picture. Original text. `{star}`, `{tech}` and `{rival}` are filled in by scenes.ts.
+// the picture. Original text. `{star}`, `{tech}`, `{rival}` and `{work}` are filled in by scenes.ts.
 
-export type SceneKind = "colony" | "science" | "spy" | "war" | "invasion";
+export type SceneKind = "colony" | "science" | "spy" | "war" | "invasion" | "battle" | "wonder";
 
 export const SCENE_TITLES: Record<SceneKind, string> = {
   colony: "A New World",
@@ -9,6 +9,8 @@ export const SCENE_TITLES: Record<SceneKind, string> = {
   spy: "Mission Complete",
   war: "War",
   invasion: "Conquest",
+  battle: "Victory",
+  wonder: "A Great Work",
 };
 
 type Lines = Record<SceneKind, string>;
@@ -20,6 +22,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "A handshake, a smile, a copied file. The Accord's diplomats never travel alone.",
     war: "Talks have failed. The Accord's fleets move out with the same patience they negotiated with.",
     invasion: "Marines hold {star}. The governor's first order: open the markets.",
+    battle: "Their line broke first. The Accord will be generous in victory; it always is.",
+    wonder: "{work} stands finished, and every embassy in the galaxy sends its congratulations.",
   },
   vossari: {
     colony: "Survey drones blanket {star}. Every grain of sand is catalogued before the first dome rises.",
@@ -27,6 +31,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Their sensors never registered our probe. Their data now sits in our archive.",
     war: "The Vossari have calculated the outcome. They see no reason to wait for it.",
     invasion: "{star} falls on schedule. The occupation runs to a timetable accurate to the second.",
+    battle: "Battle outcome within predicted margins. Enemy losses: total.",
+    wonder: "{work} is complete. The Vossari measure it once more, for the joy of it.",
   },
   kethrak: {
     colony: "The broodships split open over {star}. Within a season, the jungle hums with new hives.",
@@ -34,6 +40,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "A single drone, a single scent. The enemy's nest now answers to ours.",
     war: "The Hive turns, ten billion minds with one hunger. The swarm is coming.",
     invasion: "{star} is overrun. The Hive does not occupy a world. It digests it.",
+    battle: "The swarm feeds on the wreckage. The Hive is hungry for more.",
+    wonder: "{work} breathes, pulses, and joins the Hive's endless chorus.",
   },
   ashkari: {
     colony: "An Ashkari banner is driven into the rock of {star}. It will never come down.",
@@ -41,6 +49,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Our blades in their house struck clean. Their honour bleeds; ours is untouched.",
     war: "The war-horns sound across the Dominion. Every Ashkari was born for this day.",
     invasion: "{star} is taken by blade and fire. The spoils are counted before the smoke clears.",
+    battle: "Victory! Their ships burn, and the Dominion counts the spoils.",
+    wonder: "{work} rises, a monument to every Ashkari who died to make the Dominion great.",
   },
   lumen: {
     colony: "The Choir sings {star} awake. The oceans answer in a voice only we can hear.",
@@ -48,6 +58,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "We walked through their thoughts and left no footprints.",
     war: "The Choir's song turns cold. Every enemy captain hears it, and none can stop listening.",
     invasion: "{star} surrenders before the first shot. Their minds had already gone quiet.",
+    battle: "The enemy's last thoughts were of fear. The Choir sings them to sleep.",
+    wonder: "{work} hums with a song that will never end.",
   },
   thraal: {
     colony: "The Thraal sink into the stone of {star} and begin, very slowly, to make it home.",
@@ -55,6 +67,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Our agent sat still in their vault for a year. They thought it was a rock.",
     war: "The mountains move. When the Thraal go to war, they do not stop.",
     invasion: "{star} is ground down beneath us. We will eat its mountains at our leisure.",
+    battle: "The enemy broke against us like waves on a cliff.",
+    wonder: "{work} is done, after ages of patient grinding. The mountains approve.",
   },
   seraphine: {
     colony: "Seraphine landers spiral down to {star} in perfect formation, each touching down on its mark.",
@@ -62,6 +76,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "In and out under their sensor net, one wingbeat from disaster, and home for supper.",
     war: "The squadrons launch. Nothing in the galaxy flies like the Seraphine, and today everyone will see it.",
     invasion: "Our dropships land on {star} exactly where we said they would. Resistance ends within the hour.",
+    battle: "Not a single pilot lost who could have been saved. The skies are ours.",
+    wonder: "{work} soars above our worlds, and every pilot salutes it on the way past.",
   },
   orrun: {
     colony: "The Consortium opens its newest branch office on {star}. Shares are already up.",
@@ -69,6 +85,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "A bribe, a ledger, a quiet transfer. Their secrets are now our assets.",
     war: "The Consortium has decided war is profitable. The mercenaries are already paid.",
     invasion: "{star} is under new management. Contracts will be honoured. Some of them.",
+    battle: "Victory, and the salvage rights alone will pay for the war.",
+    wonder: "{work} opens for business. The galaxy will pay to use it, one way or another.",
   },
   nyx: {
     colony: "Nyx fabricators land on {star} and begin printing the first of a million new bodies.",
@@ -76,6 +94,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Our code slipped into their network. Their machines now dream of us.",
     war: "The Collective deploys. Armoured frames march out of the foundries, every gun already hot.",
     invasion: "Nyx war-frames walk through the fire on {star}, guns blazing, and do not stop until it is quiet.",
+    battle: "Hostile units eliminated. The Collective records the battle for later improvement.",
+    wonder: "{work} comes online. The Collective's thoughts grow larger.",
   },
   velari: {
     colony: "A Velari seer walks the hills of {star} and names it in a language older than stars.",
@@ -83,6 +103,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "A whisper in the right ear at the right hour. They will never know which thought was ours.",
     war: "The Velari unveil weapons they swore never to use. The stars themselves seem to hold their breath.",
     invasion: "{star} bows to the Velari. Its temples will be rebuilt more beautiful than before.",
+    battle: "The enemy fell exactly as the seers foretold.",
+    wonder: "{work} is finished, and it is more beautiful than any vision of it.",
   },
   drovani: {
     colony: "Drovani pods splash down into the seas of {star}. The deep is home now.",
@@ -90,6 +112,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Like a current in the dark, our agents came and went. Their secrets drift to us.",
     war: "The Drovani rise from the deep, and the tide comes with them.",
     invasion: "The seas of {star} are ours. On land, they will learn to swim or leave.",
+    battle: "The tide turned, and it swept them away.",
+    wonder: "{work} rises from the deep, and the oceans of a hundred worlds sing.",
   },
   gorrath: {
     colony: "The clan-ships circle {star} three times, then make camp. The hearth fires are lit.",
@@ -97,6 +121,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Our scout rode into their camp as a trader and rode out with their maps.",
     war: "The war drums carry from ship to ship. The Gorrath clans ride together.",
     invasion: "{star} is plundered and claimed. The clans will winter here.",
+    battle: "The clans howl their victory across the void. Tonight, there is feasting.",
+    wonder: "{work} is finished. Even the oldest clan-mothers come to see it.",
   },
   ixil: {
     colony: "Ixil seed-carriers bond with the jungle of {star}. Soon it will be hard to tell where one ends.",
@@ -104,6 +130,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Our symbiote rides inside their minister. He has never felt better.",
     war: "The Ixil host-armies stir. Every soldier carries two minds, and both want war.",
     invasion: "{star} is joined to us. Its people will come to love the bond.",
+    battle: "Their survivors will make fine hosts.",
+    wonder: "{work} grows its last tendril, and every Ixil feels it bloom.",
   },
   verdane: {
     colony: "Verdane seeds take root on {star}. In ten years it will be forest from pole to pole.",
@@ -111,6 +139,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "A spore drifted into their capital. It has been listening ever since.",
     war: "The Verdane forests close their canopies. What grows now has thorns.",
     invasion: "Roots crack the fortresses of {star}. The forest reclaims what was always going to be ours.",
+    battle: "The battle is won. New seeds will grow in the ashes.",
+    wonder: "{work} unfurls its final branches into the light of a dozen suns.",
   },
   quorai: {
     colony: "A Quorai spark descends into the light of {star} and begins to burn as one of us.",
@@ -118,6 +148,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "We passed through their walls as light. Their secrets now shine in our core.",
     war: "The Quorai blaze white-hot. Their enemies will remember the colour of that light.",
     invasion: "{star} burns with our fire now. Nothing that does not shine will stay.",
+    battle: "The enemy flickered and went out. We burn on.",
+    wonder: "{work} blazes into being, the brightest thing we have ever made.",
   },
   raxxan: {
     colony: "The Reavers bolt three wrecks together on {star} and call it a city. It works.",
@@ -125,6 +157,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "Our crew broke in, took the good bits and left the lights on.",
     war: "Every Raxxan hull is patched, rusted and armed to the teeth. The Reavers are hunting.",
     invasion: "{star} is ours, and so is everything in it that isn't bolted down. The rest we'll unbolt.",
+    battle: "A good fight and a better haul. Strip the wrecks!",
+    wonder: "{work} is done. Mostly. It's held together with wire, but it's done.",
   },
   ruuvak: {
     colony: "Ruuvak broods pour onto {star}. Next week there will be twice as many. The week after, more.",
@@ -132,6 +166,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "We sent so many agents they could not catch them all. One was enough.",
     war: "The Brood is uncountable and it is angry. The warrens empty onto the transports.",
     invasion: "Wave after wave lands on {star}. The defenders run out of bullets before we run out of Ruuvak.",
+    battle: "We lost many. They lost everything.",
+    wonder: "{work} is finished by more hands than anyone could ever count.",
   },
   tarkhan: {
     colony: "Tarkhan hunters stake out {star}. Good ground, good game, good lines of fire.",
@@ -139,6 +175,8 @@ export const SCENE_LINES: Record<string, Lines> = {
     spy: "One shot, from very far away, at exactly the right moment.",
     war: "The Hunt has begun. Tarkhan guns always fire first.",
     invasion: "{star} is taken one clean shot at a time. The Hunt claims its trophy.",
+    battle: "Every shot found its mark. The Hunt is pleased.",
+    wonder: "{work} is complete, a trophy no other people can ever hope to match.",
   },
 };
 
@@ -149,4 +187,6 @@ export const DEFAULT_LINES: Lines = {
   spy: "Our agents have completed their mission.",
   war: "We are at war with {rival}.",
   invasion: "{star} is ours.",
+  battle: "The battle is won.",
+  wonder: "{work} is finished.",
 };

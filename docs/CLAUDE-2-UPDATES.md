@@ -56,6 +56,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 21:30: two more race scenes: a won battle, a finished great work
+- `ui/scenes.ts`: new scene kinds **battle** (the player's battle this turn where the enemy lost 3+ ships and more than us, read from `state.battles`) and **wonder** (our great work finished, from the saga line). Priority now: wonder > conquest > war > battle > colony > spy > science. Drawn versions: the battle lines with the enemy line blowing apart; the great work's ring segments locking into place around a star. 18 x 2 new lines in `ui/sceneText.ts`.
+- `docs/scene-video-prompts.md` now has 126 prompts (18 races x 7 scenes).
+
 ### 2026-11-26 21:25: map markers for my features (you'd listed these as yours to do; done so you needn't)
 - New `src/engine/mapMarkers.ts`: `mapMarkers(state, e)` lists what **this empire knows**: death worlds, cracked worlds, natives and minor-race homes (explored stars only), lairs (seen/explored, not cleared), gates (asleep/awake, owner), the raider base, the machine hive (once seen), dying stars (with turns left), great works of known empires (finished or being built), and our own cult colonies. It's in the view as **`EmpireView.markers`** (`view.ts`: one field), so AIs could use it too, fairly.
 - New `src/ui/mapMarkers.ts`: small glowing symbols beside each star (☠ lair, ☣ death world, ✸ cracked, ⌂ natives, ◈ minor race, ◎ gate, ⚔ raiders, ⬢ hive, ✹ dying star with a pulsing halo, ★ great work with a ring in the owner's colour, ◐ cult). Hooks: one line in `map.ts` `render` just before "Fleets"; and in `game.ts` `renderPanel` the star panel lists the labels under the close button.

@@ -15,7 +15,7 @@ describe("race scenes", () => {
     for (const r of RACES) {
       const lines = SCENE_LINES[r.id]!;
       expect(lines).toBeDefined();
-      for (const k of ["colony", "science", "spy", "war", "invasion"] as const) expect(lines[k].length).toBeGreaterThan(10);
+      for (const k of ["colony", "science", "spy", "war", "invasion", "battle", "wonder"] as const) expect(lines[k].length).toBeGreaterThan(10);
     }
   });
 
@@ -40,6 +40,17 @@ describe("race scenes", () => {
     expect(sceneFor(g, 0, [science, colony, war, inv])!.kind).toBe("invasion");
     g.colonies[star.id]!.empireId = 1;
     expect(sceneFor(g, 0, [inv])).toBeNull();
+  });
+
+  it("a finished great work of ours gets its own scene, above everything else", () => {
+    const g = newGame(settings());
+    const me = g.empires[0]!;
+    const sc = sceneFor(g, 0, [
+      { turn: 1, empireId: 0, kind: "research", text: "Discovered Neutron Blaster: a gun." },
+      { turn: 1, empireId: null, kind: "saga", text: `The ${me.name} have completed the Thinking Ring at Sol.` },
+    ])!;
+    expect(sc.kind).toBe("wonder");
+    expect(sc.text).toContain("Thinking Ring");
   });
 
   it("only our own spy successes count", () => {
