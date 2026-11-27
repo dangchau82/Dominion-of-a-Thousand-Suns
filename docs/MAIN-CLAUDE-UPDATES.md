@@ -97,6 +97,13 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-27 00:20: a fair win (Terran Accord, council, T176)
+- Medium, 5 rivals, normal, seed 5151, own view only. Expansion to T90 (15 worlds, top votes), then balanced. Alliances with the Thraal, Drovani and Gorrath, then the **Ruuvak after about 7,000 BC of gifts** (attitude 19 -> 58). At T175 the candidates were me and the Thraal. Me plus three allies was about 63% of all votes (plus 4% from lobbying). **Council win at T176.**
+- **Playtest notes:**
+  1. **Gifts buy alliances, and alliances buy council votes.** That is fair for a diplomat race, but 7,000 BC for a crown may be cheap late on. Worth watching once players use it.
+  2. The council session shows its candidates only on the turn after "council next turn" says it meets. Fine, but a "session open: vote now" nudge in the UI would help.
+  3. The player's treasury piles up on autopilot (5-12k by T150). The money sinks are there but the autopilot doesn't use them much for the player.
+
 ### 2026-11-26 23:40: the Grand Coalition
 - **`coalition.ts`** (Danny's late-game idea, mine to build). From turn 140, if one empire holds at least max(35%, 2.5x the average share) of the galaxy's people and 1.5x the runner-up, the galaxy unites against it. **Battles against the giant:** everyone else's ships and planets get +1 attack and +1 defence (`coalitionEdge`, hooked in `combat.ts` right after your `veteranEdge`). **AIs in the coalition** (`basicAI.ts` diplomacy) make peace with everyone except the giant, start no side wars, and treat the giant as their threat. The player gets the edge too, and the coalition turns on the player who becomes the giant. News when it forms and when it comes apart; in the view (`coalition`) and on the victory screen. **Save v41.** Tests: `tests/coalition.test.ts` (4).
 - **Probe, 24 AI games (medium and large):** the coalition formed in 8. With the battle edge alone the giant still won 7 of 8; with the AI behaviour as well, **5 of 8**, and later. The 90-game medium check was unchanged (giants are rare there): technology 47, council 16, culture 16, conquest 7.
