@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { flashNews } from "./newsFlash";
 import { markerLabels } from "./mapMarkers";
 import { replayButtons } from "./battleReplay";
 import { legendsHTML } from "./legends";
@@ -207,7 +208,8 @@ export class GameScreen {
     const met = this.state.empires[PLAYER]!.contacts.filter((id) => !knownBefore.has(id));
     const next = () => (mine.length ? this.showReport(processedTurn, mine) : this.showProposals());
     // Race scene for the turn's biggest moment, then the usual reports (scenes.ts, Claude 2).
-    playTurnScene(this.state, PLAYER, mine, () => (met.length ? this.showFirstContacts(met, next) : next()));
+    // After it, galaxy-wide moments slide in at the top right (newsFlash.ts, Claude 2).
+    playTurnScene(this.state, PLAYER, mine, () => { flashNews(this.state, PLAYER, mine); if (met.length) this.showFirstContacts(met, next); else next(); });
   }
 
   private autoExploreToggle(): HTMLElement {

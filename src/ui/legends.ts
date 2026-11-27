@@ -87,5 +87,10 @@ export function legendsHTML(state: GameState, playerId: Id): string {
     }
     parts.push(`</ul>`);
   }
+  // Map key for the markers beside stars (mapMarkers.ts).
+  parts.push(`<h3>Map key</h3><p class="dim" style="columns:2;line-height:1.7">
+    ☠ a lair of raiders or monsters<br>☣ a death world: rich and deadly<br>✸ a world cracked by a Sundering Engine<br>⌂ natives live here<br>
+    ◈ a minor race's home<br>◎ an ancient gate (bright when awake)<br>⚔ the raider base<br>⬢ the machine hive<br>
+    ✹ a dying star: get out before it blows<br>★ a great work (ringed when finished)<br>◐ the Cult of the Last Sun</p>`);
   return parts.join("\n");
 }

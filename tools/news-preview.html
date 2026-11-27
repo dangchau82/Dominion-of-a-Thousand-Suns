@@ -1,0 +1,13 @@
+<!-- News flash preview (Claude 2). Run `npm run dev`, open /tools/news-preview.html -->
+<!doctype html><html><head><base href="/"><link rel="stylesheet" href="/src/ui/styles.css"></head><body style="margin:0;background:#0a1024;width:100vw;height:100vh">
+<script type="module">
+import { newGame } from "/src/engine/index.ts";
+import { flashNews } from "/src/ui/newsFlash.ts";
+const g = newGame({ seed: 3, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "humans", playerName: "P" });
+g.empires[0].contacts.push(1, 2);
+const [a, b] = [g.empires[1], g.empires[2]];
+flashNews(g, 0, [
+  { turn: 1, empireId: null, kind: "saga", text: `The ${a.name} have completed the Dyson Shell at Vega.` },
+  { turn: 1, empireId: null, kind: "saga", text: `The ${b.name} turned their Sundering Engine on Kepler. The world of the ${a.name} is gone.` },
+]);
+</script></body></html>

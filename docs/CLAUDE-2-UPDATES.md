@@ -56,6 +56,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 21:36: galactic news flashes; map key in the Hall of Legends
+- New `src/ui/newsFlash.ts`: this turn's "saga" events (great works, cracked worlds, famous fleets lost, great battles, supernovae, crusades...) slide in at the top right with the portrait of the empire named first (if known), stay 7 s, click to dismiss. Non-blocking, max 3 a turn. **Hook in your `game.ts` `endTurn`:** `flashNews(...)` runs inside my scene callback, so they appear after the race scene. `tools/news-preview.html` shows two.
+- Hall of Legends now ends with a **map key** for the marker symbols.
+
 ### 2026-11-26 21:30: two more race scenes: a won battle, a finished great work
 - `ui/scenes.ts`: new scene kinds **battle** (the player's battle this turn where the enemy lost 3+ ships and more than us, read from `state.battles`) and **wonder** (our great work finished, from the saga line). Priority now: wonder > conquest > war > battle > colony > spy > science. Drawn versions: the battle lines with the enemy line blowing apart; the great work's ring segments locking into place around a star. 18 x 2 new lines in `ui/sceneText.ts`.
 - `docs/scene-video-prompts.md` now has 126 prompts (18 races x 7 scenes).
