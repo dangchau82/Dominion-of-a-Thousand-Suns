@@ -48,3 +48,18 @@ describe("race scenes", () => {
     expect(sceneFor(g, 0, [{ turn: 1, empireId: 0, kind: "spy", text: "Our agents stole Fusion Drive from the Ashkari Dominion!" }])!.kind).toBe("spy");
   });
 });
+
+describe("Hall of Legends", () => {
+  it("lists our famous fleet and admiral, great battles and great works without broken text", async () => {
+    const { legendsHTML } = await import("../src/ui/legends");
+    const g = newGame(settings());
+    const f = g.fleets.find((x) => x.empireId === 0)!;
+    g.veterans = { [f.id]: { empireId: 0, victories: 8, kills: 40, name: "Iron Widows", lastStar: f.starId, admiral: { name: "Asha Varr", personality: "bold", since: 50, victories: 3 } } };
+    g.greatBattles = [{ turn: 120, starId: 3, name: "the Burning of Kethra", empires: [0, 1], ships: 90, losses: [10, 30] }];
+    g.empires[0]!.contacts.push(1);
+    g.endgame = { 1: { paths: { feared: 100 }, offered: ["feared"], works: [{ workId: "gw-sundering-engine", starId: 1, started: 100, done: 10, finished: false, sabotageAt: 999 }] } };
+    const html = legendsHTML(g, 0);
+    for (const s of ["Iron Widows", "Elite", "Asha Varr", "The Burning of Kethra", "Sundering Engine", "Ascension Gate"]) expect(html).toContain(s);
+    expect(html).not.toMatch(/undefined|NaN|\{|\}/);
+  });
+});

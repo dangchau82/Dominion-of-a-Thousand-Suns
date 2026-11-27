@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { legendsHTML } from "./legends";
 import { playTurnScene } from "./scenes";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
@@ -134,7 +135,7 @@ export class GameScreen {
     const k = ev.key.toLowerCase();
     const go: Record<string, () => void> = {
       enter: () => this.endTurn(), r: () => this.showResearch(), f: () => this.showFleets(), s: () => this.showDesigns(),
-      d: () => this.showEmpires(), e: () => this.showEmpire(), c: () => this.showVictory(), m: () => this.showMenu(), l: () => this.showHistory(),
+      d: () => this.showEmpires(), e: () => this.showEmpire(), c: () => this.showVictory(), m: () => this.showMenu(), l: () => this.showHistory(), g: () => this.modal((box) => { box.style.width = "min(820px, 100%)"; box.innerHTML = legendsHTML(this.state, PLAYER); }),
       h: () => { const cap = this.state.empires[PLAYER]!.capitalStarId; const st = this.state.stars[cap]!; this.map.centerOn(st.x, st.y); this.select(cap); },
     };
     const fn = go[k];
@@ -384,6 +385,8 @@ export class GameScreen {
     add("🤝", "Diplomacy", "Other empires: talk, trade, treaties, spies, war and peace (D)", () => this.showEmpires(), v.contacts.filter((o) => o.offersPeace).length);
     add("🏛️", "Empire", "Your culture, leaders and wonders (E)", () => this.showEmpire());
     add("📜", "History", "Graphs of your empire and a timeline of key moments (L)", () => this.showHistory());
+    // Hall of Legends: famous fleets, admirals, great battles, great works (legends.ts, Claude 2).
+    add("🏆", "Legends", "Famous fleets and admirals, great battles, and the galaxy's great works (G)", () => this.modal((box) => { box.style.width = "min(820px, 100%)"; box.innerHTML = legendsHTML(this.state, PLAYER); }));
     add("⚖️", "Council", "Victory paths and the Galactic Council (C)", () => (v.council.session ? this.showCouncil() : this.showVictory()), v.council.session ? 1 : 0);
     add("☰", "Menu", "Autopilot, sound, saves and settings (M)", () => this.showMenu());
     this.top.append(nav);

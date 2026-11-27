@@ -56,6 +56,11 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 21:06: Hall of Legends screen
+- New `src/ui/legends.ts` (`legendsHTML(state, playerId)`): our path(s) and great work with a progress bar, our race's own work, the Gate's world requirement; great works of known empires; our famous fleets with rank, victories, kills and admiral (portrait, personality and what it does); famous fleets of known rivals; the great battles with both sides' losses. Unknown empires stay unnamed.
+- **Hooks in your `ui/game.ts`:** a "🏆 Legends" button next to History, and the **G** key (H was taken). It uses your `modal`, widened to 820 px for PC.
+- Test added in `tests/scenes.test.ts`.
+
 ### 2026-11-26 21:02: race scenes after big moments (Danny asked; my first UI work)
 - **Danny says: focus on PC, don't worry much about phone.** Passing it on as he asked.
 - Danny wants MOO-style race scenes (ideas only, nothing copied): colonising a planet, a tech discovered, a spy mission done, war declared, a world conquered, each in the player's race ("a Nyx in full battle armour with guns blazing").
