@@ -8,6 +8,7 @@ import type { BattleRecord } from "../../engine/battleLog";
 import { designsOf } from "../../engine/designs";
 import type { GameState, Id } from "../../engine/types";
 import { buildFighter, buildShip, type Ship3D } from "./ships3d";
+import { preloadShips } from "./shipModels";
 import { battleTimeline, leftoverLosses, type TimedShot } from "./timeline";
 import { glowTexture, isSmallScreen, makePlanet, makeStage, seeded, spaceBackdrop } from "./stage";
 import { sfx, startBattleMusic, stopBattleMusic } from "./audio3d";
@@ -18,7 +19,13 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 interface Model { obj: THREE.Object3D; ship: Ship3D | null; alive: boolean; base: THREE.Vector3; phase: number; fires: THREE.Sprite[] }
 interface UnitView { models: Model[]; side: 0 | 1; isPlanet: boolean; isFighters: boolean; count: number; color: string; name: string }
 
+/** Loads the Blender ship models for the races in this battle (a moment at most), then plays it. */
 export function playSpaceBattle(state: GameState, rec: BattleRecord, playerId: Id, onClose: () => void = () => {}): void {
+  const races = rec.units.map((u) => state.empires[u.empireId]?.raceId).filter((r): r is string => !!r);
+  void preloadShips(races).then(() => playNow(state, rec, playerId, onClose));
+}
+
+function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () => void): void {
   const stage = makeStage(() => { stopBattleMusic(); onClose(); });
   const { scene, camera, controls, hud } = stage;
   const star = state.stars[rec.starId]!;

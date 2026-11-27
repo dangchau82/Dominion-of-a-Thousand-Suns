@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import type { HullSize } from "../../engine/data/ships";
 import { RACE_STYLE, type Family, type Palette } from "../shipArt";
+import { shipModel } from "./shipModels";
 
 export interface Ship3D {
   root: THREE.Group;
@@ -98,6 +99,8 @@ function tube(points: [number, number, number][], r: number): THREE.TubeGeometry
 export function buildShip(raceId: string, hull: HullSize): Ship3D {
   const style = RACE_STYLE[raceId] ?? RACE_STYLE.humans!;
   const p = style.p;
+  const model = shipModel(raceId, LENGTH[hull]);
+  if (model) return fromModel(model, hull, new THREE.Color(p.glow));
   const M = mats(p);
   const L = LENGTH[hull];
   const r = rng(hash(raceId + hull));
@@ -266,4 +269,23 @@ export function buildFighter(raceId: string): Ship3D {
   s.root.scale.setScalar(0.45);
   s.radius *= 0.45;
   return s;
+}
+
+/** Wraps a Blender-made model (see shipModels.ts) as a Ship3D: guns at the bow and along the
+ *  flanks, engines at the stern, both worked out from the model's size. */
+function fromModel(root: THREE.Group, hull: HullSize, glow: THREE.Color): Ship3D {
+  const box = new THREE.Box3().setFromObject(root);
+  const size = box.getSize(new THREE.Vector3());
+  const L = LENGTH[hull];
+  const muzzles: THREE.Vector3[] = [];
+  const n = GUNS[hull];
+  for (let i = 0; i < n; i++) {
+    const side = i % 2 ? -1 : 1;
+    const along = n === 1 ? 0.45 : 0.45 - Math.floor(i / 2) * 0.28; // bow first, then along the flanks
+    muzzles.push(new THREE.Vector3(box.max.x * along * 2 - box.max.x * (along > 0.3 ? 0 : 0.3), size.y * 0.15, side * size.z * (n === 1 ? 0 : 0.3)));
+  }
+  const engines: THREE.Vector3[] = [];
+  const ne = hull === "small" ? 1 : hull === "huge" ? 3 : 2;
+  for (let i = 0; i < ne; i++) engines.push(new THREE.Vector3(box.min.x, 0, ne === 1 ? 0 : (i / (ne - 1) - 0.5) * size.z * 0.35));
+  return { root, muzzles, engines, radius: Math.max(L * 0.55, Math.max(size.y, size.z) * 0.5), glow };
 }

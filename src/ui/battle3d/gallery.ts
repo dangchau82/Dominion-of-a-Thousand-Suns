@@ -1,11 +1,17 @@
-// A turning line-up of every race's ship, for checking the code-built art (#ship-gallery).
+// A turning line-up of every race's ship (#ship-gallery): the Blender models where loaded,
+// the code-built shapes otherwise.
 import * as THREE from "three";
 import type { HullSize } from "../../engine/data/ships";
 import { RACE_STYLE } from "../shipArt";
 import { buildShip, LENGTH } from "./ships3d";
+import { preloadShips } from "./shipModels";
 import { makeStage, spaceBackdrop } from "./stage";
 
 export function showGallery(hull: HullSize): void {
+  void preloadShips(Object.keys(RACE_STYLE)).then(() => show(hull));
+}
+
+function show(hull: HullSize): void {
   const stage = makeStage(() => {});
   spaceBackdrop(stage.scene, "yellow", 3, false);
   const races = Object.keys(RACE_STYLE);

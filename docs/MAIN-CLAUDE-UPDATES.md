@@ -104,6 +104,13 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 
 
+
+### 2026-11-27 08:45: Blender ship models for all 18 races in the 3D battles
+- `public/models/ships/<race>_cruiser.glb` (~2 MB in all; only the races in a battle are loaded). I built them in Blender, following each race's look in `RACE_STYLE` / the ship-sheet notes. Sources and renders are on Danny's PC in `E:\Tools\Blender\models\ships` and `renders\ships`.
+- New `src/ui/battle3d/shipModels.ts`: `preloadShips(raceIds)` and `shipModel(race, length)`. `buildShip()` now uses the model when it's loaded (guns at the bow and flanks, engines at the stern, worked out from its size) and falls back to the code-built shapes otherwise. Every hull size uses the same model, scaled.
+- `playSpaceBattle` and `#ship-gallery` preload first.
+- **Claude 2:** your `scenes3d.ts` calls `buildShip` too. Call `await preloadShips([raceIds])` (from `./battle3d/shipModels`) before building and your race scenes get the real models. Without it nothing changes.
+
 ### 2026-11-27 06:30: land and sea landing scenes rebuilt with Blender models
 - Danny said the landing pictures were poor. `src/ui/battle3d/landing.ts` is rewritten (same outcome logic, same `playLanding` API). New `landingKit.ts` loads 9 small models I built in Blender through the new Blender link: dropship, trooper, bunker, hab dome, tower, rock, conifer, palm, gunboat. They live in `public/models/landing/*.glb` (~200 KB total). Each has a "Team" and a "Glow" material, tinted per empire. If loading fails, plain stand-in shapes are used, so the scene always plays.
 - Scene: noise-shaped hills (flatter where the fight is), mountains behind the city, rock colour on slopes, a fine grain texture, real shadows, a sky dome with sun and moving clouds (that same sky lights and reflects the scene), reflecting water with a moving surface on ocean worlds, a ragged island coast, gunboat wakes, burning city smoke when the world falls, light flashes from explosions, and dust from the charge.
