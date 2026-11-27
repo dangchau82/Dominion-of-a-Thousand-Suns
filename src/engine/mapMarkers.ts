@@ -8,7 +8,7 @@ import { WORK_BY_ID } from "./data/greatWorks";
 import { gateType } from "./gates";
 import type { Empire, GameState, Id } from "./types";
 
-export type MarkerKind = "digSite" | "lair" | "deathWorld" | "cracked" | "natives" | "minorRace" | "gate" | "raiders" | "hive" | "supernova" | "greatWork" | "cult";
+export type MarkerKind = "tide" | "digSite" | "lair" | "deathWorld" | "cracked" | "natives" | "minorRace" | "gate" | "raiders" | "hive" | "supernova" | "greatWork" | "cult";
 
 export interface MapMarker {
   starId: Id;
@@ -49,6 +49,11 @@ export function mapMarkers(state: GameState, e: Empire): MapMarker[] {
   }
   const r = state.raiders;
   if (r && r.over === null && state.turn >= r.startTurn && explored(r.starId)) out.push({ starId: r.starId, kind: "raiders", label: "Raider base", active: true });
+  const tide = state.crisis;
+  if (tide && tide.over === null) {
+    out.push({ starId: tide.starId, kind: "tide", label: `The Hollow Tide: ${tide.left.reduce((a, n) => a + n, 0)} living ships`, active: true });
+    if (tide.targetStarId !== null) out.push({ starId: tide.targetStarId, kind: "tide", label: "The Hollow Tide strikes here next", active: false });
+  }
   const h = state.replicators;
   if (h && h.destroyedBy === null && h.seenBy.includes(e.id)) out.push({ starId: h.starId, kind: "hive", label: "The machine hive", active: h.wokeTurn <= state.turn });
   for (const n of state.supernovae ?? []) {

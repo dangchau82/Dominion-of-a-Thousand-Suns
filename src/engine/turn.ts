@@ -35,6 +35,7 @@ import { processDigSites } from "./digSites";
 import { processHeroes } from "./heroes";
 import { processMarket } from "./market";
 import { processMedals } from "./medals";
+import { processCrisis } from "./crisis";
 import { processCoalition } from "./coalition";
 import { processOpenSecret, openSecretProduction, openSecretResearch, openSecretCostFactor } from "./openSecret";
 import { processRaiders } from "./raiders";
@@ -309,6 +310,7 @@ export function endTurn(state: GameState): void {
   processLairs(state);
   processRaiders(state);
   processReplicators(state);
+  processCrisis(state); // the Hollow Tide, late game (crisis.ts, Claude 2)
   updateVision(state);
   intelReports(state, (e, x, y) => canSee(state, e, x, y));
   // Gates: placing, waking, staging hidden fleets (gates.ts, Claude 2).

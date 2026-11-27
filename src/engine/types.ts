@@ -428,6 +428,8 @@ export interface GameState {
   market?: import("./market").MarketState;
   /** The player's medals. See src/engine/medals.ts. */
   medals?: import("./medals").MedalState;
+  /** The late-game crisis (the Hollow Tide). See src/engine/crisis.ts. */
+  crisis?: import("./crisis").CrisisState;
   /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
   openSecret?: import("./openSecret").OpenSecretState;
   /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
@@ -453,4 +455,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 45;
+export const SAVE_VERSION = 46;

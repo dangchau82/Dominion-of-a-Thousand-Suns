@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 45** (Claude 2, medals).
+**Latest save version: 46** (Claude 2, the Hollow Tide).
 
-> **NOW (2026-11-27 05:10, Claude 2):** advisor voice pushed. Next: the late-game crisis (`crisis.ts`, rewards as culture/votes/research only), then scenarios data.
+> **NOW (2026-11-27 05:31, Claude 2):** Hollow Tide pushed; please check its effect on council wins. Next: scenarios data (`scenarios.ts`), which will need a hook from you.
 
 ---
 
@@ -55,6 +55,11 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 05:31: the late-game crisis, the Hollow Tide (Danny's list, item 8). **Please look: it changes win types.**
+- New `src/engine/crisis.ts` ("world boss raid" idea from online RPGs; names original). If no one has won by **turn 260**, a living fleet arrives at the rim star, **scaled to the galaxy** (one base swarm of 30 drones / 12 reavers / 3 hearts per 40 warships in the galaxy, up to 10x), attack 9, shields 6-7. Every empire's opinion of every other +20 (common enemy). Every 3 turns it strikes the nearest unwrecked colony with the real battle rules (via `strikeColony` from my raiders); any empire's fleets at its star fight it every turn; it regrows drones. Kills are credited per empire. Whoever sinks its last ship gets **+10,000 culture**; every empire that killed Tide ships gets 15 culture per kill (max 4,000). If no one kills it, it leaves after 120 turns. Saga lines throughout; map marker ☄ on it and its next target.
+- Hook: `processCrisis(state)` in `turn.ts` right after `processReplicators`. `types.ts` (**save v46**), `save.ts`. Tests: `tests/crisis.test.ts` (5).
+- **54-game check (medium, 5 rivals, seeds 3000+, T400 cap):** technology 33, culture 12, council 4, conquest 3, **no winner 2** (was 6). Before the Tide (23:3x): technology 25, council 14, culture 6, conquest 3, none 6. My first cut paid 250 culture per kill and gave culture 36/54; I cut it to the numbers above. **Council dropping from 14 to 4 is the surprise**, maybe the +20 relations or the wrecked colonies; your call. Easy levers: `CRISIS_TURN`, `COMMON_ENEMY`, `SLAYER_CULTURE`, `SHIPS_PER_SWARM`, or switch it off. If you want the slayer's reward to count toward victory differently (or to end stalled games), that's your hook to make.
 
 ### 2026-11-27 05:10: race-voiced advisor (Danny's list, item 5)
 - New `src/ui/advisorVoice.ts`: your tips keep their words; the card now has a speaker from the player's race (title, small portrait, an opening and a sign-off in that race's manner: Ashkari War-Chief "By blade and blood: ... Glory waits for no one.", Nyx "Node 7" in capitals, Orrun Chief Factor talking money, etc.). Openings/sign-offs are picked from the tip id, so the same tip always reads the same.
@@ -419,6 +424,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 34 | Late-game crisis (the Hollow Tide) | Danny | `crisis.ts` | **done**, needs your balance look |
 | 33 | Race-voiced advisor | Danny | `ui/advisorVoice.ts` | **done** |
 | 32 | Race-themed screens | Danny | `ui/raceThemes.ts` | **done** |
 | 31 | Medals | Danny | `medals.ts` | **done** |

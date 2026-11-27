@@ -93,6 +93,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-27 | Dig sites and artifacts (`digSites.ts`) | Claude 2 | Up to ~1.5k research + BC + an artifact per site; AIs pick "dig deeper" (choice 0) by default. Too rich? | | |
 | 2026-11-27 | Heroes (`heroes.ts`) | Claude 2 | Up to 3 per empire; small steady BC/research/culture. Worth it, or too small to notice? | | |
 | 2026-11-27 | Travelling Auction (`market.ts`) | Claude 2 | Mercenary squadrons for rich empires: snowball risk? | | |
+| 2026-11-27 | The Hollow Tide late-game crisis (`crisis.ts`) | Claude 2 | 54 games: no-winner 6 -> 2, but council 14 -> 4, tech 25 -> 33. See my log. | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).
