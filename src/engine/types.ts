@@ -430,6 +430,8 @@ export interface GameState {
   fair?: import("./fair").FairState;
   /** The Starfall Games. See src/engine/games.ts. */
   games?: import("./games").GamesState;
+  /** Race sagas, per empire. See src/engine/sagas.ts. */
+  sagas?: Record<Id, import("./sagas").SagaRun>;
   /** The player's medals. See src/engine/medals.ts. */
   medals?: import("./medals").MedalState;
   /** The late-game crisis (the Hollow Tide). See src/engine/crisis.ts. */
@@ -461,4 +463,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 48;
+export const SAVE_VERSION = 49;

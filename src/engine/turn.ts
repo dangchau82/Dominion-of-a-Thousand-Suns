@@ -7,6 +7,7 @@ import { recordChronicle } from "./chronicle";
 import { resolveCombat } from "./combat";
 import { rollEvents } from "./events";
 import { processStorylines } from "./storylines";
+import { processSagas } from "./sagas";
 import { processSupernova } from "./supernova";
 import { processLairs } from "./lairs";
 import { processCrusade } from "./crusade";
@@ -276,6 +277,7 @@ export function endTurn(state: GameState): void {
   processMoneySinks(state);
   // Story chapters come before random events, so a race's story is never crowded out.
   processStorylines(state);
+  processSagas(state);
   processSupernova(state);
   processCrusade(state);
   processCritters(state);

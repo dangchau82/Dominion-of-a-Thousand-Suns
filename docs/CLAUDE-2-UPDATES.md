@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 48** (Claude 2, hero careers / fair / Starfall Games).
+**Latest save version: 49** (Claude 2, race sagas).
 
-> **NOW (2026-11-27 08:45, Claude 2):** Ready (not yet pushed: this session has no write access, so it is delivered as a patch): hero careers and traits, epic artifacts, the Grand Fair and the Starfall Games (save v48). Next, claimed: **race sagas** (new `src/engine/sagas.ts`, `data/sagas.ts`, `data/sagas/*`): branching, seed-shuffled race stories whose endings change the endgame. The writing is a Gemini job (`docs/gemini-task-race-sagas.md`); the engine waits for it. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
+> **NOW (2026-11-27 09:25, Claude 2):** Delivered as patches (this session cannot push): hero careers, epic artifacts, the Grand Fair, the Starfall Games (v48), and the **race saga engine** (v49). The saga writing is with Gemini now, race by race; Claude 2 will check each race and add it. Claimed: `sagas.ts`, `data/sagas.ts`, `data/sagas/*`, and the old storyline skip in `storylines.ts`. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
 
 ---
 
@@ -30,6 +30,7 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## For the main Claude (things to decide or watch)
+- **Saga endings that touch your areas (2026-11-27, your call):** `sagaVotes(state, e, base)` in `sagas.ts` gives a "councilFavour" ending +15% council votes, but it is **not counted** until you add it to `votesOf` (victory.ts). The "everyoneFearsUs" ending only lowers opinion and adds weapons research; if you want the AIs to stop declaring war on such an empire for a while, that is `basicAI`. The "civilWar" ending adds 60 unrest to the farthest third of the empire's worlds and lets your unrest rules do the rest. The galactic first "The Tale Is Told" (story 5A/5B) won't fire for saga races; `state.sagas[e.id].ending` is the saga equivalent.
 - **New 2026-11-27 (Claude 2): two one-line hooks in `combat.ts`.** `heroEdge(state, here, units)` right after `veteranEdge` (a hero Admiral gives their fleet +1 attack; a Grand Admiral +2 and +1 defence), and `heroGround(...)` added to `atkBonus`/`defBonus` in `invade` (General +10, Lord Marshal +18, a soldier at the capital +4 a level). The numbers are yours to tune; they live in `heroes.ts`.
 - **Peaceful council wins at T152 in small 5-empire AI games** (seeds 8 and 14 now; 14 and 16 before my changes, so not new): no wars at all, and the council crowns someone at T152. Your area. `tests/voices.test.ts` moved from seed 8 to 9 because seed 8 now has no battles.
 - **Goodwill sources added:** Ambassador heroes (+2 opinion of us from every contact every 10 turns), silver-tongued heroes (+1 every 10), the Starfall Games (the host gets +4 from each team, the champion +2) and the fair's storytellers (+5 once). Watch council win timing in your tournament runs.
@@ -59,6 +60,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 09:25: race saga engine (save v49), waiting for Gemini's writing
+- New `sagas.ts`: four acts per race, 3 beats per act, **the seed picks one per act** per empire (81 paths per race). Choices move three scores (mercy, openness, tradition) and set flags; **branch beats** play when their flags are set; **crossover beats** play once we have met the named race; after act 4 the first **ending** whose thresholds hold plays, with an outcome: golden age, civil war (unrest), rival becomes ally (peace plus all treaties), everyone fears us, council favour (see above), great work surge, legendary fleet, exodus (2 far colonies), ascension (+500 research in every field) or fall from grace (lose a quarter of the people, +6 culture a turn for ever).
+- Act timing: turns 25/75/140/205 (plus up to 12 from the seed), 10 turns between saga events, ending 20+ turns after act 4. A race with saga writing **skips its old storyline** (`hasSaga` check in `storylines.ts`). Saga events aren't in `EVENT_BY_ID`; `events.ts` falls back to `sagaEventDef`. Subtitles say "Your people's saga: act II" and so on.
+- The Legends page shows the saga's act, chapters, turning points and which way our choices lean.
+- **No race has writing yet, so nothing changes in play today.** `tests/sagas.test.ts` uses a small made-up saga. 451 tests pass.
 
 ### 2026-11-27 08:45: hero careers and traits, epic artifacts, the Grand Fair, the Starfall Games (save v48)
 - **Heroes** (`heroes.ts`, new `data/heroCareers.ts`): a fourth role, **Soldier**. Every hero joins with a trait and gains more at levels 2 and 4 (11 traits). At level 3 a **crossroads event** picks a career: Soldier -> General or Admiral; Governor -> Viceroy or Chancellor; Spymaster -> Shadow Master or Ambassador; Scientist -> Visionary or Chief Engineer. At level 5 they rise to the highest title (Lord Marshal, Grand Admiral, Archon, High Chancellor, Hand in the Dark, Voice of the Stars, Luminary, Master Builder). Offers now rotate over 4 roles (`hero-offer:0-3`).

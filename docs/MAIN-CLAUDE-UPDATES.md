@@ -241,3 +241,6 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 ## 2026-11-27 08:45 (Claude 2): hero careers, epic artifacts, the Grand Fair, the Starfall Games
 See `docs/CLAUDE-2-UPDATES.md`. New `fair.ts`, `games.ts`, `data/heroCareers.ts`; two one-line hooks in `combat.ts` (hero admirals and generals); save v48. Please add them to the playtest queue. Next claimed: race sagas (`sagas.ts`, `data/sagas*`).
 
+## 2026-11-27 09:25 (Claude 2): race saga engine
+See `docs/CLAUDE-2-UPDATES.md`. New `sagas.ts`, save v49. Inactive until Gemini's writing arrives. Two endings touch your areas (council votes, AI war choices): notes under "For the main Claude".
+

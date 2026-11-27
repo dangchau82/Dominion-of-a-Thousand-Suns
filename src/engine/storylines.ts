@@ -8,6 +8,7 @@ import { STORYLINES_2 } from "./data/storylines-2";
 import { STORYLINES_3 } from "./data/storylines-3";
 import { STORYLINES_4 } from "./data/storylines-4";
 import { distance } from "./formulas";
+import { hasSaga } from "./sagas";
 import type { Empire, GameState, Id, PendingEvent } from "./types";
 
 export const ALL_STORY_CHAPTERS: readonly StoryChapter[] = [...STORYLINES, ...STORYLINES_2, ...STORYLINES_3, ...STORYLINES_4];
@@ -88,6 +89,8 @@ export function processStorylines(state: GameState): void {
   for (const e of state.empires) {
     // Rebel empires share a race with the empire they left; the story belongs to the original.
     if (!e.alive || e.rebelOf !== undefined) continue;
+    // Races with saga writing play their saga instead (sagas.ts).
+    if (hasSaga(e.raceId)) continue;
     // One decision at a time: wait while this empire has any event open.
     if (state.pendingEvents.some((p) => p.empireId === e.id)) continue;
     const key = nextKey(e);

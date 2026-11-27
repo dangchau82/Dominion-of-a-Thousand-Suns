@@ -458,3 +458,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `ui/scenes.ts`, `ui/sceneText.ts`, `docs/sce
 - Save v48. 444 tests pass (the voices test moved from seed 8 to 9: seed 8 now ends in a peaceful T152 council win, a pattern that already existed on other seeds).
 - Set up the Gemini job for branching, seed-shuffled race sagas (`docs/gemini-task-race-sagas.md`, shape in `data/sagas.ts`).
 
+## 2026-11-27 09:25 (Claude 2): race saga engine
+- The engine for branching, seed-shuffled race sagas is in (save v49): acts, forks, crossovers, threshold endings with real endgame outcomes. It waits for Gemini's writing (`docs/gemini-task-race-sagas.md`); Danny has sent Gemini the files. 451 tests pass.
+

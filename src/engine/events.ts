@@ -35,6 +35,7 @@ import { CROSSROADS_EVENTS, HERO_EVENTS, heroWorkText, noteHeroChoice } from "./
 import { MARKET_EVENTS, marketLotText, noteMarketChoice } from "./market";
 import { FAIR_EVENTS, fairWorkText, noteFairChoice } from "./fair";
 import { GAMES_EVENTS, gamesWorkText, noteGamesChoice } from "./games";
+import { noteSagaChoice, sagaEventDef, sagaLabel } from "./sagas";
 import { noteContractChoice } from "./contracts";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
@@ -58,9 +59,9 @@ function fill(text: string, state: GameState, p: PendingEvent): string {
 
 /** The event's text with names filled in, for showing to its empire. */
 export function describeEvent(state: GameState, p: PendingEvent) {
-  const def = EVENT_BY_ID.get(p.eventId)!;
+  const def = (EVENT_BY_ID.get(p.eventId) ?? sagaEventDef(p.eventId))!;
   return {
-    title: def.title, art: def.art, text: fill(def.text, state, p), subtitle: storyLabel(p.eventId),
+    title: def.title, art: def.art, text: fill(def.text, state, p), subtitle: storyLabel(p.eventId) ?? sagaLabel(p.eventId),
     choices: def.choices.map((c) => ({ label: fill(c.label, state, p), result: fill(c.result, state, p), effects: c.effects })),
   };
 }
@@ -96,7 +97,7 @@ export function rollEvents(state: GameState): void {
 }
 
 export function resolveEvent(state: GameState, p: PendingEvent, choice: number): string | null {
-  const def = EVENT_BY_ID.get(p.eventId);
+  const def = EVENT_BY_ID.get(p.eventId) ?? sagaEventDef(p.eventId);
   const c = def?.choices[choice];
   if (!def || !c) return "No such choice";
   state.pendingEvents = state.pendingEvents.filter((x) => x.id !== p.id);
@@ -126,6 +127,7 @@ export function resolveEvent(state: GameState, p: PendingEvent, choice: number):
   noteMarketChoice(state, p, choice);
   noteFairChoice(state, p, choice);
   noteGamesChoice(state, p, choice);
+  noteSagaChoice(state, p, choice);
   const e = state.empires[p.empireId]!;
   for (const fx of c.effects) applyEffect(state, e, p, fx);
   state.events.push({ turn: state.turn, empireId: e.id, kind: "info", text: `${def.title}: ${fill(c.result, state, p)}` });

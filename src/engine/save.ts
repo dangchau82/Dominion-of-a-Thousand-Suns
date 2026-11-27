@@ -174,6 +174,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 46) { (data as GameState).version = 47; }
   // Version 47 -> 48: hero careers and traits, epic artifacts, the Grand Fair, the Starfall Games.
   if (data.version === 47) { (data as GameState).version = 48; }
+  // Version 48 -> 49: race sagas.
+  if (data.version === 48) { (data as GameState).version = 49; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

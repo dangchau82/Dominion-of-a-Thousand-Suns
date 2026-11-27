@@ -8,6 +8,7 @@ import { PATH_NAMES, WORK_BY_ID, type EndgamePath } from "../engine/data/greatWo
 import { gateWorlds, raceWork } from "../engine/endgame";
 import { artifactsOf } from "../engine/digSites";
 import { residentTroupes } from "../engine/fair";
+import { sagaEventDef, sagaOf } from "../engine/sagas";
 import { CONTESTS, medalTable } from "../engine/games";
 import { heroesOf, heroTitle, ROLE_NAMES } from "../engine/heroes";
 import { BRANCH_BY_ID, TRAIT_BY_ID } from "../engine/data/heroCareers";
@@ -73,6 +74,14 @@ export function legendsHTML(state: GameState, playerId: Id): string {
     parts.push(`<h3>Great works of the galaxy</h3><ul>`);
     for (const { o, w, def } of works) parts.push(`<li><b style="color:${o.color}">${esc(o.name)}</b>: ${esc(def.name)} ${w.finished ? `<span class="gold-text">(finished)</span>` : `<span class="dim">(being built)</span>`}</li>`);
     parts.push(`</ul>`);
+  }
+
+  // Our people's saga: where it stands and which way our choices lean.
+  const saga = sagaOf(state, me);
+  if (saga && saga.played.length) {
+    const lean = (v: number, plus: string, minus: string) => (v >= 4 ? `<b>${plus}</b>` : v <= -4 ? `<b>${minus}</b>` : v > 0 ? plus.toLowerCase() + " (a little)" : v < 0 ? minus.toLowerCase() + " (a little)" : "undecided");
+    parts.push(`<h3>Our people's saga</h3><p>${saga.ending ? `The saga is told: <b>${esc(sagaEventDef(saga.ending)?.title ?? "")}</b>.` : `Act ${Math.max(1, saga.acts)} of 4.`} <span class="dim">${saga.played.length} chapters so far; ${saga.flags.length} turning points.</span></p>
+      <p>Our choices have made us: ${lean(saga.scores.mercy, "Merciful", "Ruthless")}, ${lean(saga.scores.openness, "Open", "Guarded")}, ${lean(saga.scores.tradition, "Traditional", "Bold")}.<br><span class="dim">How our saga ends depends on these.</span></p>`);
   }
 
   // Heroes in our service, and those we have lost.
