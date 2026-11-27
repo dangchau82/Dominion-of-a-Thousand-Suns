@@ -36,8 +36,8 @@ export interface GreatWorkDef {
   effects: WorkEffect[];
 }
 
-const PATH_COST = { down: 500, upkeep: 40, turns: 40 };
-const RACE_COST = { down: 450, upkeep: 35, turns: 40 };
+const PATH_COST = { down: 500, upkeep: 50, turns: 30 };
+const RACE_COST = { down: 450, upkeep: 45, turns: 30 };
 
 export const PATH_WORKS: GreatWorkDef[] = [
   { id: "gw-sundering-engine", name: "Sundering Engine", path: "feared", ...PATH_COST,

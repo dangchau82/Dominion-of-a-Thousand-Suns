@@ -5,7 +5,7 @@
 //   Feared  - conquered worlds are a third or more of its empire (and many), or it is at war
 //             with three empires, has taken worlds, and is hated by two thirds of those it knows.
 //   Beloved - it has two allies and warm relations with those it knows (or three allies).
-//   Builder - it holds many worlds and out-produces the average empire by a fifth.
+//   Builder - it holds many worlds and out-produces the average empire by a tenth.
 // When a path opens, the empire is offered its path's great work, or its race's own great
 // work (data/greatWorks.ts). A work is paid for over many turns (it stalls on an empty
 // treasury), enemies at war may sabotage it, and the whole galaxy hears when one starts
@@ -49,7 +49,7 @@ export interface EndgameState {
 
 /** One great work per empire: it is what the empire is remembered for. */
 export const MAX_WORKS = 1;
-export const SABOTAGE_GAP = 30;
+export const SABOTAGE_GAP = 15;
 export const SABOTAGE_SETBACK = 8;
 export const CRACK_GAP = 12;
 /** Finishing the Sundering Engine: every other empire's opinion of the builder drops this much. */
@@ -66,9 +66,9 @@ function starsPerEmpire(state: GameState): number {
 /** Worlds needed for the Ascension Gate. */
 export function gateWorlds(state: GameState): number { return Math.max(4, Math.round(0.5 * starsPerEmpire(state))); }
 /** Conquered worlds that open the Feared path. */
-export function fearedConquests(state: GameState): number { return Math.max(5, Math.round(0.5 * starsPerEmpire(state))); }
+export function fearedConquests(state: GameState): number { return Math.max(5, Math.round(0.45 * starsPerEmpire(state))); }
 /** Worlds that (with high production) open the Builder path. */
-export function builderWorlds(state: GameState): number { return Math.max(6, Math.round(0.75 * starsPerEmpire(state))); }
+export function builderWorlds(state: GameState): number { return Math.max(6, Math.round(0.65 * starsPerEmpire(state))); }
 
 // ---- Events -----------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ export function pathsEarned(state: GameState, e: Empire): EndgamePath[] {
   if (cols.length >= builderWorlds(state)) {
     const others = living(state);
     const avg = others.reduce((a, o) => a + production(state, o), 0) / Math.max(1, others.length);
-    if (production(state, e) >= avg * 1.2) out.push("builder");
+    if (production(state, e) >= avg * 1.1) out.push("builder");
   }
   return out;
 }
