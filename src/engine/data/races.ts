@@ -52,7 +52,7 @@ const base = {
 
 export const RACES: readonly Race[] = [
   { ...base, id: "humans", name: "Terran Accord", style: "Diplomats", color: "#4a8fe7", homeClimate: "terran",
-    diplomacy: 2, production: 1.1, travel: "warp", // 2026-11-26: production 1.0 -> 1.1, grudges against them fade twice as fast (won 3 of 55 = 5% of 162 games)
+    diplomacy: 2, production: 1.2, travel: "warp", // 2026-11-27: production 1.1 -> 1.2 (0 of 72 wins in 216 games; with growth 1.1 too they won 6 of 18, too many). 2026-11-26: production 1.0 -> 1.1, grudges against them fade twice as fast (won 3 of 55 = 5% of 162 games)
     unique: "Born brokers: trade agreements pay 50% more, and others forgive them twice as fast.",
     personality: p(0.4, 0.7, 0.5, 0.6, 0.4) },
   { ...base, id: "vossari", name: "Vossari", style: "Scientists", color: "#8fd3f0", homeClimate: "arid",
@@ -60,23 +60,23 @@ export const RACES: readonly Race[] = [
     unique: "See the whole tech tree: no random gaps.",
     personality: p(0.3, 0.6, 0.3, 0.9, 0.6) },
   { ...base, id: "kethrak", name: "Kethrak Hive", style: "Hive", color: "#e0a030", homeClimate: "jungle",
-    production: 1.5, growth: 1.2, diplomacy: -2, travel: "tunnels",
+    production: 1.4, growth: 1.2, diplomacy: -2, travel: "tunnels", // 2026-11-27: production 1.5 -> 1.4 (10 of 32 = 31% of 90 games, top again)
     unique: "Every 20 turns, larvae found a colony on a nearby world with no colony ship needed.",
     personality: p(0.8, 0.5, 0.6, 0.2, 0.5) },
   { ...base, id: "ashkari", name: "Ashkari Dominion", style: "Warriors", color: "#d03a2a", homeClimate: "desert",
-    ground: 2, production: 1.15, travel: "warp", // 2026-11-26: spoils 25% -> 40%, aggression 0.9 -> 0.8 (won 2 of 51 = 4% of 162 games: wars on everyone made everyone hold grudges)
+    ground: 2, production: 1.2, travel: "warp", // 2026-11-27: production 1.15 -> 1.2 (3 of 84 wins in 216 games). 2026-11-26: spoils 25% -> 40%, aggression 0.9 -> 0.8 (won 2 of 51 = 4% of 162 games: wars on everyone made everyone hold grudges)
     unique: "Take 40% of the value of every enemy ship destroyed as spoils.",
     personality: p(0.8, 0.6, 0.4, 0.3, 0.9) },
   { ...base, id: "lumen", name: "Lumen Choir", style: "Telepaths", color: "#c7a8ff", homeClimate: "ocean",
-    spying: 2, research: 1.1, production: 1.1, travel: "phase", // 2026-11-26: telepathic foresight (see where every visible fleet is heading), honor 0.2 -> 0.5, production 1.0 -> 1.1 (still 8% with foresight alone) (won 4 of 60 = 7% of 162 games)
+    spying: 2, research: 1.2, production: 1.2, growth: 1.1, travel: "phase", // 2026-11-27: research 1.1 -> 1.2, growth 1.0 -> 1.1 (0 of 96 wins in 216 games), then production 1.1 -> 1.2 (2 of 38 in 90). 2026-11-26: telepathic foresight (see where every visible fleet is heading), honor 0.2 -> 0.5, production 1.0 -> 1.1 (still 8% with foresight alone) (won 4 of 60 = 7% of 162 games)
     unique: "Telepaths: they sense where every fleet they can see is heading, and keep 60% of a conquered world's people.",
     personality: p(0.5, 0.5, 0.5, 0.7, 0.5) },
   { ...base, id: "thraal", name: "Thraal", style: "Lithovores", color: "#9a8f80", homeClimate: "barren",
-    colonizeBonus: 10, ignoresEnvironment: true, growth: 0.5, travel: "lanes", // 2026-11-26: growth 0.6 -> 0.5 (won 12 of 40 = 30% in 108 test games; 11 of 57 = 19% of 162 after); balance 2026-11-24: bonus 12 -> 10
+    colonizeBonus: 10, ignoresEnvironment: true, growth: 0.55, travel: "lanes", // 2026-11-27: growth 0.5 -> 0.55 (1 of 28 wins in 90 games). 2026-11-26: growth 0.6 -> 0.5 (won 12 of 40 = 30% in 108 test games; 11 of 57 = 19% of 162 after); balance 2026-11-24: bonus 12 -> 10
     unique: "Settle any planet type from the start, but grow slowly.",
     personality: p(0.3, 0.8, 0.3, 0.3, 0.4) },
   { ...base, id: "seraphine", name: "Seraphine", style: "Pilots", color: "#f2e6c2", homeClimate: "steppe",
-    shipDefense: 3, production: 1.15, research: 1.1, ground: 1, travel: "phase", // 2026-11-26: production 1.1 -> 1.15, ground +1, honor 0.4 -> 0.7 (won 2 of 34 = 6% in 108 test games; 9 of 56 = 16% of 162 after)
+    shipDefense: 3, production: 1.2, research: 1.1, ground: 1, travel: "phase", // 2026-11-27: production 1.15 -> 1.2 (1 of 27 wins in 90 games). 2026-11-26: production 1.1 -> 1.15, ground +1, honor 0.4 -> 0.7 (won 2 of 34 = 6% in 108 test games; 9 of 56 = 16% of 162 after)
     unique: "Superb pilots: their ships are much harder to hit, and their dropships land troops with precision.",
     personality: p(0.6, 0.7, 0.6, 0.5, 0.6) },
   { ...base, id: "orrun", name: "Orrun Consortium", style: "Traders", color: "#3fbf6f", homeClimate: "ocean",
@@ -93,7 +93,7 @@ export const RACES: readonly Race[] = [
     personality: p(0.3, 0.7, 0.4, 0.8, 0.8) },
   { ...base, id: "drovani", name: "Drovani", style: "Aquatic", color: "#2fb5b5", homeClimate: "ocean",
     travel: "warp", // 2026-11-26: ocean bonus 50% -> 35% (27-29% of two 270-game checks)
-    unique: "Ocean worlds hold 35% more population.",
+    unique: "Ocean worlds hold 25% more population.",
     personality: p(0.2, 0.7, 0.4, 0.4, 0.5) },
   { ...base, id: "gorrath", name: "Gorrath Clans", style: "Nomads", color: "#a0703a", homeClimate: "tundra",
     colonizeBonus: 1, travel: "warp", // 2026-11-26: colonize bonus 2 -> 1 (won 27% and 30% of two 162-game checks)
@@ -104,7 +104,7 @@ export const RACES: readonly Race[] = [
     unique: "Bond with conquered peoples: their symbiote soldiers are fearsome invaders, and they absorb a technology from every world they capture.",
     personality: p(0.6, 0.4, 0.5, 0.7, 0.3) },
   { ...base, id: "verdane", name: "Verdane", style: "Plant beings", color: "#6fbf3a", homeClimate: "jungle",
-    growth: 1.35, production: 1.1, colonizeBonus: 2, travel: "lanes", // 2026-11-26: 1.5 -> 1.35 (29% of 270 games); growth 1.2 -> 1.5, colonize bonus 0 -> 2 (won 2 of 26 = 8% in 108 test games; 10 of 45 = 22% of 162 after)
+    growth: 1.1, production: 1.1, colonizeBonus: 2, travel: "lanes", // 2026-11-27: growth 1.35 -> 1.1 (21 of 52 = 40% of 216 games; 5 of 13 at 1.2). 2026-11-26: 1.5 -> 1.35 (29% of 270 games); growth 1.2 -> 1.5, colonize bonus 0 -> 2 (won 2 of 26 = 8% in 108 test games; 10 of 45 = 22% of 162 after)
     unique: "Spreading seeds: they grow fast, 50% faster still around white, yellow and blue stars, and take root on harsher worlds than most.",
     personality: p(0.2, 0.8, 0.3, 0.5, 0.7) },
   { ...base, id: "quorai", name: "Quorai", style: "Energy beings", color: "#f5c542", homeClimate: "radiated",
@@ -121,8 +121,9 @@ export const RACES: readonly Race[] = [
     personality: p(0.7, 0.4, 0.6, 0.3, 0.5) },
   { ...base, id: "tarkhan", name: "Tarkhan Hunt", style: "Gunners", color: "#e06a8a", homeClimate: "arid",
     // balance 2026-11-24: +15% production, +1 ground, no defense penalty (averaged 10 colonies)
-    shipAttack: 3, production: 1.15, ground: 1, travel: "warp", unique: "Deadly gunners: more accurate, +1 damage per hit, and they always fire first.",
-    personality: p(0.7, 0.9, 0.3, 0.4, 0.8) },
+    shipAttack: 3, production: 1.25, growth: 1.15, ground: 1, travel: "warp", // 2026-11-27: production 1.15 -> 1.25, growth 1.0 -> 1.15, aggression 0.7 -> 0.55 (1 of 64 wins in 216 games; 0 of 16 with production alone)
+    unique: "Deadly gunners: more accurate, +1 damage per hit, and they always fire first.",
+    personality: p(0.55, 0.9, 0.3, 0.4, 0.8) },
 ];
 
 export function race(id: string): Race {

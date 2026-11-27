@@ -7,7 +7,7 @@ const game = (raceId: string) => newGame({ seed: 11, size: "small", shape: "elli
 describe("race abilities", () => {
   it("Drovani double ocean worlds; Nyx build population cheaply", () => {
     const ocean: Planet = { climate: "ocean", size: 60, terraform: 0, minerals: "normal", environment: "normal", special: null };
-    expect(planetCapacity(ocean, game("drovani").empires[0]!)).toBe(81); // 60 x 1.35
+    expect(planetCapacity(ocean, game("drovani").empires[0]!)).toBe(75); // 60 x 1.25
     expect(planetCapacity(ocean, game("humans").empires[0]!)).toBe(60);
     expect(popCost(game("nyx").empires[0]!)).toBeLessThan(popCost(game("humans").empires[0]!));
   });

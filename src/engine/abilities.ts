@@ -16,7 +16,7 @@ export function tradeMultiplier(e: Empire): number {
 
 /** Drovani: ocean worlds hold 50% more population. */
 export function capacityMultiplier(p: Planet, owner?: Empire): number {
-  return owner && is(owner, "drovani") && p.climate === "ocean" ? 1.35 : 1; // 2026-11-26: 1.5 -> 1.35
+  return owner && is(owner, "drovani") && p.climate === "ocean" ? 1.25 : 1; // 2026-11-27: 1.35 -> 1.25 (32 of 88 = 36% of 216 games). 2026-11-26: 1.5 -> 1.35
 }
 
 /** Nyx Collective: build population in factories, at half the cost. */

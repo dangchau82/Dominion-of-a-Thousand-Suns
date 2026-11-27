@@ -13,18 +13,18 @@ const settings = (over: Partial<GameSettings> = {}): GameSettings => ({
 describe("formulas (classic rules)", () => {
   const terran: Planet = { climate: "terran", size: 100, terraform: 0, minerals: "normal", environment: "normal", special: null };
   it("population grows on a logistic curve", () => {
-    // pop 50 of 100: (1 - 0.5) / 10 = 5% of 50 = 2.5
-    expect(popGrowth(50, terran, race("humans"))).toBeCloseTo(2.5);
-    expect(popGrowth(100, terran, race("humans"))).toBe(0);
-    expect(popGrowth(1, terran, race("humans"))).toBeCloseTo(0.1); // minimum growth
+    // pop 50 of 100: (1 - 0.5) / 10 = 5% of 50 = 2.5 (Drovani: plain growth 1.0)
+    expect(popGrowth(50, terran, race("drovani"))).toBeCloseTo(2.5);
+    expect(popGrowth(100, terran, race("drovani"))).toBe(0);
+    expect(popGrowth(1, terran, race("drovani"))).toBeCloseTo(0.1); // minimum growth
   });
   it("breeders grow twice as fast", () => {
     expect(popGrowth(50, terran, race("ruuvak"))).toBeCloseTo(5);
   });
   it("hostile worlds grow at half speed, except for the home climate", () => {
     const toxic: Planet = { ...terran, climate: "toxic", size: 40 };
-    expect(popGrowth(20, toxic, race("humans"))).toBeCloseTo(0.5);
-    expect(popGrowth(20, toxic, race("thraal"))).toBeCloseTo(0.5); // ignores environment, 0.5 growth
+    expect(popGrowth(20, toxic, race("drovani"))).toBeCloseTo(0.5);
+    expect(popGrowth(20, toxic, race("thraal"))).toBeCloseTo(0.55); // ignores environment, 0.55 growth
   });
   it("beam hit chance has a 5% floor", () => {
     expect(beamHitChance(0, 0, 0, 1)).toBeCloseTo(0.5);
