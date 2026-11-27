@@ -83,8 +83,19 @@ export function buyCost(c: Colony): number {
   return Math.ceil(Math.max(0, building(c.buildQueue).cost - c.buildProgress) * 2);
 }
 
-/** What this empire pays for a building (Velari build wonders cheaper). */
-export function costFor(e: Empire, id: string): number {
+/**
+ * The Ascension Gate costs more on bigger maps (main Claude, 2026-11-26): with 18 empires the
+ * council's 60% and conquest's half of all home worlds are far harder to reach, and 16 of 18
+ * huge-map AI games ended with the Gate. The base cost (70,000) is the medium-map price.
+ */
+export const GATE_SIZE_FACTOR: Record<string, number> = { small: 1, medium: 1, large: 1.15, huge: 1.3 };
+export function gateCost(state: GameState): number {
+  return Math.round(building("w-ascension").cost * (GATE_SIZE_FACTOR[state.settings.size] ?? 1));
+}
+
+/** What this empire pays for a building (Velari build wonders cheaper; the Gate scales with the map). */
+export function costFor(e: Empire, id: string, state?: GameState): number {
+  if (id === "w-ascension" && state) return gateCost(state);
   return buildingCost(e, building(id));
 }
 
@@ -114,7 +125,7 @@ export function progressBuilding(state: GameState, e: Empire, c: Colony, bc: num
     return bc;
   }
   c.buildProgress += bc;
-  const cost = buildingCost(e, b);
+  const cost = b.id === "w-ascension" ? gateCost(state) : buildingCost(e, b);
   if (c.buildProgress >= cost) {
     const extra = c.buildProgress - cost;
     c.buildProgress = 0;

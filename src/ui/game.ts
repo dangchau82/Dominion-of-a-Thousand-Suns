@@ -44,6 +44,7 @@ import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarge
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
 import { syntheticTrait } from "../engine/legends";
+import { costFor } from "../engine/civ";
 import { landingFromEvent, type LandingInfoLite } from "./battle3d/landingInfo";
 
 const TREATY_LABEL: Record<TreatyKind, string> = { trade: "Trade agreement", research: "Research pact", nap: "Non-aggression pact", alliance: "Alliance" };
@@ -1562,10 +1563,11 @@ export class GameScreen {
     if (c.buildQueue) {
       const b = BUILDING_BY_ID.get(c.buildQueue)!;
       const perTurn = c.factories >= c.maxFactories - 0.5 ? c.budget.industry : c.budget.industry / 2;
-      const turns = perTurn > 0 ? Math.ceil((b.cost - c.buildProgress) / perTurn) : null;
+      const full = costFor(this.state.empires[PLAYER]!, b.id, this.state); // Velari discount, Gate scaled by map size
+      const turns = perTurn > 0 ? Math.ceil((full - c.buildProgress) / perTurn) : null;
       const cost = v.buyCost(starId);
-      const row = el("div", { style: "margin-top:6px" }, `Building <b>${esc(b.name)}</b> <span class="dim">${fmt(c.buildProgress)}/${b.cost} · ${turns === null ? "needs Industry spending" : `${turns} turn${turns > 1 ? "s" : ""}`}</span>
-        <div class="bar"><i style="width:${Math.min(100, (c.buildProgress / b.cost) * 100)}%"></i></div>`);
+      const row = el("div", { style: "margin-top:6px" }, `Building <b>${esc(b.name)}</b> <span class="dim">${fmt(c.buildProgress)}/${full} · ${turns === null ? "needs Industry spending" : `${turns} turn${turns > 1 ? "s" : ""}`}</span>
+        <div class="bar"><i style="width:${Math.min(100, (c.buildProgress / full) * 100)}%"></i></div>`);
       const buy = el("button", { class: "small", style: "margin:4px 6px 0 0" }, `Buy now (${cost} BC)`);
       buy.disabled = v.me.treasury < cost;
       buy.onclick = () => { this.cmd({ type: "buyBuilding", starId }); this.refreshKeepScroll(); };
@@ -1580,7 +1582,7 @@ export class GameScreen {
       sel.append(el("option", { value: "" }, c.buildQueue ? "Switch to…" : "Start building…"));
       for (const b of options) {
         const taken = b.wonder ? "" : "";
-        sel.append(el("option", { value: b.id }, `${b.wonder ? "★ " : ""}${b.name} (${b.cost}) — ${b.description}${taken}`));
+        sel.append(el("option", { value: b.id }, `${b.wonder ? "★ " : ""}${b.name} (${costFor(this.state.empires[PLAYER]!, b.id, this.state)}) — ${b.description}${taken}`));
       }
       sel.onchange = () => { if (sel.value) { this.cmd({ type: "setBuilding", starId, buildingId: sel.value }); this.refreshKeepScroll(); } };
       box.append(sel);

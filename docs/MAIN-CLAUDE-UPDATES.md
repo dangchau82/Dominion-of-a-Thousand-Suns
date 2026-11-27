@@ -97,6 +97,11 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 23:00: huge maps; the Gate costs more on big maps; two more fair losses
+- **Huge maps (18 races) after tonight's race balance:** 18 AI games gave **12 different winners**, none more than 3 (before tonight the Velari won 13 of 18). But **16 of 18 ended by technology**: with 18 empires the council's 60% and conquest's half of all home worlds are almost out of reach.
+- **Ascension Gate cost now scales with the map** (`civ.ts` `gateCost`, `GATE_SIZE_FACTOR`: small/medium 1.0, large 1.15, huge 1.3). Huge, 18 games: technology 12, culture 6, 13 different winners, median end T342. Medium and small are unchanged. The colony panel now shows the real price (Velari discount and Gate scaling; it used to show the base cost).
+- **My fair games tonight:** Terran Accord on a huge map, lost twice (Quorai conquest; Velari technology). Tarkhan, medium: lost (Seraphine conquest T167, after I started a war too early). Velari, medium: lost (Raxxan conquest T271; the Raxxan held 61% of the votes, and the Open Secret did fire but didn't stop them). **A runaway AI is the common thread.** Next idea for that: Danny's "Grand Coalition" (when one empire holds about 35-40% of the galaxy, the others get a coalition offer with a combat bonus against it). I haven't built it yet: it needs its own balance check.
+
 ### 2026-11-26 22:30: race balance round (3 steps, 216 + 90 + 90 games)
 - Across tonight's first 216 games (after the endgame paths), **Humans won 0 of 72, Lumen 0 of 96, Tarkhan 1 of 64**, while **Verdane won 40% and Drovani 36%**. I also lost a fair Tarkhan game myself (Seraphine conquest at T167).
 - Changes (`data/races.ts`, `abilities.ts`): Humans production 1.1 -> 1.2; Lumen research 1.1 -> 1.2, production 1.1 -> 1.2, growth 1.0 -> 1.1; Tarkhan production 1.15 -> 1.25, growth 1.0 -> 1.15, aggression 0.7 -> 0.55; Ashkari production 1.15 -> 1.2; Seraphine production 1.15 -> 1.2; Thraal growth 0.5 -> 0.55; **Verdane growth 1.35 -> 1.1; Drovani ocean bonus 35% -> 25%; Kethrak production 1.5 -> 1.4.**
