@@ -30,6 +30,10 @@ export interface GateState {
   seenBy: Id[];
   /** Turn the next wake-up offer may come (after a "not now"). */
   nextOffer: number;
+  /** Wake-up offers made to the current holder (at most MAX_OFFERS, then it stays quiet). */
+  offers?: number;
+  /** Empire those offers went to. */
+  offeredTo?: Id;
 }
 
 export interface GatesState {
@@ -47,7 +51,9 @@ const STAGING = STANCES.find((s) => s.id === "staging")!;
 const AMBUSH = STANCES.find((s) => s.id === "ambush")!;
 /** Fleets this big or bigger make the news when they vanish or burst out. */
 export const NEWS_SHIPS = 5;
-const OFFER_AGAIN = 20;
+const OFFER_AGAIN = 30;
+/** After this many "not now"s, the holder isn't asked again (unless the colony changes hands). */
+export const MAX_OFFERS = 3;
 
 /** One wake-up offer per gate type, built from Gemini's numbers. */
 export const GATE_OFFERS: GameEventDef[] = GATE_TYPES.map((g) => ({
@@ -152,8 +158,11 @@ function offerWake(state: GameState, g: GateState): void {
   if (!c || g.awakeAt !== null || state.turn < g.nextOffer) return;
   const e = state.empires[c.empireId]!;
   const t = gateType(g);
+  if (g.offeredTo !== e.id) { g.offeredTo = e.id; g.offers = 0; }
+  if ((g.offers ?? 0) >= MAX_OFFERS) return;
   if (!e.alive || e.treasury < t.awakenCost || state.pendingEvents.some((p) => p.empireId === e.id)) return;
   g.nextOffer = state.turn + OFFER_AGAIN;
+  g.offers = (g.offers ?? 0) + 1;
   state.pendingEvents.push({ id: state.nextEventId++, empireId: e.id, eventId: OFFER_ID + t.id, turn: state.turn, colonyStarId: g.starId, starId: g.starId, rivalId: null });
 }
 
@@ -199,7 +208,11 @@ export function processGates(state: GameState, canSee: (e: Empire, x: number, y:
     for (const e of state.empires) {
       if (!e.alive || g.seenBy.includes(e.id) || !e.knowledge[s.id]?.explored) continue;
       g.seenBy.push(e.id);
-      if (!state.pendingEvents.some((p) => p.empireId === e.id)) {
+      // The first gate an empire finds is an event; later ones are a news line.
+      const firstForThem = !gs.gates.some((o) => o !== g && o.seenBy.includes(e.id));
+      if (!firstForThem) {
+        state.events.push({ turn: state.turn, empireId: e.id, kind: "info", starId: s.id, text: `Our explorers have found another sleeping ${gateType(g).name} at ${s.name}.` });
+      } else if (!state.pendingEvents.some((p) => p.empireId === e.id)) {
         state.pendingEvents.push({ id: state.nextEventId++, empireId: e.id, eventId: "first-gate-discovered", turn: state.turn, colonyStarId: null, starId: s.id, rivalId: null });
       }
     }

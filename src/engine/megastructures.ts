@@ -52,7 +52,7 @@ export const PRESTIGE = 150;
 /** Sabotage: costs the saboteur, sets the work back, and they steal some plans. */
 export const SABOTAGE_COST = 150;
 export const SABOTAGE_SETBACK = 10;
-export const SABOTAGE_GAP = 25;
+export const SABOTAGE_GAP = 40;
 export const SABOTAGE_GRUDGE = 10;
 
 export const MEGA_OFFER_ID = "megastructure-offer";

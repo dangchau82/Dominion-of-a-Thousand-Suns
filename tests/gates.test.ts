@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { newGame, type GameSettings } from "../src/engine";
 import { resolveEvent } from "../src/engine/events";
 import { canSee } from "../src/engine/knowledge";
-import { ambushing, gateAt, gateJump, gateType, hiddenFrom, holdsGate, processGates } from "../src/engine/gates";
+import { ambushing, MAX_OFFERS, gateAt, gateJump, gateType, hiddenFrom, holdsGate, processGates } from "../src/engine/gates";
 import { TECHS } from "../src/engine/data/techs";
 import { deserialize, serialize } from "../src/engine/save";
 import { SAVE_VERSION, type Fleet, type GameState } from "../src/engine/types";
@@ -75,6 +75,36 @@ describe("ancient gates", () => {
     expect(holdsGate(g, e, gate)).toBe(false);
     g.turn = gate.awakeAt!;
     expect(holdsGate(g, e, gate)).toBe(true);
+  });
+
+  it("a holder who keeps saying 'not now' is asked at most MAX_OFFERS times", () => {
+    const g = placed();
+    const gate = g.gates!.gates[0]!;
+    const e = g.empires[0]!;
+    e.treasury = 5000;
+    const home = g.colonies[e.capitalStarId]!;
+    g.colonies[gate.starId] = { ...home, starId: gate.starId, isCapital: false, population: 10, buildings: [] };
+    g.pendingEvents = [];
+    let asked = 0;
+    for (let i = 0; i < 300; i++) {
+      g.turn++;
+      processGates(g, see(g));
+      for (const p of g.pendingEvents.filter((x) => x.empireId === 0)) {
+        if (p.eventId.startsWith("gate-wake-offer:")) asked++;
+        resolveEvent(g, p, p.eventId.startsWith("gate-wake-offer:") ? 1 : 0);
+      }
+    }
+    expect(asked).toBe(MAX_OFFERS);
+  });
+
+  it("only the first gate an empire finds is an event; later ones are news", () => {
+    const g = placed();
+    const e = g.empires[0]!;
+    g.pendingEvents = [];
+    for (const gate of g.gates!.gates.slice(0, 2)) e.knowledge[gate.starId] = { ...(e.knowledge[gate.starId] ?? {}), explored: true } as never;
+    processGates(g, see(g));
+    expect(g.pendingEvents.filter((p) => p.empireId === 0 && p.eventId === "first-gate-discovered")).toHaveLength(1);
+    expect(g.events.some((x) => x.empireId === 0 && /another sleeping/.test(x.text))).toBe(true);
   });
 
   it("a fleet jumps between two held gates in one turn, within the gate's throughput", () => {

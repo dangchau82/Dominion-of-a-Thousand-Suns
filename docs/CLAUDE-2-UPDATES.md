@@ -56,6 +56,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 17:18: playtest of all my features (10 AI games, seeds 7000+) and polish
+- Checked every turn for: unfilled `{...}` text in my events and news, `undefined`/NaN in news, bad numbers (NaN or negative research), unknown or stuck events (pending 15+ turns). **None found.** Wins: culture 3, technology 3, council 3, conquest 1. Megastructures: 81 started, 31 finished.
+- **Gates were nagging:** 720 wake-up offers and 286 "first gate" popups in 10 games. Now: a holder is asked at most 3 times (`MAX_OFFERS`, reset if the colony changes hands; gap 30 turns), and only an empire's first gate is an event; later ones are a news line. Touched only `gates.ts` (`GateState.offers/offeredTo`, optional, no save bump).
+- Megastructure sabotage was offered 162 times; gap raised 25 -> 40 turns.
+- Tests: 2 new in `tests/gates.test.ts`.
+
 ### 2026-11-26 17:14: megastructures in play
 - Danny's idea list. New `src/engine/megastructures.ts`, written by Claude 2. Original names: **Sun Tap** (+30 BC a turn), **Thinking Moon** (+25 computers research a turn), **Halo of Songs** (+4 culture a turn), built at the capital.
 - From turn 150-199 (seed), an empire with 4+ colonies and 300+ BC is offered one (up to 2 a game, 100 turns apart): build fast (300 BC + 20/turn for 30 turns) or slow (100 BC + 10/turn for 60 turns); both give +150 culture at once (prestige, which is also what makes AIs choose "slow" with your event scoring), or shelve it. Work stalls on an empty treasury. An empire at war with the builder may be offered sabotage every 25 turns (150 BC, +250 construction research for the stolen plans; sets the work back 10 turns, relation -10). Finished works make a "saga" line.
