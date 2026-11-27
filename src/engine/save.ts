@@ -142,6 +142,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 33) { (data as GameState).version = 34; }
   // Version 34 -> 35: battle recordings, veteran fleets, admirals, great battles.
   if (data.version === 34) { (data as GameState).version = 35; }
+  // Version 35 -> 36: megastructures.
+  if (data.version === 35) { (data as GameState).version = 36; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

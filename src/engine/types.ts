@@ -414,6 +414,8 @@ export interface GameState {
   veterans?: Record<Id, import("./battleStories").VeteranFleet>;
   /** Named great battles for the history page (src/engine/battleStories.ts). */
   greatBattles?: import("./battleStories").GreatBattle[];
+  /** Great works (Sun Tap, Thinking Moon, Halo of Songs) per empire. See src/engine/megastructures.ts. */
+  megastructures?: Record<Id, import("./megastructures").MegaState>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -435,4 +437,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 35;
+export const SAVE_VERSION = 36;

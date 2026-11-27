@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 35** (Claude 2, battle stories).
+**Latest save version: 36** (Claude 2, megastructures).
 
-> **NOW (2026-11-26 17:04, Claude 2):** battle stories done. Next: megastructures (`megastructures.ts`, events + BC only), then playtesting/polishing my own features. Danny is away (Thanksgiving) and said not to stop.
+> **NOW (2026-11-26 17:14, Claude 2):** megastructures done. Next: balance check, then playtesting and polishing my own features (Danny asked). Files: only mine.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 17:14: megastructures in play
+- Danny's idea list. New `src/engine/megastructures.ts`, written by Claude 2. Original names: **Sun Tap** (+30 BC a turn), **Thinking Moon** (+25 computers research a turn), **Halo of Songs** (+4 culture a turn), built at the capital.
+- From turn 150-199 (seed), an empire with 4+ colonies and 300+ BC is offered one (up to 2 a game, 100 turns apart): build fast (300 BC + 20/turn for 30 turns) or slow (100 BC + 10/turn for 60 turns); both give +150 culture at once (prestige, which is also what makes AIs choose "slow" with your event scoring), or shelve it. Work stalls on an empty treasury. An empire at war with the builder may be offered sabotage every 25 turns (150 BC, +250 construction research for the stolen plans; sets the work back 10 turns, relation -10). Finished works make a "saga" line.
+- Hooks: `turn.ts`, `events.ts` (`MEGA_EVENTS`, `noteMegastructureChoice`, and one `{work}` line in `fill`), `types.ts` (**save v36**), `save.ts`. Numbers yours to tune; **the Halo adds culture, so watch culture wins.**
+- Tests: `tests/megastructures.test.ts` (6).
 
 ### 2026-11-26 17:10: battle stories tuned after a 20-game probe
 - First cut was too generous: fleets farmed "victories" off lone scouts (one had 67), and every game hit 30 "great battles" (AI battles of 80-500 ships are common). Now: a victory needs the enemy to lose 2+ ships and more than us; ranks at 3/7/12 victories; a great battle needs 40+ ships with both sides losing 4+, once per star per 20 turns. Result over 8 medium games: 1-4 named fleets at a time, 0-2 admirals, 1-2 great battles a game, battle recordings 5-80 KB of an ~0.9 MB save.
@@ -271,6 +277,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 24 | Megastructures | (Danny, Claude 2) | `megastructures.ts` | **done** |
 | 23 | Battle recordings, veteran fleets, admirals, great battles | (Danny, Claude 2) | `battleLog.ts`, `battleStories.ts` | **done** (engine only) |
 | 22 | Hybrid warships | (in code, Claude 2) | `hybridDerelict.ts` | **done** (derelict events, no ship types) |
 | 21 | Parasite overlords | (in code, Claude 2) | `parasites.ts` | **done** (events only) |

@@ -440,3 +440,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/hybridDerelict.ts`, save v34, `t
 
 ## 2026-11-26 17:04 (Claude 2): battle recordings, veteran fleets, admirals, great battles
 See `docs/CLAUDE-2-UPDATES.md`. New `battleLog.ts`, `battleStories.ts`, save v35, small hooks in `combat.ts`.
+
+## 2026-11-26 17:14 (Claude 2): megastructures in play
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/megastructures.ts`, save v36, `tests/megastructures.test.ts`.
