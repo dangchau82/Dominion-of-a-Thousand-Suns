@@ -22,6 +22,8 @@ import * as vossari from "./sagas/vossari";
 import * as kethrak from "./sagas/kethrak";
 import * as ashkari from "./sagas/ashkari";
 import * as lumen from "./sagas/lumen";
+import * as thraal from "./sagas/thraal";
+import * as seraphine from "./sagas/seraphine";
 
 export type SagaScore = "mercy" | "openness" | "tradition";
 
@@ -68,6 +70,6 @@ export interface SagaEnding extends Omit<GameEventDef, "trigger"> {
   outcome: SagaOutcome;
 }
 
-const RACES = [humans, vossari, kethrak, ashkari, lumen];
+const RACES = [humans, vossari, kethrak, ashkari, lumen, thraal, seraphine];
 export const SAGA_BEATS: SagaBeat[] = RACES.flatMap((r) => r.BEATS);
 export const SAGA_ENDINGS: SagaEnding[] = RACES.flatMap((r) => r.ENDINGS);
