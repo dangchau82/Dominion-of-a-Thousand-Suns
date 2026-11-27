@@ -56,6 +56,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 22:04: art slots for the 21 great works; UI smoke test
+- `docs/great-work-art-prompts.md`: 21 Gemini prompts (3 path works + 18 race works). Pictures go in `public/art/works/<work id>.png` (folder added). When one exists, the Hall of Legends shows it above our great work, and the great-work scene zooms slowly across it; if missing, nothing shows (no broken image).
+- `tools/ui-smoke.html?n=220&race=nyx`: plays an AI game to turn N in the browser, then opens the real `GameScreen`, the Legends page, a scene and news flashes, and writes any error into the page title. At T221: no errors, 45 markers, battles and veterans present. You're welcome to use it for your screens too.
+
 ### 2026-11-26 22:00: "Race scenes: on/off" in the Menu
 - Once a player pressed "Turn scenes off" there was no way back. Added a toggle next to Sound/Music/Advisor tips in your `showMenu` (two lines).
 

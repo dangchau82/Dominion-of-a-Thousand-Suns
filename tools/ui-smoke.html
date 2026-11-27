@@ -1,0 +1,34 @@
+<!-- UI smoke test (Claude 2): plays an AI game to turn N, then opens the game screen, the Hall of
+     Legends, a race scene and the news flashes, and reports any error in the page title.
+     Run `npm run dev`, open /tools/ui-smoke.html?n=220&race=nyx -->
+<!doctype html><html><head><base href="/"></head><body style="margin:0;background:#000">
+<div id="app"></div>
+<script>window.__errs=[];window.onerror=(m,s,l)=>{window.__errs.push(m+" @"+s+":"+l)};window.onunhandledrejection=(e)=>window.__errs.push("rej "+e.reason);</script>
+<script type="module">
+import "/src/ui/styles.css";
+import { newGame, endTurn, makeView } from "/src/engine/index.ts";
+import { runAITurns } from "/src/ai/index.ts";
+import { GameScreen } from "/src/ui/game.ts";
+import { legendsHTML } from "/src/ui/legends.ts";
+import { sceneFor, showScene, holdScenesAt } from "/src/ui/scenes.ts";
+import { flashNews } from "/src/ui/newsFlash.ts";
+const q = new URLSearchParams(location.search);
+const s = newGame({ seed: Number(q.get("seed") || 3000), size: "medium", shape: "ellipse", rivals: 5, playerRaceId: q.get("race") || "nyx", playerName: "P", difficulty: "normal" });
+const n = Number(q.get("n") || 200);
+for (let t = 0; t < n && !s.winner; t++) { s.empires[0].isPlayer = false; runAITurns(s, true); s.empires[0].isPlayer = true; endTurn(s); }
+const report = [];
+try {
+  new GameScreen(document.getElementById("app"), s, () => {});
+  const v = makeView(s, 0);
+  report.push(`T${s.turn} markers=${v.markers.length} works=${v.endgame.works.length} battles=${(s.battles||[]).length} vets=${Object.keys(s.veterans||{}).length}`);
+  const html = legendsHTML(s, 0);
+  report.push(`legends=${html.length}`);
+  // A scene from the latest turn that has one.
+  let sc = null;
+  for (let t = s.turn; t > s.turn - 60 && !sc; t--) sc = sceneFor(s, 0, v.events.filter((e) => e.turn === t));
+  report.push(`scene=${sc ? sc.kind : "none"}`);
+  flashNews(s, 0, s.events.filter((e) => e.kind === "saga").slice(-3));
+  if (sc && q.get("scene") !== "0") { holdScenesAt(3500); showScene(sc, () => {}); }
+} catch (e) { window.__errs.push(String(e && e.stack || e)); }
+setTimeout(() => { document.title = (window.__errs.length ? "ERR " + window.__errs.join(" || ") : "OK ") + " | " + report.join(" "); }, 500);
+</script></body></html>

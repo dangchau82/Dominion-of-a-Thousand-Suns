@@ -21,6 +21,11 @@ function bar(done: number, needs: number, color: string): string {
   return `<span style="display:inline-block;width:120px;height:8px;border-radius:4px;background:#222;vertical-align:middle;overflow:hidden"><span style="display:block;height:100%;width:${pct}%;background:${color}"></span></span> ${pct}%`;
 }
 
+/** Concept art for a great work, if Danny has added it (art/works/<id>.png); hidden if missing. */
+function workArt(id: string): string {
+  return `<img src="art/works/${id}.png" alt="" onerror="this.remove()" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin:4px 0">`;
+}
+
 export function legendsHTML(state: GameState, playerId: Id): string {
   const me = state.empires[playerId]!;
   const known = (id: Id) => id === playerId || me.contacts.includes(id);
@@ -39,6 +44,7 @@ export function legendsHTML(state: GameState, playerId: Id): string {
     : `<p class="dim">No path has opened yet. Conquer widely to be <b>Feared</b>, win allies to be <b>Beloved</b>, or grow many productive worlds to be a <b>Builder</b>.</p>`);
   if (myWork) {
     const def = WORK_BY_ID.get(myWork.workId)!;
+    parts.push(workArt(def.id));
     parts.push(`<p>Our great work: <b>${esc(def.name)}</b> ${myWork.finished ? `<span class="gold-text">finished on turn ${myWork.finishedTurn}</span>` : bar(myWork.done, def.turns, me.color)}<br><span class="dim">${esc(def.text)}</span></p>`);
   } else if (ours) {
     parts.push(`<p class="dim">Our people's own great work, the <b>${esc(ours.name)}</b>, can be begun once a path opens.</p>`);

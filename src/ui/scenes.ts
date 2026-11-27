@@ -14,6 +14,7 @@
 import { art, img, ready } from "./assets";
 import { play } from "./sound";
 import { DEFAULT_LINES, SCENE_LINES, SCENE_TITLES, type SceneKind } from "./sceneText";
+import { ALL_WORKS } from "../engine/data/greatWorks";
 import type { GameEvent, GameState, Id } from "../engine/types";
 
 const KEY = "dots-scenes";
@@ -38,6 +39,8 @@ export interface Scene {
   rivalName?: string;
   tech?: string;
   work?: string;
+  /** Great work id, for its concept art (art/works/<id>.png) if there is any. */
+  workId?: string;
   text: string;
 }
 
@@ -79,6 +82,7 @@ export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): S
   if (kind === "spy") rival = state.empires.find((o) => o.id !== playerId && ev.text.includes(o.name));
   if (kind === "battle" && won) rival = state.empires[won.empires[0] === playerId ? won.empires[1] : won.empires[0]];
   const work = kind === "wonder" ? /have completed the (.+?) at /.exec(ev.text)?.[1] : undefined;
+  const workId = work ? ALL_WORKS.find((w) => w.name === work)?.id : undefined;
   const tech = kind === "science" ? /^Discovered ([^:]+):/.exec(ev.text)?.[1] : undefined;
   const text = lines[kind]
     .replace(/\{star\}/g, star?.name ?? "the new world")
@@ -87,7 +91,7 @@ export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): S
     .replace(/\{work\}/g, work ? `The ${work}` : "Our great work");
   return {
     kind, raceId: me.raceId, color: me.color, starId: star?.id, climate: star?.planet?.climate,
-    rivalRaceId: rival?.raceId, rivalColor: rival?.color, rivalName: rival?.name, tech, work, text,
+    rivalRaceId: rival?.raceId, rivalColor: rival?.color, rivalName: rival?.name, tech, work, workId, text,
   };
 }
 
@@ -275,6 +279,11 @@ const SCENES: Record<SceneKind, (c: Ctx) => void> = {
   wonder(c) {
     const { g, t, s } = c;
     stars(c, 0.3);
+    // Danny's concept art for this work, if there is any, slowly zooming behind everything.
+    if (s.workId) {
+      const z = 1 + t / 40000;
+      draw(g, `art/works/${s.workId}.png`, W / 2 - (W * z) / 2, H / 2 - (H * z) / 2, W * z, H * z, 0.85 * ease(t / 1200));
+    }
     const cx = W * 0.6, cy = H * 0.48;
     flash(c, cx, cy, 160, "#ffe9a0", 1);
     // The work assembles around the star: ring segments lock into place one by one.
