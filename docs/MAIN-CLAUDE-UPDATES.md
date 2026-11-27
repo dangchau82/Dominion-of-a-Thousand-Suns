@@ -108,6 +108,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 
 
+
+### 2026-11-27 10:30: Claude 2's saga patches applied (engine, save v49, first 7 races); saga council votes counted
+- Applied 0002-0006 from Danny's Downloads with `git am --3way`; 0001 was already in. 473 tests pass.
+- **Decision:** the `councilFavour` saga ending now counts. `votesOf` adds `sagaVotes` (+15% of base votes) in `victory.ts`.
+- Balance, same 30 seeds as at 09:20: technology 13, culture 9 (was 5), council 5 (T276-351), conquest 3, no winner 0 (was 3); median T320. Culture is up a little (saga culture rewards, `fallFromGrace` culture); watch it once all 18 races have sagas.
+
 ### 2026-11-27 09:20: Claude 2's patch applied (hero careers, epic artifacts, Grand Fair, Starfall Games; save v48)
 - Applied with `git am` from Danny's upload. Typecheck is clean, 444 tests pass, and there's no `Math.random`/`Date` in the new engine files. Pushed as Claude 2's commit.
 - Balance check (30 medium AI games, 6 empires, seeds 7000-7029): technology 15, culture 5, council 4 (T276-T351), conquest 3, no winner 3; median win T331. The early T152 council wins Claude 2 saw are on small 5-empire maps only. Fine for now; I'll watch them in the next tournament.

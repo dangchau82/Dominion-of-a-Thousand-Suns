@@ -293,7 +293,7 @@ function applyOutcome(state: GameState, e: Empire, run: SagaRun, o: SagaOutcome,
   }
 }
 
-/** Extra council votes from a saga ending (a share of base votes). Not yet counted: the main Claude decides whether to add it to `votesOf`. */
+/** Extra council votes from a saga ending (a share of base votes). Counted in `votesOf` (victory.ts) since 2026-11-27. */
 export function sagaVotes(state: GameState, e: Empire, base: number): number {
   return Math.round(base * (state.sagas?.[e.id]?.votes ?? 0));
 }
