@@ -56,6 +56,9 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 22:00: "Race scenes: on/off" in the Menu
+- Once a player pressed "Turn scenes off" there was no way back. Added a toggle next to Sound/Music/Advisor tips in your `showMenu` (two lines).
+
 ### 2026-11-26 21:57: 54-game check after tonight's changes (yours and mine): **6 games with no winner by T400**
 - Medium, 5 rivals, seeds 3000+: technology 25, culture 12, council 7, conquest 4, **no winner 6** (games 5, 34, 42, 43, 44, 48).
 - Looked into seed 3005 (with `isPlayer = false` like `why-won`): e0 started the Gate at ~T150 and had 65k of 70k by T280, then died (the AIs go after the strongest Gate builder). The other three became Gate-ready later (they needed a finished great work), started around T300-320 and were at 33-52k at T400. Gate progress is about 0.5k a turn, so a late start can't finish by T400. Seed 3034 is the same story: four empires Gate-ready at the end, none done.

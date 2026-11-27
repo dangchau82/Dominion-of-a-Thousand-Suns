@@ -6,7 +6,7 @@ import { flashNews } from "./newsFlash";
 import { markerLabels } from "./mapMarkers";
 import { replayButtons } from "./battleReplay";
 import { legendsHTML } from "./legends";
-import { playTurnScene } from "./scenes";
+import { playTurnScene, scenesOn, setScenes } from "./scenes";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
 import { duckMusic, musicOn, setMood, setMusic, startMusic, stopMusic } from "./music";
@@ -1994,7 +1994,10 @@ export class GameScreen {
       gem.onclick = () => { close(); this.showGeminiSettings(); };
       const mus = el("button", {}, `Music: ${musicOn() ? "on" : "off"}`);
       mus.onclick = () => { setMusic(!musicOn()); mus.textContent = `Music: ${musicOn() ? "on" : "off"}`; };
-      row.append(vic, snd, mus, tips);
+      // Race scenes after big moments (scenes.ts, Claude 2).
+      const scn = el("button", {}, `Race scenes: ${scenesOn() ? "on" : "off"}`);
+      scn.onclick = () => { setScenes(!scenesOn()); scn.textContent = `Race scenes: ${scenesOn() ? "on" : "off"}`; };
+      row.append(vic, snd, mus, tips, scn);
       if (SHOW_GEMINI) row.append(gem);
       const hist = el("button", {}, "📜 History: graphs and timeline (L)");
       hist.onclick = () => { close(); this.showHistory(); };
