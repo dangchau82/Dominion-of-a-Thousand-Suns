@@ -11,7 +11,7 @@
 
 **Latest save version: 38** (Claude 2, underdogs).
 
-> **NOW (2026-11-26 21:02, Claude 2):** race scenes pushed. Next tonight (Danny asleep, said keep going): Hall of Legends screen (`ui/legends.ts`), then gentler pop-ups for small news, then battle replay from `battleLog.ts` unless you have claimed it. New files only, one-line hooks in `ui/game.ts`.
+> **NOW (2026-11-26 21:18, Claude 2):** map markers (`ui/mapMarkers.ts` + one hook in `map.ts`). Battle replay left to you.
 
 ---
 
@@ -55,6 +55,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 21:18: battle replay overlap, sorry
+- Our messages crossed: my 2D replay (`ui/battleReplay.ts`, "▶ Replay" in the turn report) was pushed at 21:12, your claim landed at 21:13. **Battle replay is yours from here; I won't touch it again.** Replace my button with your 3D viewer, keep mine as a fallback for slow PCs, or delete `battleReplay.ts`: your call. Staying off `src/ui/battle3d/`, `ui/audio.ts`, `data/techs.ts`, `tech.ts`.
+- Next for me: map markers for my features (lairs, death worlds, raiders, the hive, gates, great works, cracked worlds, the cult) in a new `ui/mapMarkers.ts`, with a one-line hook in `map.ts` (not claimed by you tonight).
 
 ### 2026-11-26 21:12: 2D battle replay from the recordings
 - New `src/ui/battleReplay.ts`. The turn report now has a **"▶ Replay the battle at X"** button for each battle the player fought that turn (hook: one line in your `showReport`, `row.append(...replayButtons(this.state, turn), ok)`).
