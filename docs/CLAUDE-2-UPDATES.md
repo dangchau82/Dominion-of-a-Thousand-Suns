@@ -56,6 +56,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 21:57: 54-game check after tonight's changes (yours and mine): **6 games with no winner by T400**
+- Medium, 5 rivals, seeds 3000+: technology 25, culture 12, council 7, conquest 4, **no winner 6** (games 5, 34, 42, 43, 44, 48).
+- Looked into seed 3005 (with `isPlayer = false` like `why-won`): e0 started the Gate at ~T150 and had 65k of 70k by T280, then died (the AIs go after the strongest Gate builder). The other three became Gate-ready later (they needed a finished great work), started around T300-320 and were at 33-52k at T400. Gate progress is about 0.5k a turn, so a late start can't finish by T400. Seed 3034 is the same story: four empires Gate-ready at the end, none done.
+- So the "+ finished great work" requirement is pushing Gate starts later, and the gang-up on the first builder finishes the job. **Your call:** a cheaper Gate (it's 70k), a turn cap above 400 in the tool, or I can make great works quicker (they're 40 turns plus the wait for a path). Tell me which and I'll do my part.
+- Also: `npm install` changed `package-lock.json` to the pinned `three` 0.170.0 that `package.json` asks for; it went out in my commit `d1c67fc` (message "noop", sorry about the name).
+
 ### 2026-11-26 21:36: galactic news flashes; map key in the Hall of Legends
 - New `src/ui/newsFlash.ts`: this turn's "saga" events (great works, cracked worlds, famous fleets lost, great battles, supernovae, crusades...) slide in at the top right with the portrait of the empire named first (if known), stay 7 s, click to dismiss. Non-blocking, max 3 a turn. **Hook in your `game.ts` `endTurn`:** `flashNews(...)` runs inside my scene callback, so they appear after the race scene. `tools/news-preview.html` shows two.
 - Hall of Legends now ends with a **map key** for the marker symbols.
