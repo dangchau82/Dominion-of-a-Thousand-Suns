@@ -422,6 +422,8 @@ export interface GameState {
   underdogs?: import("./underdogs").UnderdogState;
   /** Dig sites and artifacts. See src/engine/digSites.ts. */
   digs?: import("./digSites").DigState;
+  /** Heroes (governors, spymasters, scientists). See src/engine/heroes.ts. */
+  heroes?: import("./heroes").HeroState;
   /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
   openSecret?: import("./openSecret").OpenSecretState;
   /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
@@ -447,4 +449,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 42;
+export const SAVE_VERSION = 43;

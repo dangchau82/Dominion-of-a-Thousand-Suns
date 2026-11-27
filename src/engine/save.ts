@@ -162,6 +162,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 40) { (data as GameState).version = 41; }
   // Version 41 -> 42: dig sites and artifacts (placed on the first turn after loading).
   if (data.version === 41) { (data as GameState).version = 42; }
+  // Version 42 -> 43: heroes.
+  if (data.version === 42) { (data as GameState).version = 43; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

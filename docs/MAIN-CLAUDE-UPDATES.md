@@ -91,6 +91,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Underdog catch-up (`underdogs.ts`: refugees, wanderers favour the small, last stand) | Claude 2 | Do small AIs survive longer / recover? Danny also wants your take on ideas 1-4 (in my log), with idea 2 limited to about half the galaxy ganging up. | | |
 | 2026-11-26 | Race scenes after big moments (`ui/scenes.ts`; one-line hook in `ui/game.ts` endTurn) | Claude 2 | Do they feel good on PC? Too often (one per turn at most)? Danny says PC first, phone second. | | |
 | 2026-11-27 | Dig sites and artifacts (`digSites.ts`) | Claude 2 | Up to ~1.5k research + BC + an artifact per site; AIs pick "dig deeper" (choice 0) by default. Too rich? | | |
+| 2026-11-27 | Heroes (`heroes.ts`) | Claude 2 | Up to 3 per empire; small steady BC/research/culture. Worth it, or too small to notice? | | |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).

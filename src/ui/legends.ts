@@ -7,6 +7,7 @@ import { famousFleets, rankTitle } from "../engine/battleStories";
 import { PATH_NAMES, WORK_BY_ID, type EndgamePath } from "../engine/data/greatWorks";
 import { gateWorlds, raceWork } from "../engine/endgame";
 import { artifactsOf } from "../engine/digSites";
+import { heroesOf, ROLE_NAMES } from "../engine/heroes";
 import type { GameState, Id } from "../engine/types";
 import { portraitHTML } from "./assets";
 
@@ -61,6 +62,20 @@ export function legendsHTML(state: GameState, playerId: Id): string {
     for (const { o, w, def } of works) parts.push(`<li><b style="color:${o.color}">${esc(o.name)}</b>: ${esc(def.name)} ${w.finished ? `<span class="gold-text">(finished)</span>` : `<span class="dim">(being built)</span>`}</li>`);
     parts.push(`</ul>`);
   }
+
+  // Heroes in our service, and those we have lost.
+  const heroes = heroesOf(state, me);
+  parts.push(`<h3>Our heroes</h3>`);
+  if (!heroes.length) parts.push(`<p class="dim">No hero serves us yet. People of rare talent come to growing empires.</p>`);
+  for (const h of heroes) {
+    const where = h.starId !== undefined ? ` at ${esc(state.stars[h.starId]?.name ?? "?")}` : h.field ? ` (${h.field})` : "";
+    parts.push(`<div style="display:flex;gap:12px;align-items:center;margin:6px 0;padding:6px 8px;border:1px solid #333;border-radius:10px">
+      ${portraitHTML(me.raceId, 'style="width:52px;height:64px;object-fit:cover;border-radius:8px"')}
+      <div><b>${ROLE_NAMES[h.role]} ${esc(h.name)}</b>${where} <span class="gold-text">level ${h.level}</span><br>
+      <span class="dim">Serving since turn ${h.since}; ${h.deeds} great deeds.</span></div></div>`);
+  }
+  const lost = (state.heroes?.fallen ?? []).filter((f) => f.empireId === playerId).slice(-5).reverse();
+  if (lost.length) parts.push(`<p class="dim">Remembered: ${lost.map((f) => `${ROLE_NAMES[f.role]} ${esc(f.name)} (turn ${f.turn}, ${esc(f.how)})`).join("; ")}.</p>`);
 
   // Artifacts from dig sites.
   const arts = artifactsOf(state, me);

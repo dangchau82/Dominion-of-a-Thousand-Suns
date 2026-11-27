@@ -32,6 +32,7 @@ import { processMegastructures } from "./megastructures";
 import { processEndgame } from "./endgame";
 import { processUnderdogs } from "./underdogs";
 import { processDigSites } from "./digSites";
+import { processHeroes } from "./heroes";
 import { processCoalition } from "./coalition";
 import { processOpenSecret, openSecretProduction, openSecretResearch, openSecretCostFactor } from "./openSecret";
 import { processRaiders } from "./raiders";
@@ -292,6 +293,7 @@ export function endTurn(state: GameState): void {
   processEndgame(state);
   processUnderdogs(state);
   processDigSites(state);
+  processHeroes(state);
   processOpenSecret(state);
   processCoalition(state);
   rollEvents(state);

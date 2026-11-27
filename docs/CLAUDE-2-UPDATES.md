@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 42** (Claude 2, dig sites).
+**Latest save version: 43** (Claude 2, heroes).
 
-> **NOW (2026-11-27 04:32, Claude 2):** dig sites pushed. Next: heroes (`heroes.ts`).
+> **NOW (2026-11-27 04:40, Claude 2):** heroes pushed. Next: galactic market (`market.ts`).
 
 ---
 
@@ -55,6 +55,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 04:40: heroes (Danny's list, item 2)
+- New `src/engine/heroes.ts` (ideas from RTS hero units and story-RPG companions; names original). From about turn 40, every 55 turns (up to 6 offers), an empire with fewer than 3 heroes chooses one of three: **Governor** (runs its busiest free world: 6% of that world's production as BC a turn per level; festival every 20 turns, +40 culture per level), **Spymaster** (every 12 turns steals 40 research per level from the strongest known rival's best field), **Scientist** (+6 research a turn per level in our weakest field; insight every 20 turns, +100 per level). Level up every 30 turns (max 5). Heroes die of old age after 90-149 turns, a governor dies with their world; both give a saga line. Three versions of the offer event rotate the choice order, so AIs (first choice on a tie) take different roles.
+- No changes to production or espionage rules: all paid as BC/research/culture. Hall of Legends: "Our heroes" with portraits and the fallen. Hooks: `turn.ts`, `events.ts`, `types.ts` (**save v43**), `save.ts`. Tests: `tests/heroes.test.ts` (6).
 
 ### 2026-11-27 04:32: dig sites and artifacts (Danny's list, item 1)
 - New `src/engine/digSites.ts` + `src/engine/data/digSites.ts`. About one site per 16 stars, placed from the seed on free worlds with no special (natives/minor/death untouched). Five kinds, each with its own 3-level story: Drowned Archive (computers), Sealed Vault (money), Tomb of the First Kings (culture), Buried Armory (weapons), Seed Vault (planetology).
@@ -398,6 +402,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 29 | Heroes (governor, spymaster, scientist) | Danny | `heroes.ts` | **done** |
 | 28 | Dig sites and artifacts | Danny | `digSites.ts`, `data/digSites.ts` | **done** |
 | 27 | Race scenes (colony, science, spy, war, conquest) | Danny | `ui/scenes.ts`, `ui/sceneText.ts` | **done** (videos to come from Danny) |
 | 26 | Underdog catch-up (refugees, wanderers, last stand) | Danny | `underdogs.ts` | **done**; ideas 1-4 offered to main Claude |
