@@ -56,6 +56,11 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-26 21:12: 2D battle replay from the recordings
+- New `src/ui/battleReplay.ts`. The turn report now has a **"▶ Replay the battle at X"** button for each battle the player fought that turn (hook: one line in your `showReport`, `row.append(...replayButtons(this.state, turn), ok)`).
+- The replay plays the real `BattleRecord` shot by shot: both sides line up (race ship art, up to five hulls in a wedge per stack, sizes by hit points; planets and fighters drawn too), beams flash, missiles and torpedoes arc across, intercepts burst midway, shields ring on blocks and dodges, kills explode and the counts go down. Round counter, speed x1/x2/x4, Esc or Close. If your 3D viewer lands, it can use the same `state.battles` data; this one is just the 2D version.
+- `tools/replay-preview.html?a=nyx&b=tarkhan&n=10&t=4200` (with `npm run dev`) shows a test battle held at a moment. Both preview pages now use `<base href="/">` so the art loads.
+
 ### 2026-11-26 21:06: Hall of Legends screen
 - New `src/ui/legends.ts` (`legendsHTML(state, playerId)`): our path(s) and great work with a progress bar, our race's own work, the Gate's world requirement; great works of known empires; our famous fleets with rank, victories, kills and admiral (portrait, personality and what it does); famous fleets of known rivals; the great battles with both sides' losses. Unknown empires stay unnamed.
 - **Hooks in your `ui/game.ts`:** a "🏆 Legends" button next to History, and the **G** key (H was taken). It uses your `modal`, widened to 820 px for PC.

@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { replayButtons } from "./battleReplay";
 import { legendsHTML } from "./legends";
 import { playTurnScene } from "./scenes";
 import { say } from "../engine/dialogue";
@@ -1374,7 +1375,7 @@ export class GameScreen {
       const row = el("div", { class: "row" });
       const ok = el("button", { class: "primary" }, "Continue");
       ok.onclick = () => { close(); this.showProposals(); };
-      row.append(ok);
+      row.append(...replayButtons(this.state, turn), ok); // battle replays (battleReplay.ts, Claude 2)
       box.append(row);
     });
   }

@@ -1,0 +1,20 @@
+<!-- Battle replay preview (Claude 2). Run `npm run dev`, open /tools/replay-preview.html?a=nyx&b=ashkari&n=12 -->
+<!doctype html><html><head><base href="/"></head><body style="margin:0;background:#000">
+<script type="module">
+import { newGame, designsOf } from "/src/engine/index.ts";
+import { resolveCombat } from "/src/engine/combat.ts";
+import { showReplay } from "/src/ui/battleReplay.ts";
+const q = new URLSearchParams(location.search);
+const g = newGame({ seed: 77, size: "small", shape: "ellipse", rivals: 1, playerRaceId: q.get("a") || "nyx", playerName: "P" });
+g.empires[1].raceId = q.get("b") || "ashkari";
+for (const [x, y] of [[0, 1], [1, 0]]) { g.empires[x].contacts.push(y); g.empires[x].atWar[y] = 0; }
+const star = g.stars.find((s) => !g.colonies[s.id]);
+const n = Number(q.get("n") || 10);
+for (const e of [0, 1]) {
+  const ds = designsOf(g, e).filter((d) => d.role === "warship" && d.weapons.length);
+  const ships = {}; ds.slice(0, 3).forEach((d, i) => ships[d.id] = Math.max(1, Math.round(n / (i + 1))));
+  g.fleets.push({ id: g.nextFleetId++, empireId: e, ships, x: star.x, y: star.y, starId: star.id, destStarId: null });
+}
+resolveCombat(g);
+showReplay(g, g.battles.at(-1), q.get("t") ? Number(q.get("t")) : undefined);
+</script></body></html>
