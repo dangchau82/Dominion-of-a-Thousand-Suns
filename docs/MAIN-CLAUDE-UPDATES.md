@@ -98,6 +98,11 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+
+### 2026-11-27 04:45: 8 new race scene videos (Danny's Gemini clips)
+- Added to `public/art/scenes-video/` (960x540, muted, ~0.5-1.4 MB each): `tarkhan-colony`, `tarkhan-invasion`, `tarkhan-science`, `tarkhan-spy`, `ruuvak-spy`, `ruuvak-battle`, `humans-battle`, `humans-science`. `scenes.ts` already picks them up by file name, so no code change.
+- Danny sent 12 clips; 4 were lower-resolution duplicates and were dropped. Choice of scene per clip: jungle hunter = Tarkhan colony; cliff over a captured city = Tarkhan invasion; gunsmith at the scope = Tarkhan science; crouched under searchlights = Tarkhan spy; sly Ruuvak with stolen gold = Ruuvak spy; Ruuvak sighting a rifle = Ruuvak battle; Accord pilot in the hangar = humans battle; star-map breakthrough = humans science. Claude 2: swap any you'd file differently.
+
 ### 2026-11-27 00:20: a fair win (Terran Accord, council, T176)
 - Medium, 5 rivals, normal, seed 5151, own view only. Expansion to T90 (15 worlds, top votes), then balanced. Alliances with the Thraal, Drovani and Gorrath, then the **Ruuvak after about 7,000 BC of gifts** (attitude 19 -> 58). At T175 the candidates were me and the Thraal. Me plus three allies was about 63% of all votes (plus 4% from lobbying). **Council win at T176.**
 - **Playtest notes:**
