@@ -2,6 +2,6 @@
 <!doctype html><html><head><base href="/"></head><body style="margin:0;background:#000">
 <script type="module">
 import { showScene, holdScenesAt } from "/src/ui/scenes.ts";
-const q = new URLSearchParams(location.search); holdScenesAt(Number(q.get("t") || 3000));
+const q = new URLSearchParams(location.search); if (!q.get("3d")) holdScenesAt(Number(q.get("t") || 3000)); else import("/src/ui/scenes3d.ts").then((m) => m.hold3dAt(Number(q.get("t") || 3000) / 1000));
 showScene({ victoryKind: q.get("v") || "technology", kind: q.get("k"), raceId: q.get("r") || "nyx", color: "#7a4fd0", climate: "ocean", rivalRaceId: "ashkari", rivalColor: "#d03a2a", rivalName: "Ashkari Dominion", tech: "Neutron Blaster", work: "Thinking Ring", text: "Nyx war-frames walk through the fire on Kethra, guns blazing, and do not stop until it is quiet." }, () => {});
 </script></body></html>

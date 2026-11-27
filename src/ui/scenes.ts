@@ -142,8 +142,36 @@ function style(): void {
   document.head.append(css);
 }
 
+/** 3D where it exists and WebGL works (scenes3d.ts, on the main Claude's battle3d stage); 2D otherwise. */
+let use3d = true;
+export function setScenes3d(on: boolean): void { use3d = on; }
+
 export function showScene(scene: Scene, done: () => void): void {
   style();
+  if (use3d && frozenAt === null && webgl()) {
+    void import("./scenes3d").then((m) => {
+      if (m.has3d(scene)) {
+        // A made video still wins: check for it first.
+        const v = document.createElement("video");
+        v.preload = "metadata";
+        let decided = false;
+        const go3d = () => { if (decided) return; decided = true; v.remove(); try { m.play3dScene(scene, done); } catch { show2d(scene, done); } };
+        v.onloadedmetadata = () => { if (decided) return; decided = true; v.remove(); show2d(scene, done); };
+        v.onerror = go3d;
+        setTimeout(go3d, 1500);
+        v.src = `art/scenes-video/${scene.raceId}-${scene.kind}.mp4`;
+      } else show2d(scene, done);
+    }).catch(() => show2d(scene, done));
+    return;
+  }
+  show2d(scene, done);
+}
+
+function webgl(): boolean {
+  try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; }
+}
+
+function show2d(scene: Scene, done: () => void): void {
   const back = document.createElement("div");
   back.className = "scene-back";
   const stage = document.createElement("div");

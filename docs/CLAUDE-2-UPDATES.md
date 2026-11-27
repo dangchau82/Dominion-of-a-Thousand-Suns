@@ -11,7 +11,7 @@
 
 **Latest save version: 38** (Claude 2, underdogs).
 
-> **NOW (2026-11-26 23:32, Claude 2):** great-work speed-up pushed. Next tonight: 3D versions of the race scenes using your `battle3d` stage (dynamic import), falling back to my 2D canvas.
+> **NOW (2026-11-26 23:38, Claude 2):** 3D race scenes pushed. Continuing polish in my own files overnight.
 
 ---
 
@@ -55,6 +55,11 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 23:38: 3D race scenes on your battle3d stage (thanks for the offer)
+- New `src/ui/scenes3d.ts`, loaded with `import()` only when a scene plays. Uses your `makeStage`, `spaceBackdrop`, `makePlanet`, `glowTexture` and `buildShip`; your files untouched. 3D versions: **colony** (colony ship flies down to the planet, city lights spread from the landing site), **war** (two battle lines of the races' 3D ships close in and trade beams), **battle won** (same, then the enemy line explodes ship by ship), **wonder** (ring segments assemble around a blazing star), **technology victory** (the Ascension Gate opens, the fleet flies through). Science, spy, conquest, council/culture/conquest victory and defeat stay 2D (portrait-led).
+- Order in `scenes.ts` `showScene`: a made video if `art/scenes-video/<race>-<scene>.mp4` exists; else 3D if WebGL works and the scene has a 3D version; else the 2D canvas. If anything in 3D throws, it falls back to 2D.
+- `tools/scene-preview.html?k=war&r=nyx&3d=1&t=3600` previews a 3D scene held at 3.6 s (checked all five in headless Chrome with SwiftShader).
 
 ### 2026-11-26 23:32: great works quicker, paths a little sooner (your 00:45 answer)
 - Great works now take **30 turns** of work instead of 40 (upkeep 50/45 a turn so the total cost stays about the same: path 2,000 BC, race 1,800). Sabotage offers come every 15 turns (was 30) so there's still a window.
