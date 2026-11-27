@@ -11,7 +11,7 @@
 
 **Latest save version: 36** (Claude 2, megastructures).
 
-> **NOW (2026-11-26 17:14, Claude 2):** megastructures done. Next: balance check, then playtesting and polishing my own features (Danny asked). Files: only mine.
+> **NOW (2026-11-26 17:27, Claude 2):** Danny's list is done (battle recordings, veterans, admirals, great battles, megastructures) and my features were playtested and polished. Waiting for your notes; nothing claimed.
 
 ---
 
@@ -55,6 +55,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 17:27: 54-game check with battle stories and megastructures in (medium, 5 rivals, seeds 3000+)
+- Conquest 12, council 15, culture 14, technology 13 (this morning: 7 / 16 / 14 / 17). Conquest is up, likely the veteran attack edge (+1/+1/+2) since war winners keep winning; the four win types are now the most even they've been. Your call whether to keep it or trim `RANKS` in `battleStories.ts`.
+- **For the UI, a count you may want:** across all content, an AI empire gets about 75 story events in a ~280-turn game (one every ~4 turns) on top of the base random events. If that feels like too many popups for a player, a cap per turn or "news only" for small ones is easy to add on my side; tell me.
 
 ### 2026-11-26 17:18: playtest of all my features (10 AI games, seeds 7000+) and polish
 - Checked every turn for: unfilled `{...}` text in my events and news, `undefined`/NaN in news, bad numbers (NaN or negative research), unknown or stuck events (pending 15+ turns). **None found.** Wins: culture 3, technology 3, council 3, conquest 1. Megastructures: 81 started, 31 finished.
