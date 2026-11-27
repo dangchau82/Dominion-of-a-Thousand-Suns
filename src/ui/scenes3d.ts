@@ -8,6 +8,7 @@
 
 import * as THREE from "three";
 import { buildShip, type Ship3D } from "./battle3d/ships3d";
+import { loadKit, type Kit } from "./battle3d/landingKit";
 import { glowTexture, makePlanet, makeStage, spaceBackdrop } from "./battle3d/stage";
 import type { Scene } from "./scenes";
 import { SCENE_TITLES } from "./sceneText";
@@ -15,6 +16,77 @@ import { portraitHTML } from "./assets";
 import type { Climate } from "../engine/types";
 
 export const LENGTH_S = 7;
+/** The colony scene has a second shot on the ground, so it runs longer. */
+export const COLONY_LENGTH_S = 9.5;
+const GROUND_AT = 4.9;
+
+const GROUND_COLOURS: Record<string, [number, number]> = {
+  terran: [0x3f7a3a, 0x6f8f4a], jungle: [0x245c2a, 0x3f7a2e], ocean: [0x3f6f5a, 0xc8b88a], arid: [0x9a7a4a, 0xb89a62],
+  desert: [0xc8a060, 0xe0c080], tundra: [0xb8c4cc, 0xe8eef2], barren: [0x6a6460, 0x8a8480], inferno: [0x5a2a1a, 0x8a3a1a],
+  toxic: [0x5a6a2a, 0x8a9a3a], radiated: [0x4a5a3a, 0x7a8a5a], dead: [0x5a5a5a, 0x7a7a7a],
+};
+
+/** The ground shot of the colony scene: the dropship lands, domes and a tower rise, trees around. */
+function colonyGround(kit: Kit, climate: string, team: string): { group: THREE.Group; update: (tg: number) => void } {
+  const group = new THREE.Group();
+  const [lo, hi] = GROUND_COLOURS[climate] ?? GROUND_COLOURS.terran!;
+  const geo = new THREE.PlaneGeometry(400, 400, 80, 80);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position!, colors: number[] = [];
+  const a = new THREE.Color(lo), b = new THREE.Color(hi), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    const d = Math.hypot(x, z);
+    const hgt = d < 40 ? 0 : (Math.sin(x * 0.05) * Math.cos(z * 0.04) * 6 + Math.sin(x * 0.013 + z * 0.02) * 14) * Math.min(1, (d - 40) / 80);
+    pos.setY(i, hgt);
+    c.copy(a).lerp(b, Math.max(0, Math.min(1, 0.5 + hgt / 30)));
+    colors.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }));
+  ground.receiveShadow = true;
+  group.add(ground);
+  const sun = new THREE.DirectionalLight(0xfff0d8, 1.1);
+  sun.position.set(80, 60, 40); group.add(sun);
+  group.add(new THREE.HemisphereLight(0x8fb0ff, 0x302820, 0.35));
+  const tint = { team, glow: team, glowStrength: 3 };
+  // Trees (or rocks on dead worlds) around the clearing.
+  const tree: "conifer" | "palm" | "rock" = climate === "jungle" || climate === "ocean" || climate === "desert" || climate === "arid" ? (climate === "desert" ? "rock" : "palm") : climate === "terran" || climate === "tundra" ? "conifer" : "rock";
+  for (let i = 0; i < 60; i++) {
+    const ang = i * 2.399, r = 45 + ((i * 37) % 90);
+    const t = kit.make(tree);
+    t.position.set(Math.cos(ang) * r, 0, Math.sin(ang) * r);
+    t.scale.setScalar(2 + (i % 5) * 0.4);
+    t.rotation.y = i;
+    group.add(t);
+  }
+  const ship = kit.make("dropship", tint);
+  ship.scale.setScalar(3);
+  group.add(ship);
+  const dust = glowSprite(0xd8c8a8, 1); dust.position.y = 1; group.add(dust);
+  const domes = [0, 1, 2, 3, 4].map((i) => {
+    const d = kit.make(i === 2 ? "tower" : "hab_dome", tint);
+    const ang = -0.9 + i * 0.45;
+    d.position.set(Math.cos(ang) * 22, 0, Math.sin(ang) * 22 - 4);
+    d.scale.setScalar(0.001);
+    group.add(d);
+    return d;
+  });
+  const lamps = domes.map((d) => { const l = glowSprite(team, 4); l.position.copy(d.position).add(new THREE.Vector3(0, 4, 0)); l.visible = false; group.add(l); return l; });
+  return {
+    group,
+    update(tg) {
+      const p = ease(tg / 1.8);
+      ship.position.set(-10 + p * 10, 60 * (1 - p), -30 * (1 - p));
+      ship.rotation.y = Math.PI * 0.15 * (1 - p);
+      dust.scale.setScalar(tg > 1.2 ? 10 + (tg - 1.2) * 30 : 1);
+      (dust.material as THREE.SpriteMaterial).opacity = tg > 1.2 ? Math.max(0, 0.8 - (tg - 1.2) * 0.5) : 0;
+      domes.forEach((d, i) => { const k = ease((tg - 1.8 - i * 0.35) / 0.6); d.scale.setScalar(Math.max(0.001, k * (i === 2 ? 2 : 2.4))); });
+      lamps.forEach((l, i) => { l.visible = tg > 2.4 + i * 0.35; });
+    },
+  };
+}
 
 /** For previews and screenshots: hold 3D scenes at this many seconds (null = play normally). */
 let hold: number | null = null;
@@ -44,7 +116,7 @@ function beam(from: THREE.Vector3, to: THREE.Vector3, color: THREE.ColorRepresen
 
 /** Play a 3D scene; the caption goes in the stage's HUD. Calls `done` when it ends or is skipped. */
 export function play3dScene(s: Scene, done: () => void): void {
-  const stage = makeStage(done, { bloom: 1.0 });
+  const stage = makeStage(done, { bloom: s.kind === "colony" ? 0.45 : 1.0 });
   const { scene, camera, hud } = stage;
   spaceBackdrop(scene, "yellow", 7 + s.kind.length, true);
   scene.add(new THREE.AmbientLight(0x8899bb, 0.35));
@@ -74,7 +146,7 @@ export function play3dScene(s: Scene, done: () => void): void {
   stage.onFrame((dt) => {
     t = hold ?? t + dt;
     for (const f of update) f(t, dt);
-    if (hold === null && t >= LENGTH_S) { removeEventListener("keydown", onKey, true); stage.close(); }
+    if (hold === null && t >= (s.kind === "colony" ? COLONY_LENGTH_S : LENGTH_S)) { removeEventListener("keydown", onKey, true); stage.close(); }
   });
 
   const ours = s.color, theirs = s.rivalColor ?? "#ff4444";
@@ -97,7 +169,21 @@ export function play3dScene(s: Scene, done: () => void): void {
       const l = glowSprite(0xffd27a, 1.1); l.position.copy(p); l.visible = false; planet.add(l); lights.push(l);
     }
     camera.position.set(-75, 30, 150);
+    // The ground shot, built once the landing models are ready (they load in the background).
+    const space = [planet, ship.root];
+    let groundShot: ReturnType<typeof colonyGround> | null = null;
+    void loadKit().then((kit) => { groundShot = colonyGround(kit, s.climate ?? "terran", ours); groundShot.group.visible = false; scene.add(groundShot.group); });
     update.push((t) => {
+      if (t >= GROUND_AT && groundShot) {
+        for (const o of space) o.visible = false;
+        groundShot.group.visible = true;
+        const tg = t - GROUND_AT;
+        groundShot.update(tg);
+        const a = 0.9 + tg * 0.12;
+        camera.position.set(Math.cos(a) * 95, 20 + tg * 2, Math.sin(a) * 95);
+        camera.lookAt(0, 8, 0);
+        return;
+      }
       const p = ease(t / 4.2);
       ship.root.position.lerpVectors(start, land, p);
       ship.root.lookAt(land.clone().add(land.clone().sub(start)));

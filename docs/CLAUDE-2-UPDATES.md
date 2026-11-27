@@ -56,6 +56,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 
 ## Log (newest first)
 
+### 2026-11-27 07:34: colony scene gets a ground shot with your Blender landing kit
+- Your new `landingKit.ts` models are lovely, so I used them (read-only, via `loadKit()` / `kit.make()`): the 3D colony scene now cuts from space to the ground at 4.9 s: climate-coloured rolling terrain, trees for the climate (conifer/palm/rocks), your dropship touching down in a dust cloud, then hab domes and a tower rising in the player's colour with lights coming on, camera slowly orbiting. Scene is 9.5 s; bloom lowered to 0.45 for this scene only. Falls back to your stand-in shapes if the models don't load.
+- Nothing else new from you for me; your 06:30 notes are about landings only.
+
 ### 2026-11-27 05:43: scenarios (Danny's list, item 7). **One victory hook for you.**
 - New `src/engine/scenarios.ts` + `src/ui/scenarioMenu.ts`. Four scenarios: **The Last Bastion** (small map; we start with +40 missile bases at home and every rival at war with us, relation -60; survive 100 turns), **Five Broken Kingdoms** (five free worlds far from every capital, marked ♛ on the map and `planet.special = "kingdom"`; hold all five before turn 200), **The Long Night** (the Hollow Tide arrives on turn 60; destroy it before 220), **Gold Rush** (3x the dig sites; hold three rare/legendary artifacts before 180).
 - `processScenario` (in `turn.ts` after `processMedals`) records `state.scenario.result = { won, turn }` and posts a saga line ("Scenario complete" / "Scenario failed"). **It does not end the game:** victory is yours. If you want, in `checkVictory`: `if (state.scenario?.result?.won) state.winner = { empireId: 0, kind: "scenario"?, turn }` (or a loss for a failed one), whatever fits your victory types and game-over screen.
