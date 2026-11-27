@@ -1,14 +1,17 @@
 // 3D race scenes (written by Claude 2), built on the main Claude's battle3d stage: a colony
 // ship landing, two battle lines firing (war), the enemy line blowing apart (battle won),
-// a great work's ring assembling around a star (wonder) and the Ascension Gate opening
-// (technology victory). Loaded with import() from scenes.ts so three.js only downloads when
-// a scene plays. Other scenes (science, spy, council...) stay 2D: they are portrait-led.
+// a great work's ring assembling around a star (wonder), an orbital laboratory lighting up
+// (science), an agent's ship slipping past enemy searchlights (spy), and the Ascension Gate
+// opening (technology victory). The race's portrait fades in over science and spy. Loaded
+// with import() from scenes.ts so three.js only downloads when a scene plays. Conquest,
+// council/culture victories and defeat stay 2D.
 
 import * as THREE from "three";
 import { buildShip, type Ship3D } from "./battle3d/ships3d";
 import { glowTexture, makePlanet, makeStage, spaceBackdrop } from "./battle3d/stage";
 import type { Scene } from "./scenes";
 import { SCENE_TITLES } from "./sceneText";
+import { portraitHTML } from "./assets";
 import type { Climate } from "../engine/types";
 
 export const LENGTH_S = 7;
@@ -19,7 +22,7 @@ export function hold3dAt(sec: number | null): void { hold = sec; }
 
 /** Which scenes have a 3D version. */
 export function has3d(s: Scene): boolean {
-  return s.kind === "colony" || s.kind === "war" || s.kind === "battle" || s.kind === "wonder" || (s.kind === "victory" && s.victoryKind === "technology");
+  return s.kind === "colony" || s.kind === "war" || s.kind === "battle" || s.kind === "wonder" || s.kind === "science" || s.kind === "spy" || (s.kind === "victory" && s.victoryKind === "technology");
 }
 
 const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
@@ -51,6 +54,14 @@ export function play3dScene(s: Scene, done: () => void): void {
     <div class="scene-skip" style="position:absolute;top:2%;right:1.5%;display:flex;gap:8px"><button data-skip>Skip ▸</button></div>`;
   hud.style.cssText = "position:absolute;inset:0;pointer-events:none";
   (hud.querySelector(".scene-cap div") as HTMLElement).textContent = s.text;
+  if (s.kind === "science" || s.kind === "spy") {
+    const face = document.createElement("div");
+    face.innerHTML = portraitHTML(s.raceId, 'style="width:100%;height:100%;object-fit:cover"');
+    face.style.cssText = `position:absolute;left:3%;top:8%;height:68%;aspect-ratio:4/5;border-radius:50%/42%;overflow:hidden;opacity:0;transition:opacity 1.6s ease;
+      -webkit-mask-image:radial-gradient(ellipse at center, #000 55%, transparent 72%);mask-image:radial-gradient(ellipse at center, #000 55%, transparent 72%);${s.kind === "spy" ? "filter:brightness(.55) sepia(.4) hue-rotate(60deg);" : ""}`;
+    hud.prepend(face);
+    setTimeout(() => { face.style.opacity = "0.9"; }, 300);
+  }
   const skip = hud.querySelector<HTMLButtonElement>("[data-skip]")!;
   skip.style.pointerEvents = "auto";
   skip.onclick = () => stage.close();
@@ -157,6 +168,56 @@ export function play3dScene(s: Scene, done: () => void): void {
       sun.scale.setScalar(60 + Math.sin(t * 2) * 4 + (t > 4.6 ? (t - 4.6) * 40 : 0));
       camera.position.set(Math.sin(t * 0.15) * 120, 35 - t * 2, Math.cos(t * 0.15) * 120);
       camera.lookAt(0, 0, 0);
+    });
+  } else if (s.kind === "science") {
+    // An orbital laboratory over our world: rings spin up, then the breakthrough flash.
+    const planet = makePlanet((s.climate ?? "terran") as Climate, 26, 5);
+    planet.position.set(10, -30, -20); scene.add(planet);
+    const lab = new THREE.Group(); lab.position.set(10, 8, 0); scene.add(lab);
+    const metal = new THREE.MeshStandardMaterial({ color: 0x9aa4b4, metalness: 0.8, roughness: 0.35 });
+    const glowMat = new THREE.MeshStandardMaterial({ color: hex(ours), emissive: hex(ours), emissiveIntensity: 1.2 });
+    lab.add(new THREE.Mesh(new THREE.SphereGeometry(3, 32, 16), metal));
+    const core = glowSprite(ours, 8); lab.add(core);
+    const rings = [8, 11.5, 15].map((r, i) => {
+      const m = new THREE.Mesh(new THREE.TorusGeometry(r, 0.35, 8, 96), i === 1 ? glowMat : metal);
+      m.rotation.set(i * 0.7, i * 0.4, 0); lab.add(m); return m;
+    });
+    for (let i = 0; i < 4; i++) { const arm = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 22), metal); arm.rotation.y = (i * Math.PI) / 4; lab.add(arm); }
+    const motes = Array.from({ length: 40 }, (_, i) => { const m = glowSprite(ours, 0.8); lab.add(m); return { m, a: i * 2.4, r: 5 + (i % 9) * 1.4, y: ((i * 37) % 13) - 6 }; });
+    camera.position.set(-10, 14, 55);
+    update.push((t) => {
+      const spin = 0.4 + ease(t / 3.5) * 3;
+      rings.forEach((r, i) => { r.rotation.x += 0.004 * spin * (i + 1); r.rotation.y += 0.006 * spin * (i % 2 ? -1 : 1); });
+      motes.forEach((o) => { o.a += 0.01 * spin; o.m.position.set(Math.cos(o.a) * o.r, o.y + Math.sin(t + o.a) * 0.8, Math.sin(o.a) * o.r); });
+      core.scale.setScalar(8 + (t > 4 ? (1 - ease((t - 4) / 1.5)) * 50 : Math.sin(t * 6) * 0.8));
+      camera.position.set(-10 + t * 2, 14, 55 - t * 2.5);
+      camera.lookAt(12, 6, 0);
+    });
+  } else if (s.kind === "spy") {
+    // Our agent's small ship slips past enemy warships and their searchlights, then the data streaks home.
+    const guards = [0, 1, 2].map((i) => {
+      const sh = buildShip(enemyRace, i === 1 ? "huge" : "large");
+      sh.root.position.set(-25 + i * 28, (i - 1) * 6, -12 + (i % 2) * 18);
+      sh.root.rotation.y = Math.PI / 2 + i * 0.3; scene.add(sh.root);
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(9, 40, 24, 1, true), new THREE.MeshBasicMaterial({ color: hex(theirs), transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      cone.position.copy(sh.root.position).add(new THREE.Vector3(0, -18, 0)); scene.add(cone);
+      return { sh, cone, phase: i * 1.9 };
+    });
+    const agent = buildShip(s.raceId, "small"); agent.root.scale.setScalar(1.6); scene.add(agent.root);
+    const trail = glowSprite(ours, 2.5); agent.root.add(trail); trail.position.set(-1.5, 0, 0);
+    const data = glowSprite(0x9dff9d, 4); data.visible = false; scene.add(data);
+    camera.position.set(0, 22, 70);
+    update.push((t) => {
+      guards.forEach((g) => { g.cone.rotation.z = Math.sin(t * 0.9 + g.phase) * 0.6; g.cone.rotation.x = Math.cos(t * 0.7 + g.phase) * 0.3; });
+      const p = ease(t / 4.4);
+      agent.root.position.set(-70 + p * 130, -4 + Math.sin(p * 9) * 3, 20 - p * 6);
+      agent.root.rotation.z = Math.sin(p * 9) * 0.2;
+      if (t > 4.4) {
+        const q = ease((t - 4.4) / 1.6);
+        data.visible = true; data.scale.setScalar(4 + q * 6);
+        data.position.set(60 - q * 140, -4 + q * 30, 14 - q * 60);
+      }
+      camera.lookAt(agent.root.position.x * 0.4, 0, 0);
     });
   } else {
     // Technology victory: the Ascension Gate opens and our ships fly through.
