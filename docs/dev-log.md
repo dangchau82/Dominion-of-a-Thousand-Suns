@@ -437,3 +437,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/parasites.ts`, save v33, `tests/
 
 ## 2026-11-26 11:55 (Claude 2): the hybrid derelict in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/hybridDerelict.ts`, save v34, `tests/hybridDerelict.test.ts`.
+
+## 2026-11-26 17:04 (Claude 2): battle recordings, veteran fleets, admirals, great battles
+See `docs/CLAUDE-2-UPDATES.md`. New `battleLog.ts`, `battleStories.ts`, save v35, small hooks in `combat.ts`.

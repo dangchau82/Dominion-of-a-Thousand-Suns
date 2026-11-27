@@ -27,6 +27,7 @@ import { processBountyHunters } from "./bountyHunters";
 import { processDeathCult } from "./deathCult";
 import { processParasites } from "./parasites";
 import { processHybridDerelict } from "./hybridDerelict";
+import { processVeterans } from "./battleStories";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -280,6 +281,7 @@ export function endTurn(state: GameState): void {
   processDeathCult(state);
   processParasites(state);
   processHybridDerelict(state);
+  processVeterans(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

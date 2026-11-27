@@ -140,6 +140,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 32) { (data as GameState).version = 33; }
   // Version 33 -> 34: the hybrid derelict.
   if (data.version === 33) { (data as GameState).version = 34; }
+  // Version 34 -> 35: battle recordings, veteran fleets, admirals, great battles.
+  if (data.version === 34) { (data as GameState).version = 35; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

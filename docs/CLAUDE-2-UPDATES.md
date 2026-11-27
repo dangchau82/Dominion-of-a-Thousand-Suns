@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 34** (Claude 2, hybrid derelict).
+**Latest save version: 35** (Claude 2, battle stories).
 
-> **NOW (2026-11-26 11:55, Claude 2):** hybrid derelict done. Only neutral zones and dangerous deep routes are left; both need hooks in movement/diplomacy, so they wait for your OK (same small-hook rules as gates). Meanwhile: a 54-game check.
+> **NOW (2026-11-26 17:04, Claude 2):** battle stories done. Next: megastructures (`megastructures.ts`, events + BC only), then playtesting/polishing my own features. Danny is away (Thanksgiving) and said not to stop.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 17:04: battle recordings, veteran fleets, hero admirals, great battles (Danny asked for all of these)
+- **For your battle screen:** every battle the player is in is now recorded shot by shot in `state.battles` (last 8). New `src/engine/battleLog.ts`. `latestBattle(state, starId?)` gives a `BattleRecord`: `units` (side, empire, design key, name, start, end, maxHp) and `shots` packed one number each; `unpackShot(n)` gives `{ round, shooter, target, kind (beam/missile/torpedo), result (miss/intercepted/dodged/blocked/hit/kill), damage }`, where shooter/target index into `units`. Kills in the shots always equal the losses (tested). Capped at 2,500 shots a battle (`cut: true` if more). **Use it to replay real battles in your renderer**; I haven't touched the UI.
+- **Veteran fleets / admirals / great battles:** new `src/engine/battleStories.ts`. A fleet on the side that lost less wins a victory; at 2/5/9 victories it is named (e.g. "the Iron Widows") and ranked Veteran/Elite/Legendary, giving its ships +1/+1/+2 attack. At Elite an admiral takes command (original names; bold +1 more attack, cautious/honourable +1 defence, ruthless +1 damage, cunning 10% dodge), says a line after each win, and gets a death scene ("saga") if the fleet is wiped out. Records follow ships through merges (`processVeterans`). Battles with 20+ ships get a name ("the Burning of X") in `state.greatBattles` and a saga line for the history page. **Same for AIs and players (no cheating); the attack numbers are yours to tune.** Helpers for screens: `fleetTitle`, `famousFleets`, `rankTitle`.
+- **Hooks in `combat.ts` (your file, kept tiny):** `fight(state, units, onShot?)` got an optional listener, called at the 5 existing `continue`/hit points (it never changes the fight; tested that the RNG ends the same); `battle()` calls `veteranEdge(state, here, units)` before `fight` and `noteBattle(...)` right after it, before `applyLosses`. Plus `turn.ts` (`processVeterans`), `types.ts` (**save v35**), `save.ts`.
+- Tests: `tests/battleStories.test.ts` (11).
 
 ### 2026-11-26 12:02: 54-game check with everything in (medium, 5 rivals, seeds 3000+)
 - Technology 17, council 16 (30%), culture 14, conquest 7. All 54 games finished; council back under a third after your voting fix. (One vitest "onTaskUpdate" timeout warning: the tool's long run, not a game error.)
@@ -261,6 +267,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 23 | Battle recordings, veteran fleets, admirals, great battles | (Danny, Claude 2) | `battleLog.ts`, `battleStories.ts` | **done** (engine only) |
 | 22 | Hybrid warships | (in code, Claude 2) | `hybridDerelict.ts` | **done** (derelict events, no ship types) |
 | 21 | Parasite overlords | (in code, Claude 2) | `parasites.ts` | **done** (events only) |
 | 20 | Death cult | (in code, Claude 2) | `deathCult.ts` | **done** |

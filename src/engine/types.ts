@@ -407,6 +407,13 @@ export interface GameState {
   parasites?: Record<Id, import("./parasites").ParasiteHost>;
   /** The hybrid derelict, once a game per empire. See src/engine/hybridDerelict.ts. */
   hybridDerelict?: Record<Id, import("./hybridDerelict").DerelictState>;
+  /** The player's latest battles, shot by shot (src/engine/battleLog.ts). */
+  battles?: import("./battleLog").BattleRecord[];
+  nextBattleId?: number;
+  /** Famous fleets by fleet id, with their admirals (src/engine/battleStories.ts). */
+  veterans?: Record<Id, import("./battleStories").VeteranFleet>;
+  /** Named great battles for the history page (src/engine/battleStories.ts). */
+  greatBattles?: import("./battleStories").GreatBattle[];
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -428,4 +435,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 34;
+export const SAVE_VERSION = 35;

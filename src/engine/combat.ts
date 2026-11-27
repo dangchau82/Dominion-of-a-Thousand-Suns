@@ -22,6 +22,12 @@ import { techStats } from "./tech";
 import type { Colony, Empire, Fleet, GameState, Id, Star } from "./types";
 import { ambushing } from "./gates";
 
+import { BattleRecorder } from "./battleLog";
+import { noteBattle, veteranEdge } from "./battleStories";
+
+/** Told about each shot (battle recordings). */
+export type ShotListener = (round: number, shooter: Unit, target: Unit, kind: string, result: "miss" | "intercepted" | "dodged" | "blocked" | "hit" | "kill", damage: number) => void;
+
 export const BASE_HP = 25;
 /** Carrier tuning (see tools/carrier-duel.test.ts): fighters' share of incoming fire vs ships (1 = at most half), and their toughness. */
 export const FIGHTER_TUNING = { screen: 0.5, hitsMul: 1, interceptMul: 3 };
@@ -173,7 +179,8 @@ function pickTarget(rng: R.RngState, enemies: Unit[]): Unit | null {
   return live[live.length - 1]!;
 }
 
-export function fight(state: GameState, units: Unit[]): number {
+/** `onShot` (optional) is told about every shot, for battle recordings (battleLog.ts, Claude 2). It never changes the fight. */
+export function fight(state: GameState, units: Unit[], onShot?: ShotListener): number {
   const rng = state.rng;
   let rounds = 0;
   // Warp dampeners slow the other side, making them easier to hit.
@@ -216,15 +223,16 @@ export function fight(state: GameState, units: Unit[]): number {
             // Fighters screen their side: whole interceptions first, then a last partial chance.
             const s0 = screen[target.side]!;
             screen[target.side] = Math.max(0, s0 - 1);
-            if (s0 >= 1 || R.chance(rng, s0)) { stopped[target.side]!++; continue; }
+            if (s0 >= 1 || R.chance(rng, s0)) { stopped[target.side]!++; onShot?.(round, u, target, g.kind, "intercepted", 0); continue; }
           }
-          if (!R.chance(rng, hitChance(g, u, target))) continue;
-          if (target.dodge > 0 && R.chance(rng, target.dodge)) continue;
+          if (!R.chance(rng, hitChance(g, u, target))) { onShot?.(round, u, target, g.kind, "miss", 0); continue; }
+          if (target.dodge > 0 && R.chance(rng, target.dodge)) { onShot?.(round, u, target, g.kind, "dodged", 0); continue; }
           const raw = R.int(rng, g.min, g.max) + u.bonusDamage;
           // Torpedoes punch through half of the shield.
           const dmg = raw - (g.kind === "torpedo" ? Math.floor(target.shield / 2) : target.shield);
-          if (dmg <= 0 || target.invulnerable) continue;
+          if (dmg <= 0 || target.invulnerable) { onShot?.(round, u, target, g.kind, "blocked", 0); continue; }
           target.hp -= dmg;
+          onShot?.(round, u, target, g.kind, target.hp <= 0 ? "kill" : "hit", dmg);
           if (target.hp <= 0) {
             // A ship dies; extra damage is wasted (no overkill), as in the classic game.
             target.count--;
@@ -287,8 +295,11 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
   }
   if (!units.some(armed)) return; // nobody here can shoot
   if (!units.some((u) => u.side === 0) || !units.some((u) => u.side === 1)) return;
+  veteranEdge(state, here, units); // famous fleets and admirals (battleStories.ts, Claude 2)
 
-  const rounds = fight(state, units);
+  const rec = new BattleRecorder(units);
+  const rounds = fight(state, units, rec.shot);
+  noteBattle(state, s, a, b, rounds, units, here, rec);
   applyLosses(state, here, units);
   // Race abilities after the battle (Ashkari spoils, Raxxan salvage).
   const lossValue = (sd: 0 | 1) => units.filter((u) => u.side === sd && u.key !== "planet" && !u.fighter)
