@@ -1,6 +1,6 @@
 # Race scene videos: prompts for Google Flow (or Gemini/Veo)
 
-Written by Claude 2 for Danny, 2026-11-26. There are 126 clips (18 races x 7 scenes). The game already plays a drawn scene for every race; **a video replaces it as soon as you add the file.**
+Written by Claude 2 for Danny, 2026-11-26. There are 162 clips (18 races x 9 scenes). The game already plays a drawn scene for every race; **a video replaces it as soon as you add the file.**
 
 ## How to make one
 1. In Flow, start a new clip from an image: attach the race's portrait (`public/art/races/race-<race>.png`) as the reference.
@@ -13,7 +13,7 @@ Every prompt starts with the same rules so the 90 clips look like one game:
 
 > Use the attached portrait only as a reference for this race's look and the painting style; keep the same species, armour and colours. Cinematic science-fiction, painterly, dramatic lighting. No text, no logos, no real-world brands, nothing from existing films or games. 16:9, 8 seconds.
 
-Scenes: **colony** (new world founded), **science** (technology discovered), **spy** (spy mission done), **war** (war declared), **invasion** (world conquered), **battle** (a battle won), **wonder** (our great work finished).
+Scenes: **colony** (new world founded), **science** (technology discovered), **spy** (spy mission done), **war** (war declared), **invasion** (world conquered), **battle** (a battle won), **wonder** (our great work finished), **victory** (we won the game, any way), **defeat** (someone else won).
 
 ## Terran Accord (`humans`): Diplomats, colour blue, home terran
 
@@ -31,6 +31,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`humans-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work stands finished, and every embassy in the galaxy sends its congratulations."
 
+**`humans-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`humans-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Vossari (`vossari`): Scientists, colour pale ice-blue, home arid
 
 **`vossari-colony.mp4`**: A colony ship of this race descends through the sky of a new arid world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "Survey drones blanket the new world. Every grain of sand is catalogued before the first dome rises."
@@ -46,6 +50,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`vossari-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Battle outcome within predicted margins. Enemy losses: total."
 
 **`vossari-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is complete. The Vossari measure it once more, for the joy of it."
+
+**`vossari-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`vossari-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Kethrak Hive (`kethrak`): Hive, colour amber, home jungle
 
@@ -63,6 +71,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`kethrak-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work breathes, pulses, and joins the Hive's endless chorus."
 
+**`kethrak-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`kethrak-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Ashkari Dominion (`ashkari`): Warriors, colour crimson, home desert
 
 **`ashkari-colony.mp4`**: A colony ship of this race descends through the sky of a new desert world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "An Ashkari banner is driven into the rock of the new world. It will never come down."
@@ -78,6 +90,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`ashkari-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Victory! Their ships burn, and the Dominion counts the spoils."
 
 **`ashkari-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work rises, a monument to every Ashkari who died to make the Dominion great."
+
+**`ashkari-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`ashkari-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Lumen Choir (`lumen`): Telepaths, colour lavender, home ocean
 
@@ -95,6 +111,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`lumen-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work hums with a song that will never end."
 
+**`lumen-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`lumen-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Thraal (`thraal`): Lithovores, colour stone-grey, home barren
 
 **`thraal-colony.mp4`**: A colony ship of this race descends through the sky of a new barren world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The Thraal sink into the stone of the new world and begin, very slowly, to make it home."
@@ -110,6 +130,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`thraal-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The enemy broke against us like waves on a cliff."
 
 **`thraal-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is done, after ages of patient grinding. The mountains approve."
+
+**`thraal-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`thraal-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Seraphine (`seraphine`): Pilots, colour ivory-gold, home steppe
 
@@ -127,6 +151,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`seraphine-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work soars above our worlds, and every pilot salutes it on the way past."
 
+**`seraphine-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`seraphine-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Orrun Consortium (`orrun`): Traders, colour emerald-green, home ocean
 
 **`orrun-colony.mp4`**: A colony ship of this race descends through the sky of a new ocean world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The Consortium opens its newest branch office on the new world. Shares are already up."
@@ -142,6 +170,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`orrun-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Victory, and the salvage rights alone will pay for the war."
 
 **`orrun-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work opens for business. The galaxy will pay to use it, one way or another."
+
+**`orrun-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`orrun-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Nyx Collective (`nyx`): Machines, colour violet, home dead
 
@@ -159,6 +191,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`nyx-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work comes online. The Collective's thoughts grow larger."
 
+**`nyx-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`nyx-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Velari (`velari`): Mystics, colour orchid-pink, home terran
 
 **`velari-colony.mp4`**: A colony ship of this race descends through the sky of a new terran world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "A Velari seer walks the hills of the new world and names it in a language older than stars."
@@ -174,6 +210,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`velari-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The enemy fell exactly as the seers foretold."
 
 **`velari-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is finished, and it is more beautiful than any vision of it."
+
+**`velari-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`velari-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Drovani (`drovani`): Aquatic, colour teal, home ocean
 
@@ -191,6 +231,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`drovani-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work rises from the deep, and the oceans of a hundred worlds sing."
 
+**`drovani-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`drovani-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Gorrath Clans (`gorrath`): Nomads, colour bronze, home tundra
 
 **`gorrath-colony.mp4`**: A colony ship of this race descends through the sky of a new tundra world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The clan-ships circle the new world three times, then make camp. The hearth fires are lit."
@@ -206,6 +250,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`gorrath-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The clans howl their victory across the void. Tonight, there is feasting."
 
 **`gorrath-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is finished. Even the oldest clan-mothers come to see it."
+
+**`gorrath-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`gorrath-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Ixil (`ixil`): Symbiotes, colour purple, home jungle
 
@@ -223,6 +271,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`ixil-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work grows its last tendril, and every Ixil feels it bloom."
 
+**`ixil-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`ixil-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Verdane (`verdane`): Plant beings, colour leaf-green, home jungle
 
 **`verdane-colony.mp4`**: A colony ship of this race descends through the sky of a new jungle world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "Verdane seeds take root on the new world. In ten years it will be forest from pole to pole."
@@ -238,6 +290,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`verdane-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "The battle is won. New seeds will grow in the ashes."
 
 **`verdane-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work unfurls its final branches into the light of a dozen suns."
+
+**`verdane-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`verdane-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Quorai (`quorai`): Energy beings, colour golden, home radiated
 
@@ -255,6 +311,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`quorai-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work blazes into being, the brightest thing we have ever made."
 
+**`quorai-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`quorai-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Raxxan Reavers (`raxxan`): Scavengers, colour rust-orange, home minimal
 
 **`raxxan-colony.mp4`**: A colony ship of this race descends through the sky of a new minimal world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "The Reavers bolt three wrecks together on the new world and call it a city. It works."
@@ -270,6 +330,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`raxxan-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "A good fight and a better haul. Strip the wrecks!"
 
 **`raxxan-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is done. Mostly. It's held together with wire, but it's done."
+
+**`raxxan-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`raxxan-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
 ## Ruuvak Brood (`ruuvak`): Breeders, colour olive-green, home steppe
 
@@ -287,6 +351,10 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 
 **`ruuvak-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is finished by more hands than anyone could ever count."
 
+**`ruuvak-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`ruuvak-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
+
 ## Tarkhan Hunt (`tarkhan`): Gunners, colour rose-pink, home arid
 
 **`tarkhan-colony.mp4`**: A colony ship of this race descends through the sky of a new arid world and lands; settlers of this race step out and look around. Wide shot, then medium shot of the settlers. Mood: "Tarkhan hunters stake out the new world. Good ground, good game, good lines of fire."
@@ -302,4 +370,8 @@ Scenes: **colony** (new world founded), **science** (technology discovered), **s
 **`tarkhan-battle.mp4`**: Warships of this race win a space battle: the enemy line breaks apart in explosions while this race's flagship sails through the debris. Mood: "Every shot found its mark. The Hunt is pleased."
 
 **`tarkhan-wonder.mp4`**: A colossal structure built by this race is completed around a star or planet; lights come on across it as crowds of this race watch from below. Mood: "Our great work is complete, a trophy no other people can ever hope to match."
+
+**`tarkhan-victory.mp4`**: The final triumph of this race: its leader stands before a vast crowd of its people on the capital world as fleets fly overhead and the sky fills with light; slow, grand, emotional. Mood: "The galaxy is ours."
+
+**`tarkhan-defeat.mp4`**: The end of this race's empire: its leader watches from a high window as the lights of the capital go out one by one and foreign warships fill the sky; quiet, sad, dignified. Mood: "Our story ends here."
 
