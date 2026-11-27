@@ -55,3 +55,8 @@ export function landingDemo(raceOrClimate = "kethrak", seed = 7): void {
   const target = s.stars.find((st) => st.planet && (wantClimate ? st.planet.climate === wantClimate : true) && !s.colonies[st.id]) ?? s.stars.find((st) => st.planet)!;
   playLanding(s, { starId: target.id, attackerId: 0, defenderId: 1, captured: seed % 2 === 1, troops: 24, survivors: 14, turn: 100 }, 0);
 }
+
+/** All 18 races' ships side by side (large hulls), slowly turning: #ship-gallery. For checking the art. */
+export function shipGallery(hull: "small" | "medium" | "large" | "huge" = "large"): void {
+  void import("./gallery").then((m) => m.showGallery(hull));
+}

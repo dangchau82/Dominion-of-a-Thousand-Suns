@@ -443,4 +443,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 39;
+export const SAVE_VERSION = 40;

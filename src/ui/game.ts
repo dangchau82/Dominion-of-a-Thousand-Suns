@@ -1413,7 +1413,7 @@ export class GameScreen {
         const row = el("div", { class: "row" });
         row.style.cssText = "justify-content:space-between;align-items:center;gap:8px";
         const label = el("div");
-        label.innerHTML = `<b>${esc(this.state.stars[b.starId]!.name)}</b>, turn ${b.turn}<br><span class="dim">${names} · ${b.units.length} ship types · ${b.rounds} rounds</span>`;
+        label.innerHTML = `<b>${esc(this.state.stars[b.starId]!.name)}</b>, turn ${b.turn}<br><span class="dim">${names} · ${b.units.length} ship types · ${b.rounds} round${b.rounds === 1 ? "" : "s"}</span>`;
         const btn = el("button", { class: "primary" }, "▶ Watch");
         btn.onclick = () => { duckMusic(true); void import("./battle3d").then((m) => m.openBattleReplay(this.state, b, PLAYER, () => duckMusic(false))); }
         row.append(label, btn);

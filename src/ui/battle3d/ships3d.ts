@@ -63,9 +63,9 @@ function mats(p: Palette): Mats {
     hull: new THREE.MeshStandardMaterial({ color: p.light, map: tex, bumpMap: tex, bumpScale: 1.2, metalness: 0.75, roughness: 0.38, envMapIntensity: 0.6 }),
     dark: new THREE.MeshStandardMaterial({ color: p.dark, map: tex, metalness: 0.8, roughness: 0.45, envMapIntensity: 0.5 }),
     accent: new THREE.MeshStandardMaterial({ color: p.accent, metalness: 0.5, roughness: 0.4, emissive: p.accent, emissiveIntensity: 0.25 }),
-    glow: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: p.glow, emissiveIntensity: 3 }),
+    glow: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: p.glow, emissiveIntensity: 2.2 }),
     flesh: new THREE.MeshPhysicalMaterial({ color: p.mid, roughness: 0.45, metalness: 0.05, clearcoat: 0.7, clearcoatRoughness: 0.35, sheen: 0.4, sheenColor: new THREE.Color(p.light) }),
-    crystal: new THREE.MeshPhysicalMaterial({ color: p.mid, emissive: p.glow, emissiveIntensity: 0.6, roughness: 0.1, metalness: 0, transmission: 0.3, thickness: 1, transparent: true, opacity: 0.92 }),
+    crystal: new THREE.MeshPhysicalMaterial({ color: p.mid, emissive: p.glow, emissiveIntensity: 0.22, roughness: 0.1, metalness: 0, transmission: 0.3, thickness: 1, transparent: true, opacity: 0.92 }),
   };
   matCache.set(key, m);
   return m;
@@ -176,10 +176,10 @@ export function buildShip(raceId: string, hull: HullSize): Ship3D {
       break;
     }
     case "orb": {
-      add(new THREE.SphereGeometry(L * 0.28, 32, 20), M.hull);
-      const ring = add(new THREE.TorusGeometry(L * 0.42, L * 0.03, 8, 48), M.accent); ring.rotation.x = Math.PI / 2;
-      const ring2 = add(new THREE.TorusGeometry(L * 0.36, L * 0.015, 8, 48), M.glow); ring2.rotation.x = Math.PI / 2 + 0.3;
-      add(new THREE.SphereGeometry(L * 0.1, 16, 10), M.glow, L * 0.24, 0, 0);
+      add(new THREE.SphereGeometry(L * 0.28, 32, 20), M.dark);
+      const ring = add(new THREE.TorusGeometry(L * 0.42, L * 0.03, 8, 48), M.hull); ring.rotation.x = Math.PI / 2;
+      const ring2 = add(new THREE.TorusGeometry(L * 0.36, L * 0.012, 8, 48), M.accent); ring2.rotation.x = Math.PI / 2 + 0.3;
+      add(new THREE.SphereGeometry(L * 0.06, 16, 10), M.glow, L * 0.27, 0, 0);
       for (let i = 0; i < guns; i++) { const a = (i / guns) * Math.PI * 2; emitter(Math.cos(a) * L * 0.42, 0, Math.sin(a) * L * 0.42, L * 0.03); }
       engine(-L * 0.3, 0, 0, L * 0.07);
       break;
@@ -191,7 +191,7 @@ export function buildShip(raceId: string, hull: HullSize): Ship3D {
         c.scale.set(1 + r() * 2.5, 0.6, 0.6); c.rotation.set(r(), r(), r());
       }
       add(new THREE.OctahedronGeometry(L * 0.2, 0), M.crystal).scale.set(2.4, 0.8, 0.8);
-      add(new THREE.SphereGeometry(L * 0.06, 12, 8), M.glow);
+      add(new THREE.SphereGeometry(L * 0.035, 12, 8), M.glow);
       for (let i = 0; i < guns; i++) emitter(L * 0.3 - i * L * 0.1, (r() - 0.5) * L * 0.15, (r() - 0.5) * L * 0.2, L * 0.03);
       engines.push(new THREE.Vector3(-H, 0, 0));
       break;

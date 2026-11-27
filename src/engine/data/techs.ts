@@ -1,5 +1,6 @@
 // Tech tree: six fields, ten tiers. Names, descriptions and quotes are original to this game.
 import type { ResearchField } from "../types";
+import { FUTURE_TECHS } from "./futureTechs";
 
 export type TechEffect =
   | { stat: "range"; value: number }          // + light-years of fuel range
@@ -32,7 +33,7 @@ export interface Tech {
   quote: string;       // one short in-universe quote (under 25 words) with an invented speaker, e.g. "— Archivist Venn of the Vossari"
 }
 
-export const TECHS: readonly Tech[] = [
+const BASE_TECHS: readonly Tech[] = [
   {
     id: "basic-computer",
     name: "Basic Computer",
@@ -1076,3 +1077,5 @@ export const TECHS: readonly Tech[] = [
   },
 ];
 
+/** The whole tree: the ten base tiers plus the repeatable future tiers (futureTechs.ts). */
+export const TECHS: readonly Tech[] = [...BASE_TECHS, ...FUTURE_TECHS];

@@ -7,6 +7,7 @@ import { learn, newResearchState, TECH_BY_ID } from "./tech";
 import { addDesign, starterDesigns } from "./designs";
 import { COUNCIL_FIRST } from "./victory";
 import { FIELDS, SAVE_VERSION, type GameState } from "./types";
+import { TECHS } from "./data/techs";
 import { maxMissileBases } from "./data/ships";
 
 /** Version 1 saves had research "levels"; give each empire a tech tree and the techs those levels imply. */
@@ -150,6 +151,13 @@ export function deserialize(json: string): GameState {
   if (data.version === 37) { (data as GameState).version = 38; }
   // Version 38 -> 39: the Open Secret (optional field, nothing to convert).
   if (data.version === 38) { (data as GameState).version = 39; }
+  // Version 39 -> 40: future technologies (tiers 11+) join every empire's tree.
+  if (data.version === 39) {
+    const g = data as GameState;
+    const future = TECHS.filter((t) => t.tier > 10).map((t) => t.id);
+    for (const e of g.empires) for (const id of future) if (!e.research.available.includes(id)) e.research.available.push(id);
+    g.version = 40;
+  }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

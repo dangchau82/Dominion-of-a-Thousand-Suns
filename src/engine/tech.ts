@@ -22,7 +22,9 @@ export function tech(id: string): Tech {
  * Cheap early (so the first techs arrive in tens of turns, not hundreds) and steep late.
  * Tuned by self-play so strong empires finish the tree around turn 300.
  */
-export const TIER_COST: readonly number[] = [0, 40, 150, 450, 1200, 2800, 6000, 12000, 26000, 55000, 100000];
+export const TIER_COST: readonly number[] = [0, 40, 150, 450, 1200, 2800, 6000, 12000, 26000, 55000, 100000,
+  // Future tiers 11+ (data/futureTechs.ts): each level costs 20% more than the last.
+  ...Array.from({ length: 10 }, (_, i) => Math.round(100000 * Math.pow(1.2, i + 1)))];
 export function techCost(t: Tech, r: Race): number {
   return Math.round((TIER_COST[t.tier] ?? 70000) / r.research);
 }
@@ -43,6 +45,8 @@ export function rollTechPool(rng: R.RngState, race: Race): string[] {
       if (kept.length === 0) kept.push(R.pick(rng, group));
       out.push(...kept.map((t) => t.id));
     }
+    // Future tiers are open to everyone (no dice, so the RNG sequence is unchanged).
+    out.push(...TECHS.filter((t) => t.field === f && t.tier > 10).map((t) => t.id));
   }
   return out;
 }

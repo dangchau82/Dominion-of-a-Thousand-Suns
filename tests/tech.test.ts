@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyCommand, deserialize, endTurn, fuelRange, makeView, newGame, race, serialize, shipSpeed, type GameSettings } from "../src/engine";
 import { TECHS } from "../src/engine/data/techs";
-import { fieldTier, learn, researchChoices, rollTechPool, START_TECHS, tech, techCost, techStats } from "../src/engine/tech";
+import { fieldTier, learn, researchChoices, rollTechPool, START_TECHS, tech, techCost, techStats, TIER_COST } from "../src/engine/tech";
 import { makeRng } from "../src/engine/rng";
 import { FIELDS } from "../src/engine/types";
 
@@ -10,9 +10,10 @@ const settings = (over: Partial<GameSettings> = {}): GameSettings => ({
 });
 
 describe("tech tree", () => {
-  it("has 115 unique techs in six fields", () => {
-    expect(TECHS.length).toBe(115);
-    expect(new Set(TECHS.map((t) => t.id)).size).toBe(115);
+  it("has 115 base techs plus 56 future techs, all unique, in six fields", () => {
+    expect(TECHS.filter((t) => t.tier <= 10).length).toBe(115);
+    expect(TECHS.filter((t) => t.tier > 10).length).toBe(5 * 10 + 6);
+    expect(new Set(TECHS.map((t) => t.id)).size).toBe(TECHS.length);
     for (const f of FIELDS) expect(TECHS.some((t) => t.field === f)).toBe(true);
   });
 
@@ -78,3 +79,17 @@ describe("tech tree", () => {
     endTurn(loaded);
   });
 });
+
+describe("future technologies", () => {
+  it("are in every empire's tree, cost more each level, and chain after tier 10", () => {
+    const pool = rollTechPool(makeRng(5), race("humans"));
+    const future = TECHS.filter((t) => t.tier > 10);
+    for (const t of future) expect(pool).toContain(t.id);
+    for (let tier = 11; tier < 20; tier++) expect(TIER_COST[tier + 1]!).toBeGreaterThan(TIER_COST[tier]!);
+    for (const t of future) {
+      expect(t.description.split(" ").length).toBeLessThanOrEqual(20);
+      expect(t.quote.split(" ").length).toBeLessThanOrEqual(25);
+    }
+  });
+});
+
