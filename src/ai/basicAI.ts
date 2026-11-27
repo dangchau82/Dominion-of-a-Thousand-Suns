@@ -977,7 +977,9 @@ function findThreat(view: EmpireView): Id | null {
   for (const s of live) {
     if (s.id === view.me.id) continue;
     let score = 0;
-    if (s.buildingAscension) score = Math.max(score, 1);
+    // Several may build the Gate at once: go after the strongest builder, not whoever is listed first
+    // (ties went to the lowest id, which is usually the player). Fix 2026-11-26 after a huge-map playtest.
+    if (s.buildingAscension) score = Math.max(score, 1 + (totalVotes > 0 ? s.votes / totalVotes : 0));
     // Runaway leaders: close to a culture win, far ahead in tech, or holding a big share of the galaxy's votes.
     score = Math.max(score, s.culture / 95000 - 0.05, s.techFields / 6 - 0.2);
     // One home world short of a conquest win is as urgent as it gets.

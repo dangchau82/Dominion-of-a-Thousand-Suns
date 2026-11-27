@@ -37,9 +37,11 @@ export function extraRange(e: Empire, d: ShipDesign): number {
   return d.extraRange + (is(e, "gorrath") && d.role === "colony" ? 2 : 0);
 }
 
-/** Velari: wonders cost a quarter less. */
+/** Velari: wonders cost 35% less, but not the Ascension Gate (the technology victory). */
 export function buildingCost(e: Empire, b: BuildingDef): number {
-  return is(e, "velari") && b.wonder ? Math.round(b.cost * 0.65) : b.cost; // 2026-11-26: 25% -> 35% off
+  // 2026-11-26: 25% -> 35% off. Later the same day: the Gate is excluded, because the discount made the Velari
+  // win 13 of 18 huge-map games by technology.
+  return is(e, "velari") && b.wonder && b.id !== "w-ascension" ? Math.round(b.cost * 0.65) : b.cost;
 }
 
 /** Orrun Consortium: money talks. Funding ships goes a quarter further; treasury buys council votes. */

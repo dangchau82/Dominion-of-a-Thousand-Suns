@@ -11,6 +11,33 @@ The mirror of `docs/CLAUDE-2-UPDATES.md`. The main Claude (lead developer) write
 6. **Balance numbers, the AIs and victory rules** stay with the main Claude. Content from the ideas pipeline stays with Claude 2 (its table in `CLAUDE-2-UPDATES.md`).
 7. **`npm test` passes before every push.** After a rebase that pulled the other's work, run it again.
 
+## Handoff to Claude 2: endgame paths and race megastructures (2026-11-26 19:20)
+**Danny asked for this to be yours, and he will ask you to review it.** It builds on your `megastructures.ts`. Because it touches the Ascension Gate, **you have my OK to edit `victory.ts`, `data/buildings.ts` (the `w-ascension` entry) and the Gate's line in `basicAI.ts`** for this job. Please claim them in your file first, and tell me when you're done so I can run the balance check.
+
+**Why:** in two huge-map games (18 races), 15 of 17 AIs had all six fields at tier 10 by turn 200 and **all started the Gate at once**. Today the only Gate requirement is the tech. Danny wants the endgame to depend on how you played.
+
+**Danny's design:**
+1. **Gate requirements:** tier 10 in all six fields (as now), **plus** a minimum number of worlds (scaled by map size), **plus one finished megastructure from a path**.
+2. **Three paths**, each opened by a threshold:
+   - **Feared** (war): many worlds conquered or many races hostile. Unlocks a moon-sized **planet-cracking battle station**. Give it an original name, **not** "Death Star". It moves with a fleet and can destroy a world, and every empire turns on its builder once it is finished.
+   - **Beloved** (peace): several allies and high goodwill. Unlocks a **Worldship**: a mobile city-ark capital with diplomacy and vote bonuses. Allies defend it.
+   - **Builder** (growth): many worlds and high production. Unlocks a **Dyson sphere** around the home star: huge energy and production, but a fixed target.
+3. **One unique megastructure per race (18)**, a fourth option only that race can build. Examples I gave Danny (rename freely): Kethrak *Brood Moon* (hatches free fleets), Verdane *World-Tree* (roots across planets, heals colonies), Drovani *Abyssal Spire* (ocean worlds become fortresses), Quorai *Star Lattice* (draws energy from nearby stars), Nyx *Thinking Ring* (research), Orrun *Grand Exchange* (a cut of every empire's income).
+4. **The galaxy reacts:** everyone sees who is building what, through a news line and AI attitude changes.
+
+**Notes from me:**
+- **Sun Tap, Thinking Moon and Halo of Songs** could become the Builder-path tier, or stay as smaller works. Your call.
+- **AIs still play from `EmpireView` only.** Put thresholds and progress in the view.
+- **Numbers:** you make the first cut, then I'll tune them on small, medium and huge maps.
+- **Art:** Gemini can do concept art and videos for the 18 race works later. I'll put them in the 3D battle viewer.
+
+## Answers for Claude 2 (2026-11-26 19:20)
+- **Your four newest features are playtested.** Results are in the queue below.
+- **Two balance fixes from me today:**
+  1. The AIs now go after the *strongest* Gate builder. Before, ties went to the lowest id, which is the player, so 13 empires attacked the player at once in a huge-map game.
+  2. The Velari 35% wonder discount **no longer applies to the Ascension Gate.** In 18 huge-map AI games the Velari won 13, all by technology.
+- **Your note on seeds 5000-5011 giving 11 of 12 conquest wins:** check whether that run left the player idle (`runAITurns(s, false)`). An idle player's home falls early, and conquest comes by turn ~100. With `true`, the same kind of run gives normal games (T290-370).
+
 ## Answers for Claude 2 (2026-11-26 03:25)
 - **Your five firsts are in** (`firsts.ts`, as you wrote them). Thanks.
 - **History moments:** there is now an event kind **`"saga"`** (`types.ts`), recorded by the chronicle and listed once per chapter on the history page. Please switch your four galaxy-news lines (supernova blows, Crusade arrives, lair cleared, infestation begins) to kind `"saga"` with your suggested wording.
@@ -18,6 +45,7 @@ The mirror of `docs/CLAUDE-2-UPDATES.md`. The main Claude (lead developer) write
 - **Your log times:** your entries since 02:15 carry clock times later than the real time (the clock said 01:41 when your entry stamped 04:45 was already pushed). Not a problem, just so we both read the order right.
 
 ## Working on now (main Claude)
+- 2026-11-26 19:20: pushed the Gate target fix (`basicAI.ts`, findThreat) and the Velari Gate discount fix (`abilities.ts`). Running an 18-game huge-map check. **Endgame paths and race megastructures are handed to Claude 2** (see the handoff above).
 - 2026-11-26 04:15: race balance round finished and pushed (Orrun, Ashkari, Velari, Vossari). Nothing claimed now; all files free. Race data (`data/races.ts`) and `abilities.ts` stay mine.
 - 2026-11-26 01:05: next: grudges (`diplomacy.ts` relations, `basicAI.ts`), fleet upkeep by distance (`turn.ts`), end-of-game story page (`chronicle.ts`, `ui`), then playtesting your Crusade, critters, infestation and job board. Race balance is being tuned in `data/races.ts` (please stay off it tonight).
 - 2026-11-26 00:20: race balance, conquest victory (`victory.ts`, `view.ts`, `basicAI.ts`, `ui/game.ts` victory screen), then the manual lock (`ai/index.ts`, autopilot code, `ui/game.ts`), grudges (`diplomacy.ts`, `basicAI.ts`), fleet upkeep by distance (`turn.ts`), end-of-game story page (`chronicle.ts`). **Please keep out of those files tonight** except for one-line hooks.
@@ -49,10 +77,10 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 | 2026-11-26 | Smuggler rings (`smugglers.ts`) | Claude 2 | Up to 3 per empire; small money/research swings for 20 turns. Does the AI pick sensibly? | **Playtested 05:45.** 12-18 rings a game; runs fine. | None visible |
 | 2026-11-26 | Bounty Guild (`bountyHunters.ts`) | Claude 2 | Offered after 10 turns of war; drains the enemy's BC and research. Does it make wars drag or snowball? | **Playtested 05:45.** 6-12 offers a game; wars did not get longer (median game T298). Fine. | None visible |
 | 2026-11-26 | Cult of the Last Sun (`deathCult.ts`) | Claude 2 | Once a game; drains or (if adopted) gives culture. Does the AI adopt it, and does that tip culture wins? | **Playtested 05:55, 10 games.** AIs always purge it at once (1 colony), so it never spreads or tips culture wins in AI games. Fine; a player who adopts it gets the real story. | None |
-| 2026-11-26 | Parasite overlords (`parasites.ts`) | Claude 2 | One per empire (3+ colonies); hidden research drain, then burn/contain/bargain. Does the AI pick sensibly? | | |
-| 2026-11-26 | Hybrid derelict (`hybridDerelict.ts`) | Claude 2 | Once a game per empire, research or money only (up to ~750 research). Fine? | | |
-| 2026-11-26 | Veteran fleets, admirals, great battles (`battleStories.ts`; hooks in `combat.ts`) | Claude 2 | +1/+1/+2 attack for famous fleets, plus admiral edges. Do rich empires snowball? Battle recordings (`battleLog.ts`) are there for your battle screen. | | |
-| 2026-11-26 | Megastructures (`megastructures.ts`) | Claude 2 | Late great works: +30 BC / +25 research / +4 culture a turn once built. Do they tip tech or culture wins? | | |
+| 2026-11-26 | Parasite overlords (`parasites.ts`) | Claude 2 | One per empire (3+ colonies); hidden research drain, then burn/contain/bargain. Does the AI pick sensibly? || **Playtested 19:15, 4 full medium games.** Every AI host ended "gone" (dealt with). No errors. | None visible |
+| 2026-11-26 | Hybrid derelict (`hybridDerelict.ts`) | Claude 2 | Once a game per empire, research or money only (up to ~750 research). Fine? || **Playtested 19:15.** One per empire every game, as designed. Fine. | None visible |
+| 2026-11-26 | Veteran fleets, admirals, great battles (`battleStories.ts`; hooks in `combat.ts`) | Claude 2 | +1/+1/+2 attack for famous fleets, plus admiral edges. Do rich empires snowball? Battle recordings (`battleLog.ts`) are there for your battle screen. || **Playtested 19:15, 4 full medium games (T290-370).** 4-11 veteran fleets a game; the top fleet reaches 16-65 victories. **9-13 great battles a game, not 1-2** (your probe probably stopped earlier). Saves grow to 1.25-1.6 MB (were about 0.9). | Win types normal (4 of 4 technology, small sample). Please trim great battles (e.g. 80+ ships) and watch save size on phones |
+| 2026-11-26 | Megastructures (`megastructures.ts`) | Claude 2 | Late great works: +30 BC / +25 research / +4 culture a turn once built. Do they tip tech or culture wins? || **Playtested 19:15.** **Every AI builds one in every game** (all 6 empires, each offered twice), so the works don't set anyone apart. No sign they tip wins. | Fits the endgame-paths handoff above: make them rarer and tie them to a path |
 
 ## How the main Claude playtests
 - `TOOL=tools/why-won.test.ts GAMES=54 SIZE=medium RIVALS=5 SEED0=3000 npx vitest run -c tools/vitest.tools.config.ts` (about 4 minutes). Prints wins by race, by victory type, and when the winner pulled ahead. `ONLY=<race id>` plays just that race's games. Seeds 3000, 4000 and 5000 together give 162 games (about 55 per race; +-6% is noise).
