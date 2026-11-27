@@ -8,6 +8,7 @@ import { legendsHTML } from "./legends";
 import { playTurnScene } from "./scenes";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
+import { duckMusic, musicOn, setMood, setMusic, startMusic, stopMusic } from "./music";
 import { DEFAULT_MODEL, geminiChat, geminiKey, geminiModel, saveGemini, type ChatTurn } from "./gemini";
 import { markSeen, nextTip, setTipsOff, tipsOff } from "./advisor";
 import type { EventEffect } from "../engine/data/events";
@@ -42,6 +43,7 @@ import { REVOLT_AT, UNREST_EVENT_AT, unrestBreakdown, unrestPenalty, unrestTarge
 
 const TRAIT_BY_ID = new Map(LEADER_TRAITS.map((t) => [t.id, t]));
 import { syntheticTrait } from "../engine/legends";
+import { landingFromEvent, type LandingInfoLite } from "./battle3d/landingInfo";
 
 const TREATY_LABEL: Record<TreatyKind, string> = { trade: "Trade agreement", research: "Research pact", nap: "Non-aggression pact", alliance: "Alliance" };
 const TREATY_HELP: Record<TreatyKind, string> = {
@@ -120,6 +122,10 @@ export class GameScreen {
     this.refresh();
     if (state.turn === 1) this.showWelcome();
     window.addEventListener("keydown", this.onKey);
+    // Music needs a first tap or key press before the browser allows sound.
+    const firstTouch = () => { startMusic(); this.updateMood(); };
+    window.addEventListener("pointerdown", firstTouch, { once: true });
+    window.addEventListener("keydown", firstTouch, { once: true });
   }
 
   /** PC keyboard shortcuts. Ignored while typing in a box. */
@@ -185,6 +191,7 @@ export class GameScreen {
     this.moving = null;
     this.setHint(null);
     play("turn");
+    this.updateMood();
     const processedTurn = this.state.turn;
     const knownBefore = new Set(this.state.empires[PLAYER]!.contacts);
     // Auto-explore: idle scouts get the same orders the AI would give its own.
@@ -388,6 +395,7 @@ export class GameScreen {
     add("🏛️", "Empire", "Your culture, leaders and wonders (E)", () => this.showEmpire());
     add("📜", "History", "Graphs of your empire and a timeline of key moments (L)", () => this.showHistory());
     // Hall of Legends: famous fleets, admirals, great battles, great works (legends.ts, Claude 2).
+    add("🎬", "Battles", "Watch your recent battles in 3D", () => this.showBattleReplays());
     add("🏆", "Legends", "Famous fleets and admirals, great battles, and the galaxy's great works (G)", () => this.modal((box) => { box.style.width = "min(820px, 100%)"; box.innerHTML = legendsHTML(this.state, PLAYER); }));
     add("⚖️", "Council", "Victory paths and the Galactic Council (C)", () => (v.council.session ? this.showCouncil() : this.showVictory()), v.council.session ? 1 : 0);
     add("☰", "Menu", "Autopilot, sound, saves and settings (M)", () => this.showMenu());
@@ -1367,6 +1375,51 @@ export class GameScreen {
     });
   }
 
+  /** Tense music while we are at war, calm music in peace. */
+  private updateMood(): void {
+    setMood(Object.keys(this.state.empires[PLAYER]!.atWar).length > 0 ? "war" : "peace");
+  }
+
+  /** "Watch" buttons for this turn's battles (3D replay of the real recording) and landings. */
+  private addWatchButtons(box: HTMLElement, events: EmpireView["events"], from: number, to: number): void {
+    const battles = (this.state.battles ?? []).filter((b) => b.turn >= from && b.turn <= to && b.shots.length > 0).slice(-3);
+    const landings = events.filter((e) => e.kind === "invasion").map((e) => landingFromEvent(this.state, e, PLAYER)).filter((x): x is LandingInfoLite => !!x).slice(0, 2);
+    if (!battles.length && !landings.length) return;
+    const row = el("div", { class: "row" });
+    row.style.flexWrap = "wrap";
+    for (const b of battles) {
+      const btn = el("button", {}, `▶ Watch the battle at ${this.state.stars[b.starId]!.name}`);
+      btn.onclick = () => { play("battle"); { duckMusic(true); void import("./battle3d").then((m) => m.openBattleReplay(this.state, b, PLAYER, () => duckMusic(false))); } };
+      row.append(btn);
+    }
+    for (const l of landings) {
+      const btn = el("button", {}, `▶ Watch the ${this.state.stars[l.starId]?.planet?.climate === "ocean" ? "sea landing" : "landing"} on ${this.state.stars[l.starId]!.name}`);
+      btn.onclick = () => { play("battle"); duckMusic(true); void import("./battle3d").then((m) => m.playLanding(this.state, l, PLAYER, () => duckMusic(false))); };
+      row.append(btn);
+    }
+    box.append(row);
+  }
+
+  /** Every battle recording still kept, newest first, each with a 3D replay. */
+  private showBattleReplays(): void {
+    this.modal((box) => {
+      const list = [...(this.state.battles ?? [])].reverse();
+      box.innerHTML = `<h2>Battle replays</h2><p class="dim">Your last ${list.length || "few"} battles, replayed in 3D exactly as they were fought.</p>`;
+      if (!list.length) { box.innerHTML += `<p>No battles yet.</p>`; return; }
+      for (const b of list) {
+        const names = b.empires.map((id) => this.state.empires[id]!).map((e) => `<span style="color:${e.color}">${esc(e.name)}</span>`).join(" vs ");
+        const row = el("div", { class: "row" });
+        row.style.cssText = "justify-content:space-between;align-items:center;gap:8px";
+        const label = el("div");
+        label.innerHTML = `<b>${esc(this.state.stars[b.starId]!.name)}</b>, turn ${b.turn}<br><span class="dim">${names} · ${b.units.length} ship types · ${b.rounds} rounds</span>`;
+        const btn = el("button", { class: "primary" }, "▶ Watch");
+        btn.onclick = () => { duckMusic(true); void import("./battle3d").then((m) => m.openBattleReplay(this.state, b, PLAYER, () => duckMusic(false))); }
+        row.append(label, btn);
+        box.append(row);
+      }
+    });
+  }
+
   private showReport(turn: number, events: EmpireView["events"], fromTurn?: number): void {
     const contact = events.find((e) => e.kind === "contact");
     const war = events.find((e) => e.kind === "war" || e.kind === "battle" || e.kind === "invasion");
@@ -1376,6 +1429,7 @@ export class GameScreen {
       const order = ["council", "war", "invasion", "battle", "contact", "diplomacy", "spy", "culture", "colonized", "research", "shipBuilt", "explored", "baseBuilt", "popMaxed", "factoriesDone", "info"];
       const sorted = [...events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
       box.innerHTML = `${pic}<h2>${fromTurn !== undefined && fromTurn < turn ? `Autopilot report · turns ${fromTurn}–${turn}` : `Turn ${turn} report`}</h2><ul>${sorted.map((e) => `<li>${esc(e.text)}</li>`).join("")}</ul>`;
+      this.addWatchButtons(box, events, fromTurn ?? turn, turn);
       const row = el("div", { class: "row" });
       const ok = el("button", { class: "primary" }, "Continue");
       ok.onclick = () => { close(); this.showProposals(); };
@@ -1936,7 +1990,9 @@ export class GameScreen {
       vic.onclick = () => { close(); this.showVictory(); };
       const gem = el("button", {}, `Gemini link: ${geminiKey() ? "on" : "off"} (talk to aliens)`);
       gem.onclick = () => { close(); this.showGeminiSettings(); };
-      row.append(vic, snd, tips);
+      const mus = el("button", {}, `Music: ${musicOn() ? "on" : "off"}`);
+      mus.onclick = () => { setMusic(!musicOn()); mus.textContent = `Music: ${musicOn() ? "on" : "off"}`; };
+      row.append(vic, snd, mus, tips);
       if (SHOW_GEMINI) row.append(gem);
       const hist = el("button", {}, "📜 History: graphs and timeline (L)");
       hist.onclick = () => { close(); this.showHistory(); };
@@ -1986,7 +2042,7 @@ export class GameScreen {
       const help = el("button", {}, "How to play");
       help.onclick = () => { close(); this.showWelcome(); };
       const quit = el("button", {}, "Main menu");
-      quit.onclick = () => { close(); window.removeEventListener("keydown", this.onKey); this.map.destroy(); this.onQuit(); };
+      quit.onclick = () => { close(); stopMusic(); window.removeEventListener("keydown", this.onKey); this.map.destroy(); this.onQuit(); };
       const cheats = el("button", {}, "🛠️ Cheat menu");
       cheats.onclick = () => { close(); this.showCheats(); };
       const back = el("button", { class: "primary" }, "Back to game");

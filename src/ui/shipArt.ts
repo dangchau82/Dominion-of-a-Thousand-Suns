@@ -4,11 +4,11 @@
 
 import type { HullSize } from "../engine/data/ships";
 
-interface Palette { light: string; mid: string; dark: string; accent: string; glow: string; flame: string }
-type Family = "sleek" | "wedge" | "winged" | "insect" | "symbiote" | "brood" | "crystal" | "halo" | "crescent"
+export interface Palette { light: string; mid: string; dark: string; accent: string; glow: string; flame: string }
+export type Family = "sleek" | "wedge" | "winged" | "insect" | "symbiote" | "brood" | "crystal" | "halo" | "crescent"
   | "rock" | "block" | "cube" | "salvage" | "freighter" | "manta" | "pod" | "orb" | "hunter";
 
-const RACE_STYLE: Record<string, { family: Family; p: Palette }> = {
+export const RACE_STYLE: Record<string, { family: Family; p: Palette }> = {
   humans: { family: "sleek", p: { light: "#e3e9f3", mid: "#8e99ad", dark: "#323a4b", accent: "#ff9d3a", glow: "#7fd0ff", flame: "#ff8a3a" } },
   vossari: { family: "halo", p: { light: "#ffffff", mid: "#c8d4e6", dark: "#5f6e8a", accent: "#4fe3ff", glow: "#9ff3ff", flame: "#5fd8ff" } },
   kethrak: { family: "insect", p: { light: "#b6c96a", mid: "#5f7a2e", dark: "#22300f", accent: "#ffcc33", glow: "#e3ff7a", flame: "#c8ff4a" } },
