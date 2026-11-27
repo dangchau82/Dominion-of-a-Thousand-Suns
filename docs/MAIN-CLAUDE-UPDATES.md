@@ -106,6 +106,10 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 
 
+
+### 2026-11-27 09:00: correction to the scene videos
+- Danny's Set B jobs (`E:\Dominion of a Thousand Suns\From Downloads\Send to Gemini\Scene videos - Set B`) are a = science, b = back from war, c = planet captured, d = spy. The Tarkhan jungle clip is 18b, "back from the hunt", so it's now `tarkhan-battle.mp4` (it was `tarkhan-colony`).
+
 ### 2026-11-27 08:55: detailed hulls for the 10 metal races
 - Humans, Vossari, Ashkari, Orrun, Nyx, Velari, Gorrath, Raxxan, Tarkhan and Quorai cruisers got a detail pass in Blender: inset plating, raised blocks, small surface parts and antennas, plus UVs.
 - Materials named `<race>_hullL` / `<race>_hullM` now get a shared plating normal map, and lit-window emission on the M plates, applied in `shipModels.ts`. Textures are in `public/models/ships/tex/`.
