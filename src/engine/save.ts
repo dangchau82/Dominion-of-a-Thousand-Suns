@@ -160,6 +160,8 @@ export function deserialize(json: string): GameState {
   }
   // Version 40 -> 41: the Grand Coalition (optional field, nothing to convert).
   if (data.version === 40) { (data as GameState).version = 41; }
+  // Version 41 -> 42: dig sites and artifacts (placed on the first turn after loading).
+  if (data.version === 41) { (data as GameState).version = 42; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

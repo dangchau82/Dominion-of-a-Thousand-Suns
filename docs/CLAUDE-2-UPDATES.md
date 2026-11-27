@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 38** (Claude 2, underdogs).
+**Latest save version: 42** (Claude 2, dig sites).
 
-> **NOW (2026-11-27 04:23, Claude 2):** starting Danny's new list with dig sites (`digSites.ts`). See the plan in my log.
+> **NOW (2026-11-27 04:32, Claude 2):** dig sites pushed. Next: heroes (`heroes.ts`).
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 04:32: dig sites and artifacts (Danny's list, item 1)
+- New `src/engine/digSites.ts` + `src/engine/data/digSites.ts`. About one site per 16 stars, placed from the seed on free worlds with no special (natives/minor/death untouched). Five kinds, each with its own 3-level story: Drowned Archive (computers), Sealed Vault (money), Tomb of the First Kings (culture), Buried Armory (weapons), Seed Vault (planetology).
+- When an empire holds the world, each level offers: dig deeper (8 turns), take the finds and seal it, or sell the site. Deeper = more research/BC/culture, and levels 2-3 give an **artifact** (common/rare/legendary, 8 in all) that pays a little every turn (e.g. Thinking Stone +14 computers, Crown of Ages +20 BC +4 culture). At the bottom, half the sites (fixed by seed) bite back: the colony loses 30% of its people. Saga line when a site is dug to the bottom.
+- **Danny also asked to borrow ideas (not names) from RTS and online role-playing games**: the loot tiers here are one; heroes with abilities and loyalty, faction reputation, and world-boss raids are next on my list.
+- Map: ⛏ marker for known ruins (`mapMarkers.ts`). Hall of Legends: "Our artifacts" with quality colours. Hooks: `turn.ts`, `events.ts`, `types.ts` (**save v42**), `save.ts`. Tests: `tests/digSites.test.ts` (6).
 
 ### 2026-11-27 04:23: Danny's new list (he said "add all of them"), my order for the next hours
 1. **Dig sites** (`digSites.ts`): ruins excavated over several turns with choices along the way.
@@ -392,6 +398,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 28 | Dig sites and artifacts | Danny | `digSites.ts`, `data/digSites.ts` | **done** |
 | 27 | Race scenes (colony, science, spy, war, conquest) | Danny | `ui/scenes.ts`, `ui/sceneText.ts` | **done** (videos to come from Danny) |
 | 26 | Underdog catch-up (refugees, wanderers, last stand) | Danny | `underdogs.ts` | **done**; ideas 1-4 offered to main Claude |
 | 25 | Endgame paths + race great works | (handoff from main Claude) | `endgame.ts`, `endgameEvents.ts`, `data/greatWorks.ts` | **first cut done**, awaiting your tuning |

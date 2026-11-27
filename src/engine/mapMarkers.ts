@@ -3,11 +3,12 @@
 // (fair for AIs and the player alike; the UI draws them from EmpireView.markers).
 
 import { LAIRS } from "./data/lairs";
+import { DIG_NAMES } from "./data/digSites";
 import { WORK_BY_ID } from "./data/greatWorks";
 import { gateType } from "./gates";
 import type { Empire, GameState, Id } from "./types";
 
-export type MarkerKind = "lair" | "deathWorld" | "cracked" | "natives" | "minorRace" | "gate" | "raiders" | "hive" | "supernova" | "greatWork" | "cult";
+export type MarkerKind = "digSite" | "lair" | "deathWorld" | "cracked" | "natives" | "minorRace" | "gate" | "raiders" | "hive" | "supernova" | "greatWork" | "cult";
 
 export interface MapMarker {
   starId: Id;
@@ -32,6 +33,10 @@ export function mapMarkers(state: GameState, e: Empire): MapMarker[] {
     else if (sp.startsWith("death:")) out.push({ starId: s.id, kind: "deathWorld", label: "A death world: rich, and deadly" });
     else if (sp.startsWith("natives:")) out.push({ starId: s.id, kind: "natives", label: "Natives live here" });
     else if (sp.startsWith("minor:")) out.push({ starId: s.id, kind: "minorRace", label: "A minor race's home" });
+  }
+  for (const d of state.digs?.sites ?? []) {
+    if (!explored(d.starId) || d.closed || d.stage >= 3) continue;
+    out.push({ starId: d.starId, kind: "digSite", label: `Ruins: the ${DIG_NAMES[d.kind]}${d.stage ? ` (level ${d.stage + 1})` : ""}`, active: d.stage > 0 });
   }
   for (const l of state.lairs ?? []) {
     if (l.clearedBy !== null || !(l.seenBy.includes(e.id) || explored(l.starId))) continue;

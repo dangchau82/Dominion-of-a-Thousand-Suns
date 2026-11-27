@@ -420,6 +420,8 @@ export interface GameState {
   endgame?: Record<Id, import("./endgame").EndgameState>;
   /** Underdog catch-up: peaks, last stands, refugees. See src/engine/underdogs.ts. */
   underdogs?: import("./underdogs").UnderdogState;
+  /** Dig sites and artifacts. See src/engine/digSites.ts. */
+  digs?: import("./digSites").DigState;
   /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
   openSecret?: import("./openSecret").OpenSecretState;
   /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
@@ -445,4 +447,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 41;
+export const SAVE_VERSION = 42;

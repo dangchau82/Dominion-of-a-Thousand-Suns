@@ -6,6 +6,7 @@ import type { MapMarker, MarkerKind } from "../engine/mapMarkers";
 import type { EmpireView } from "../engine/view";
 
 const LOOK: Record<MarkerKind, { glyph: string; color: string }> = {
+  digSite: { glyph: "⛏", color: "#e8c27a" },
   lair: { glyph: "☠", color: "#ff7a5a" },
   deathWorld: { glyph: "☣", color: "#c6ff4a" },
   cracked: { glyph: "✸", color: "#ff9a3a" },

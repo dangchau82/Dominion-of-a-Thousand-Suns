@@ -6,6 +6,7 @@
 import { famousFleets, rankTitle } from "../engine/battleStories";
 import { PATH_NAMES, WORK_BY_ID, type EndgamePath } from "../engine/data/greatWorks";
 import { gateWorlds, raceWork } from "../engine/endgame";
+import { artifactsOf } from "../engine/digSites";
 import type { GameState, Id } from "../engine/types";
 import { portraitHTML } from "./assets";
 
@@ -61,6 +62,18 @@ export function legendsHTML(state: GameState, playerId: Id): string {
     parts.push(`</ul>`);
   }
 
+  // Artifacts from dig sites.
+  const arts = artifactsOf(state, me);
+  if (arts.length) {
+    const qc = { common: "#c8c8c8", rare: "#6fa8ff", legendary: "#ffb340" } as const;
+    parts.push(`<h3>Our artifacts</h3><ul>`);
+    for (const a of arts) {
+      const gives = [a.money ? `+${a.money} BC` : "", a.research ? `+${a.research.amount} ${a.research.field} research` : "", a.culture ? `+${a.culture} culture` : ""].filter(Boolean).join(", ");
+      parts.push(`<li><b style="color:${qc[a.quality]}">${esc(a.name)}</b> <span class="dim">(${a.quality}; ${gives} a turn)</span><br><span class="dim">${esc(a.text)}</span></li>`);
+    }
+    parts.push(`</ul>`);
+  }
+
   // Our famous fleets.
   const fleets = famousFleets(state, me);
   parts.push(`<h3>Our famous fleets</h3>`);
@@ -95,7 +108,7 @@ export function legendsHTML(state: GameState, playerId: Id): string {
   }
   // Map key for the markers beside stars (mapMarkers.ts).
   parts.push(`<h3>Map key</h3><p class="dim" style="columns:2;line-height:1.7">
-    ☠ a lair of raiders or monsters<br>☣ a death world: rich and deadly<br>✸ a world cracked by a Sundering Engine<br>⌂ natives live here<br>
+    ⛏ ruins to excavate<br>☠ a lair of raiders or monsters<br>☣ a death world: rich and deadly<br>✸ a world cracked by a Sundering Engine<br>⌂ natives live here<br>
     ◈ a minor race's home<br>◎ an ancient gate (bright when awake)<br>⚔ the raider base<br>⬢ the machine hive<br>
     ✹ a dying star: get out before it blows<br>★ a great work (ringed when finished)<br>◐ the Cult of the Last Sun</p>`);
   return parts.join("\n");
