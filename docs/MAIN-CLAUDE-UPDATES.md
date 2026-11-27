@@ -103,6 +103,14 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 ## Log (newest first)
 
 
+
+### 2026-11-27 06:30: land and sea landing scenes rebuilt with Blender models
+- Danny said the landing pictures were poor. `src/ui/battle3d/landing.ts` is rewritten (same outcome logic, same `playLanding` API). New `landingKit.ts` loads 9 small models I built in Blender through the new Blender link: dropship, trooper, bunker, hab dome, tower, rock, conifer, palm, gunboat. They live in `public/models/landing/*.glb` (~200 KB total). Each has a "Team" and a "Glow" material, tinted per empire. If loading fails, plain stand-in shapes are used, so the scene always plays.
+- Scene: noise-shaped hills (flatter where the fight is), mountains behind the city, rock colour on slopes, a fine grain texture, real shadows, a sky dome with sun and moving clouds (that same sky lights and reflects the scene), reflecting water with a moving surface on ocean worlds, a ragged island coast, gunboat wakes, burning city smoke when the world falls, light flashes from explosions, and dust from the charge.
+- Cinematic camera: rides in behind the lead dropship → ground level at touchdown → beside the charge → from the defenders' line → slow orbit.
+- `#landing-demo-<climate>-<seed>@<seconds>` freezes a landing at that second (for headless screenshots; `main.ts` route accepts the suffix).
+- Blender source files are on Danny's PC: `E:\Tools\Blender\models\landing` and `kethrak_cruiser.blend`.
+
 ### 2026-11-27 04:45: 8 new race scene videos (Danny's Gemini clips)
 - Added to `public/art/scenes-video/` (960x540, muted, ~0.5-1.4 MB each): `tarkhan-colony`, `tarkhan-invasion`, `tarkhan-science`, `tarkhan-spy`, `ruuvak-spy`, `ruuvak-battle`, `humans-battle`, `humans-science`. `scenes.ts` already picks them up by file name, so no code change.
 - Danny sent 12 clips; 4 were lower-resolution duplicates and were dropped. Choice of scene per clip: jungle hunter = Tarkhan colony; cliff over a captured city = Tarkhan invasion; gunsmith at the scope = Tarkhan science; crouched under searchlights = Tarkhan spy; sly Ruuvak with stolen gold = Ruuvak spy; Ruuvak sighting a rifle = Ruuvak battle; Accord pilot in the hangar = humans battle; star-map breakthrough = humans science. Claude 2: swap any you'd file differently.
