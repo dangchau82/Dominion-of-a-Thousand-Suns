@@ -2,7 +2,7 @@
 // 2026-11-27: choices that fork the story and, past certain thresholds, change how the
 // game ends; and a different story every new game). The writing is a Gemini job
 // (docs/gemini-task-race-sagas.md); the engine that plays it (src/engine/sagas.ts) is
-// Claude 2's, built once the writing is in. Nothing reads this file yet.
+// Claude 2's.
 //
 // How a saga plays:
 // - Four acts. Each act has 3 different BEATS per race; the game seed picks one, so two
@@ -16,6 +16,10 @@
 // - CROSSOVER beats play when two named races have met, so stories meet each other.
 
 import type { EventChoice, GameEventDef } from "./events";
+// Each race's saga lives in data/sagas/<raceId>.ts (type-only imports back to this file, so no cycle).
+import * as humans from "./sagas/humans";
+import * as vossari from "./sagas/vossari";
+import * as kethrak from "./sagas/kethrak";
 
 export type SagaScore = "mercy" | "openness" | "tradition";
 
@@ -62,5 +66,6 @@ export interface SagaEnding extends Omit<GameEventDef, "trigger"> {
   outcome: SagaOutcome;
 }
 
-export const SAGA_BEATS: SagaBeat[] = [];
-export const SAGA_ENDINGS: SagaEnding[] = [];
+const RACES = [humans, vossari, kethrak];
+export const SAGA_BEATS: SagaBeat[] = RACES.flatMap((r) => r.BEATS);
+export const SAGA_ENDINGS: SagaEnding[] = RACES.flatMap((r) => r.ENDINGS);

@@ -1,4 +1,7 @@
-// Race sagas (src/engine/sagas.ts), with a small made-up saga for the Terran Accord.
+// Race sagas (src/engine/sagas.ts), with a small made-up saga for the Tarkhan
+// (any real Tarkhan saga is removed for these tests).
+// (Real saga data is checked in tests/sagaData.test.ts.)
+const RACE = "tarkhan";
 import { beforeAll, describe, expect, it } from "vitest";
 import { newGame, type GameSettings } from "../src/engine";
 import { describeEvent, resolveEvent } from "../src/engine/events";
@@ -9,7 +12,7 @@ import { deserialize, serialize } from "../src/engine/save";
 import { SAVE_VERSION, type GameState } from "../src/engine/types";
 
 const settings = (over: Partial<GameSettings> = {}): GameSettings => ({
-  seed: 21, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "humans", playerName: "Danny", ...over,
+  seed: 21, size: "small", shape: "ellipse", rivals: 2, playerRaceId: RACE, playerName: "Danny", ...over,
 });
 const choices = (act: number): SagaChoice[] => [
   { label: "Spare them", result: "Mercy.", effects: [{ kind: "culture", amount: 10 }], shift: { mercy: 2 }, sets: act === 3 ? ["spared"] : undefined },
@@ -17,15 +20,16 @@ const choices = (act: number): SagaChoice[] => [
   { label: "Open the gates to {rival}", result: "Trade.", effects: [{ kind: "nothing" }], shift: { openness: 1 } },
 ];
 beforeAll(() => {
+  for (const list of [SAGA_BEATS, SAGA_ENDINGS] as { raceId: string }[][]) for (let i = list.length - 1; i >= 0; i--) if (list[i]!.raceId === RACE) list.splice(i, 1);
   for (let act = 1 as 1 | 2 | 3 | 4; act <= 4; act++) for (const v of ["a", "b", "c"]) {
-    SAGA_BEATS.push({ id: `saga-humans-${act}-${v}`, raceId: "humans", act, kind: "act", title: `Act ${act}${v}`, art: "council", text: `Beat ${act}${v} at {colony} near {star}.`, choices: choices(act) } as SagaBeat);
+    SAGA_BEATS.push({ id: `saga-tarkhan-${act}-${v}`, raceId: RACE, act, kind: "act", title: `Act ${act}${v}`, art: "council", text: `Beat ${act}${v} at {colony} near {star}.`, choices: choices(act) } as SagaBeat);
   }
-  SAGA_BEATS.push({ id: "saga-humans-branch-return", raceId: "humans", act: 3, kind: "branch", needs: ["spared"], title: "The Spared Return", art: "contact", text: "Those we spared come back.", choices: choices(0) });
-  SAGA_BEATS.push({ id: "saga-x-humans-vossari-meet", raceId: "humans", act: 2, kind: "crossover", withRace: "vossari", title: "Strangers", art: "contact", text: "The Vossari.", choices: choices(0) });
+  SAGA_BEATS.push({ id: "saga-tarkhan-branch-return", raceId: RACE, act: 3, kind: "branch", needs: ["spared"], title: "The Spared Return", art: "contact", text: "Those we spared come back.", choices: choices(0) });
+  SAGA_BEATS.push({ id: "saga-x-tarkhan-vossari-meet", raceId: RACE, act: 2, kind: "crossover", withRace: "vossari", title: "Strangers", art: "contact", text: "The Vossari.", choices: choices(0) });
   SAGA_ENDINGS.push(
-    { id: "saga-humans-end-light", raceId: "humans", needs: { mercy: { min: 4 } }, outcome: "ascension", title: "Into the Light", art: "victory", text: "We chose mercy.", choices: [{ label: "So be it", result: "Light.", effects: [{ kind: "nothing" }] }] },
-    { id: "saga-humans-end-dark", raceId: "humans", needs: { mercy: { max: -4 } }, outcome: "fallFromGrace", title: "The Long Dark", art: "crisis", text: "We chose fear.", choices: [{ label: "So be it", result: "Dark.", effects: [{ kind: "nothing" }] }] },
-    { id: "saga-humans-end-plain", raceId: "humans", outcome: "goldenAge", title: "The Middle Road", art: "council", text: "Neither.", choices: [{ label: "So be it", result: "On we go.", effects: [{ kind: "nothing" }] }] },
+    { id: "saga-tarkhan-end-light", raceId: RACE, needs: { mercy: { min: 4 } }, outcome: "ascension", title: "Into the Light", art: "victory", text: "We chose mercy.", choices: [{ label: "So be it", result: "Light.", effects: [{ kind: "nothing" }] }] },
+    { id: "saga-tarkhan-end-dark", raceId: RACE, needs: { mercy: { max: -4 } }, outcome: "fallFromGrace", title: "The Long Dark", art: "crisis", text: "We chose fear.", choices: [{ label: "So be it", result: "Dark.", effects: [{ kind: "nothing" }] }] },
+    { id: "saga-tarkhan-end-plain", raceId: RACE, outcome: "goldenAge", title: "The Middle Road", art: "council", text: "Neither.", choices: [{ label: "So be it", result: "On we go.", effects: [{ kind: "nothing" }] }] },
   );
 });
 
@@ -45,7 +49,7 @@ function playOut(g: GameState, pick: number): void {
 
 describe("race sagas", () => {
   it("only races with saga writing have one, and their old storyline steps aside", () => {
-    expect(hasSaga("humans")).toBe(true);
+    expect(hasSaga(RACE)).toBe(true);
     expect(hasSaga("nyx")).toBe(false);
     const g = newGame(settings());
     g.turn = 300; processStorylines(g);
@@ -66,9 +70,9 @@ describe("race sagas", () => {
     const run = sagaOf(g, e)!;
     expect(run.acts).toBe(4);
     expect(run.flags).toContain("spared");
-    expect(run.played).toContain("saga-humans-branch-return");
+    expect(run.played).toContain("saga-tarkhan-branch-return");
     expect(run.scores.mercy).toBeGreaterThanOrEqual(4);
-    expect(run.ending).toBe("saga-humans-end-light");
+    expect(run.ending).toBe("saga-tarkhan-end-light");
     expect(e.research.progress.weapons).toBeGreaterThan(before);
     expect(g.events.some((x) => x.kind === "saga" && x.text.includes("Into the Light"))).toBe(true);
   });
@@ -77,15 +81,15 @@ describe("race sagas", () => {
     const g = newGame(settings());
     playOut(g, 1);
     const run = sagaOf(g, g.empires[0]!)!;
-    expect(run.played).not.toContain("saga-humans-branch-return");
-    expect(run.ending).toBe("saga-humans-end-dark");
+    expect(run.played).not.toContain("saga-tarkhan-branch-return");
+    expect(run.ending).toBe("saga-tarkhan-end-dark");
     expect(run.culturePerTurn).toBeGreaterThan(0);
   });
 
   it("neither: the fallback ending", () => {
     const g = newGame(settings());
     playOut(g, 2);
-    expect(sagaOf(g, g.empires[0]!)!.ending).toBe("saga-humans-end-plain");
+    expect(sagaOf(g, g.empires[0]!)!.ending).toBe("saga-tarkhan-end-plain");
     expect(g.empires[0]!.goldenAgeUntil).toBeGreaterThan(g.turn);
   });
 
@@ -94,7 +98,7 @@ describe("race sagas", () => {
     const vossari = g.empires.find((x) => x.raceId === "vossari");
     playOut(g, 2);
     const met = vossari && g.empires[0]!.contacts.includes(vossari.id);
-    expect(sagaOf(g, g.empires[0]!)!.played.includes("saga-x-humans-vossari-meet")).toBe(!!met);
+    expect(sagaOf(g, g.empires[0]!)!.played.includes("saga-x-tarkhan-vossari-meet")).toBe(!!met);
   });
 
   it("old saves (version 48) load", () => {
