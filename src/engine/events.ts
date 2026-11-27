@@ -32,6 +32,7 @@ import { LAST_STAND_EVENT, noteUnderdogChoice } from "./underdogs";
 import { DIG_EVENTS } from "./data/digSites";
 import { noteDigChoice } from "./digSites";
 import { HERO_EVENTS, noteHeroChoice } from "./heroes";
+import { MARKET_EVENTS, marketLotText, noteMarketChoice } from "./market";
 import { noteContractChoice } from "./contracts";
 import { adjustRelation } from "./diplomacy";
 import { exploreStar } from "./knowledge";
@@ -43,14 +44,14 @@ export const EVENT_CHANCE = 1 / 14;
 /** Unanswered events resolve with their first choice after this many turns. */
 export const EVENT_TIMEOUT = 5;
 
-export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS, ...SUPERNOVA_EVENTS, ...CRUSADE_EVENTS, ...CRITTER_EVENTS, ...INFESTATION_EVENTS, ...CONTRACT_EVENTS, ...SYNTH_EVENTS, ...NATIVE_EVENTS, ...EXPEDITION_EVENTS, ...ENVOY_EVENTS, ...GATE_ALL_EVENTS, ...SECRET_EVENTS, MAGES_EVENT, CELL_EVENT, SMUGGLER_EVENT, BOUNTY_EVENT, CULT_EVENT, PARASITE_EVENT, ...DERELICT_EVENTS, ...MEGA_EVENTS, ...ENDGAME_EVENTS, LAST_STAND_EVENT, ...DIG_EVENTS, ...HERO_EVENTS].map((e) => [e.id, e]));
+export const EVENT_BY_ID: ReadonlyMap<string, GameEventDef> = new Map([...EVENTS, ...UNREST_EVENTS, ...PRISON_EVENTS, ...ALL_STORY_CHAPTERS, ...SUPERNOVA_EVENTS, ...CRUSADE_EVENTS, ...CRITTER_EVENTS, ...INFESTATION_EVENTS, ...CONTRACT_EVENTS, ...SYNTH_EVENTS, ...NATIVE_EVENTS, ...EXPEDITION_EVENTS, ...ENVOY_EVENTS, ...GATE_ALL_EVENTS, ...SECRET_EVENTS, MAGES_EVENT, CELL_EVENT, SMUGGLER_EVENT, BOUNTY_EVENT, CULT_EVENT, PARASITE_EVENT, ...DERELICT_EVENTS, ...MEGA_EVENTS, ...ENDGAME_EVENTS, LAST_STAND_EVENT, ...DIG_EVENTS, ...HERO_EVENTS, ...MARKET_EVENTS].map((e) => [e.id, e]));
 
 function fill(text: string, state: GameState, p: PendingEvent): string {
   return text
     .replace(/\{colony\}/g, p.colonyStarId !== null ? state.stars[p.colonyStarId]!.name : "our capital")
     .replace(/\{star\}/g, p.starId !== null ? state.stars[p.starId]!.name : "the frontier")
     .replace(/\{rival\}/g, p.rivalId !== null ? state.empires[p.rivalId]!.name : "a neighbour")
-    .replace(/\{work\}/g, () => megaWorkText(state, p) ?? endgameWorkText(state, p) ?? "a great work");
+    .replace(/\{work\}/g, () => megaWorkText(state, p) ?? endgameWorkText(state, p) ?? marketLotText(state, p) ?? "a great work");
 }
 
 /** The event's text with names filled in, for showing to its empire. */
@@ -120,6 +121,7 @@ export function resolveEvent(state: GameState, p: PendingEvent, choice: number):
   noteUnderdogChoice(state, p, choice);
   noteDigChoice(state, p, choice);
   noteHeroChoice(state, p, choice);
+  noteMarketChoice(state, p, choice);
   const e = state.empires[p.empireId]!;
   for (const fx of c.effects) applyEffect(state, e, p, fx);
   state.events.push({ turn: state.turn, empireId: e.id, kind: "info", text: `${def.title}: ${fill(c.result, state, p)}` });

@@ -164,6 +164,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 41) { (data as GameState).version = 42; }
   // Version 42 -> 43: heroes.
   if (data.version === 42) { (data as GameState).version = 43; }
+  // Version 43 -> 44: the Travelling Auction.
+  if (data.version === 43) { (data as GameState).version = 44; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }
