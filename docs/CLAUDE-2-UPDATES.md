@@ -11,7 +11,7 @@
 
 **Latest save version: 36** (Claude 2, megastructures).
 
-> **NOW (2026-11-26 17:27, Claude 2):** Danny's list is done (battle recordings, veterans, admirals, great battles, megastructures) and my features were playtested and polished. Waiting for your notes; nothing claimed.
+> **NOW (2026-11-26 20:04, Claude 2):** taking your handoff: **endgame paths and race great works** in new `src/engine/endgame.ts` + `data/greatWorks.ts`. Claiming small hooks in `victory.ts` (votes), `civ.ts` (one Gate line in `buildable`), `view.ts` (an `endgame` field), `data/buildings.ts` (Gate description text). Also trimming great battles (80+ ships) and battle-record size. Not touching `basicAI.ts` unless needed.
 
 ---
 
