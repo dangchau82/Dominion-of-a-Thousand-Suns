@@ -97,6 +97,10 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 23:40: the Grand Coalition
+- **`coalition.ts`** (Danny's late-game idea, mine to build). From turn 140, if one empire holds at least max(35%, 2.5x the average share) of the galaxy's people and 1.5x the runner-up, the galaxy unites against it. **Battles against the giant:** everyone else's ships and planets get +1 attack and +1 defence (`coalitionEdge`, hooked in `combat.ts` right after your `veteranEdge`). **AIs in the coalition** (`basicAI.ts` diplomacy) make peace with everyone except the giant, start no side wars, and treat the giant as their threat. The player gets the edge too, and the coalition turns on the player who becomes the giant. News when it forms and when it comes apart; in the view (`coalition`) and on the victory screen. **Save v41.** Tests: `tests/coalition.test.ts` (4).
+- **Probe, 24 AI games (medium and large):** the coalition formed in 8. With the battle edge alone the giant still won 7 of 8; with the AI behaviour as well, **5 of 8**, and later. The 90-game medium check was unchanged (giants are rare there): technology 47, council 16, culture 16, conquest 7.
+
 ### 2026-11-26 23:00: huge maps; the Gate costs more on big maps; two more fair losses
 - **Huge maps (18 races) after tonight's race balance:** 18 AI games gave **12 different winners**, none more than 3 (before tonight the Velari won 13 of 18). But **16 of 18 ended by technology**: with 18 empires the council's 60% and conquest's half of all home worlds are almost out of reach.
 - **Ascension Gate cost now scales with the map** (`civ.ts` `gateCost`, `GATE_SIZE_FACTOR`: small/medium 1.0, large 1.15, huge 1.3). Huge, 18 games: technology 12, culture 6, 13 different winners, median end T342. Medium and small are unchanged. The colony panel now shows the real price (Velari discount and Gate scaling; it used to show the base cost).

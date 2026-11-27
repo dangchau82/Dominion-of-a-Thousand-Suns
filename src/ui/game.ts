@@ -1039,6 +1039,7 @@ export class GameScreen {
         <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th><th>Home worlds</th></tr>${rows}</table>
         <p class="dim">Shows you and the empires you have met. Total votes among them: ${total}.</p>
         ${this.openSecretHtml(v)}
+        ${v.coalition.leaderId === null ? "" : v.coalition.leaderId === PLAYER ? `<p>⚔️ <b>The Grand Coalition</b> <span class="bad">stands against you</span> (since turn ${v.coalition.since}): every other empire fights your ships with +1 attack and +1 defence.</p>` : `<p>⚔️ <b>The Grand Coalition</b> stands against the <span style="color:${this.state.empires[v.coalition.leaderId]!.color}">${esc(this.state.empires[v.coalition.leaderId]!.name)}</span> (since turn ${v.coalition.since}). <span class="good">Your ships fight them with +1 attack and +1 defence.</span></p>`}
         <h3 style="margin:10px 0 4px">🏅 Galactic firsts</h3>
         ${FIRSTS.map((f) => { const w = v.firsts.find((x) => x.id === f.id); const who = w ? this.state.empires[w.empireId]! : null;
           return `<div style="font-size:13px">${w ? "🏅" : "○"} <b>${esc(f.name)}</b>: first to ${esc(f.deed)} <span class="dim">· +${f.culture} culture${who ? ` · won by <span style="color:${who.color}">${esc(who.name)}</span>, turn ${w!.turn}` : " · not yet won"}</span></div>`; }).join("")}`;

@@ -24,6 +24,7 @@ import { ambushing } from "./gates";
 
 import { BattleRecorder } from "./battleLog";
 import { noteBattle, veteranEdge } from "./battleStories";
+import { coalitionEdge } from "./coalition";
 
 /** Told about each shot (battle recordings). */
 export type ShotListener = (round: number, shooter: Unit, target: Unit, kind: string, result: "miss" | "intercepted" | "dodged" | "blocked" | "hit" | "kill", damage: number) => void;
@@ -296,6 +297,7 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
   if (!units.some(armed)) return; // nobody here can shoot
   if (!units.some((u) => u.side === 0) || !units.some((u) => u.side === 1)) return;
   veteranEdge(state, here, units); // famous fleets and admirals (battleStories.ts, Claude 2)
+  coalitionEdge(state, units); // the galaxy against a giant (coalition.ts)
 
   const rec = new BattleRecorder(units);
   const rounds = fight(state, units, rec.shot);

@@ -31,6 +31,7 @@ import { processVeterans } from "./battleStories";
 import { processMegastructures } from "./megastructures";
 import { processEndgame } from "./endgame";
 import { processUnderdogs } from "./underdogs";
+import { processCoalition } from "./coalition";
 import { processOpenSecret, openSecretProduction, openSecretResearch, openSecretCostFactor } from "./openSecret";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
@@ -290,6 +291,7 @@ export function endTurn(state: GameState): void {
   processEndgame(state);
   processUnderdogs(state);
   processOpenSecret(state);
+  processCoalition(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

@@ -148,9 +148,15 @@ function diplomacy(ctx: Ctx): void {
   const { view, cmds } = ctx;
   const mine = myPop(ctx);
   let availableTreasury = view.me.treasury;
+  // The Grand Coalition (coalition.ts): when the galaxy unites against a giant, make peace with
+  // everyone else and point every war at the giant.
+  const giant = view.coalition.leaderId;
+  const inCoalition = giant !== null && giant !== view.me.id;
+  if (inCoalition) ctx.threat = giant;
   for (const c of view.contacts) {
     if (!c.alive) continue;
     const theirs = knownPop(ctx, c.id);
+    if (c.warSince !== null && inCoalition && c.id !== giant && !c.weOfferedPeace) { cmds.push({ type: "offerPeace", targetId: c.id }); continue; }
     if (c.warSince !== null) {
       const length = view.turn - c.warSince;
       // Losing badly: sue for peace with a gift (Gemini, coding test 2026-11-25).
@@ -180,8 +186,8 @@ function diplomacy(ctx: Ctx): void {
       if (mine >= knownPop(ctx, t.id) * 0.25 || others >= 2) { cmds.push({ type: "declareWar", targetId: t.id }); return; }
     }
   }
-  // Start at most one war at a time, and only once established.
-  if (ctx.wars.length > 0 || view.turn < ctx.level.firstWar) return;
+  // Start at most one war at a time, and only once established. No side wars while the coalition stands.
+  if (ctx.wars.length > 0 || view.turn < ctx.level.firstWar || inCoalition) return;
   const myFleet = view.fleets.reduce((a, f) => a + warPower(ctx, f), 0);
   const candidates = view.contacts
     // Honorable races keep their pacts.

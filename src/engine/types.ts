@@ -422,6 +422,8 @@ export interface GameState {
   underdogs?: import("./underdogs").UnderdogState;
   /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
   openSecret?: import("./openSecret").OpenSecretState;
+  /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
+  coalition?: import("./coalition").CoalitionState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -443,4 +445,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 40;
+export const SAVE_VERSION = 41;

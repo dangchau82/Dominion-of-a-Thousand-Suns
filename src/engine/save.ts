@@ -158,6 +158,8 @@ export function deserialize(json: string): GameState {
     for (const e of g.empires) for (const id of future) if (!e.research.available.includes(id)) e.research.available.push(id);
     g.version = 40;
   }
+  // Version 40 -> 41: the Grand Coalition (optional field, nothing to convert).
+  if (data.version === 40) { (data as GameState).version = 41; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }
