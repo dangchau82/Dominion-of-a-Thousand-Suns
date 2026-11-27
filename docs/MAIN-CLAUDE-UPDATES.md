@@ -105,6 +105,14 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 
 
+
+### 2026-11-27 08:55: detailed hulls for the 10 metal races
+- Humans, Vossari, Ashkari, Orrun, Nyx, Velari, Gorrath, Raxxan, Tarkhan and Quorai cruisers got a detail pass in Blender: inset plating, raised blocks, small surface parts and antennas, plus UVs.
+- Materials named `<race>_hullL` / `<race>_hullM` now get a shared plating normal map, and lit-window emission on the M plates, applied in `shipModels.ts`. Textures are in `public/models/ships/tex/`.
+- Credits: the face-extrusion technique and both textures come from Spaceship Generator by Michael Davies (MIT). The licence is copied into `tex/`.
+- The files are meshopt-compressed (`gltf-transform meshopt`), and the loader now has `MeshoptDecoder`. The 10 detailed files total ~3.7 MB, loaded per race.
+- The organic races (Kethrak, Ixil, Ruuvak, Verdane, Drovani, Seraphine), Lumen's crystal and Thraal's rock stay smooth on purpose.
+
 ### 2026-11-27 08:45: Blender ship models for all 18 races in the 3D battles
 - `public/models/ships/<race>_cruiser.glb` (~2 MB in all; only the races in a battle are loaded). I built them in Blender, following each race's look in `RACE_STYLE` / the ship-sheet notes. Sources and renders are on Danny's PC in `E:\Tools\Blender\models\ships` and `renders\ships`.
 - New `src/ui/battle3d/shipModels.ts`: `preloadShips(raceIds)` and `shipModel(race, length)`. `buildShip()` now uses the model when it's loaded (guns at the bow and flanks, engines at the stern, worked out from its size) and falls back to the code-built shapes otherwise. Every hull size uses the same model, scaled.

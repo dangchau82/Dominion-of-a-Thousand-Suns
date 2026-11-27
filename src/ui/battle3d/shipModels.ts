@@ -6,14 +6,31 @@
 
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 const cache = new Map<string, THREE.Object3D>();
+
+// Hull plating and window-light textures, shared by every detailed (metal) hull. From Spaceship
+// Generator by Michael Davies (MIT licence; see public/models/ships/tex/LICENSE-SpaceshipGenerator-MIT.txt).
+let hullTex: { normal: THREE.Texture; lights: THREE.Texture } | null = null;
+function hullTextures(): { normal: THREE.Texture; lights: THREE.Texture } {
+  if (!hullTex) {
+    const tl = new THREE.TextureLoader();
+    const normal = tl.load("models/ships/tex/hull_normal.png");
+    const lights = tl.load("models/ships/tex/hull_lights.png");
+    for (const t of [normal, lights]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; }
+    lights.colorSpace = THREE.SRGBColorSpace;
+    hullTex = { normal, lights };
+  }
+  return hullTex;
+}
 const pending = new Map<string, Promise<void>>();
 const failed = new Set<string>();
 
 /** Loads the models for these races (once each). Resolves after `timeoutMs` at the latest. */
 export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000): Promise<void> {
   const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder); // the detailed hulls are meshopt-compressed
   const jobs: Promise<void>[] = [];
   for (const id of new Set(raceIds)) {
     if (cache.has(id) || failed.has(id)) continue;
@@ -26,6 +43,13 @@ export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000): Promi
             if (!m.isMesh) return;
             for (const mat of Array.isArray(m.material) ? m.material : [m.material]) {
               const st = mat as THREE.MeshStandardMaterial;
+              if (/_hull[LM]/.test(st.name)) { // plated metal hull: panel lines everywhere, lit windows on the darker plates
+                const t = hullTextures();
+                st.normalMap = t.normal;
+                if (/_hullL/.test(st.name)) { st.color.multiplyScalar(0.72); st.roughness = Math.max(st.roughness, 0.5); } // pale hulls glare under the battle bloom
+                if (/_hullM/.test(st.name)) { st.emissiveMap = t.lights; st.emissive = new THREE.Color(0xffe8c0); st.emissiveIntensity = 3.3; }
+                st.needsUpdate = true;
+              }
               if (st.emissiveIntensity !== undefined) st.emissiveIntensity *= 0.3; // Blender glow is tuned for stills; the battle adds bloom
               if (st.envMapIntensity !== undefined) st.envMapIntensity = 0.55;
             }
