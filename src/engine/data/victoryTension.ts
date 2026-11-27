@@ -1,7 +1,7 @@
 // Public victory-race warnings (50%, 75%, 90%) and bounded counter-plays.
 // Written by Gemini (2026-11-25), checked by Claude; rules built by Claude.
 // Claude: Gemini used old victory rules (culture 75,000; council two-thirds). Fixed to the real ones
-// in src/engine/victory.ts: CULTURE_VICTORY 90,000 and VOTE_SHARE_TO_WIN 60%.
+// in src/engine/victory.ts: CULTURE_VICTORY 110,000 and VOTE_SHARE_TO_WIN 60%.
 import type { VictoryKind } from "../types";
 
 export type VictoryMilestone = 50 | 75 | 90;
@@ -47,7 +47,7 @@ export const MAX_COUNTERPLAY_WARS = 2;
 
 export const VICTORY_TENSION: VictoryTensionDef[] = [
   // =========================================================================
-  // 1. CULTURE VICTORY (CULTURE_VICTORY = 90,000 in src/engine/victory.ts)
+  // 1. CULTURE VICTORY (CULTURE_VICTORY = 110,000 in src/engine/victory.ts)
   // =========================================================================
   {
     kind: "culture",
@@ -56,17 +56,17 @@ export const VICTORY_TENSION: VictoryTensionDef[] = [
       {
         milestone: 50,
         ratio: 0.5,
-        text: "Cultural tide rising: the {rival} has reached 45,000 culture (50% to Cultural Hegemony), drawing artists and pilgrims from across the sector.",
+        text: "Cultural tide rising: the {rival} has reached 55,000 culture (50% to Cultural Hegemony), drawing artists and pilgrims from across the sector.",
       },
       {
         milestone: 75,
         ratio: 0.75,
-        text: "Cultural warning: the {rival} has reached 67,500 culture (75% to Cultural Hegemony); border worlds across the galaxy are adopting their customs.",
+        text: "Cultural warning: the {rival} has reached 82,500 culture (75% to Cultural Hegemony); border worlds across the galaxy are adopting their customs.",
       },
       {
         milestone: 90,
         ratio: 0.9,
-        text: "Final cultural alert: the {rival} stands at 81,000 culture (90% to Cultural Hegemony) and will soon eclipse every rival civilization.",
+        text: "Final cultural alert: the {rival} stands at 99,000 culture (90% to Cultural Hegemony) and will soon eclipse every rival civilization.",
       },
     ],
     counterPlay: {

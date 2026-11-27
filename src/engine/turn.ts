@@ -31,6 +31,7 @@ import { processVeterans } from "./battleStories";
 import { processMegastructures } from "./megastructures";
 import { processEndgame } from "./endgame";
 import { processUnderdogs } from "./underdogs";
+import { processOpenSecret, openSecretProduction, openSecretResearch, openSecretCostFactor } from "./openSecret";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -98,7 +99,7 @@ export function colonyBudget(state: GameState, c: Colony): ColonyBudget {
   const ce = colonyEffects(c);
   const eb = empireBonus(e);
   // Unrest cuts output (up to 25% at open revolt).
-  const boosted = production * (1 + ce.production + eb.production) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1) * (1 + edictShare(c, "production")) * (1 - distanceCost(state, c));
+  const boosted = production * (1 + ce.production + eb.production + openSecretProduction(state, e.id)) * (1 - unrestPenalty(c)) * (c.prison ? 1 + PRISON_COLONY.productionBonus : 1) * (1 + edictShare(c, "production")) * (1 - distanceCost(state, c));
   // Spies and internal security are paid first, out of every colony's output.
   const net = boosted * (1 - spendingShare(e));
   const part = (pct: number) => (net * pct) / 100;
@@ -203,14 +204,14 @@ function processColony(state: GameState, c: Colony): number {
 function processResearch(state: GameState, e: Empire, points: number): void {
   const r = empireRace(e);
   const rs = e.research;
-  points *= 1 + techStats(e).research + researchPactBonus(e);
+  points *= 1 + techStats(e).research + researchPactBonus(e) + openSecretResearch(state, e.id);
   for (const f of FIELDS) {
     rs.progress[f] += (points * rs.alloc[f]) / 100;
     for (;;) {
       const id = ensureProject(rs, f);
       if (!id) break;
       const t = tech(id);
-      const cost = techCost(t, r);
+      const cost = techCost(t, r) * openSecretCostFactor(state, e.id, id);
       if (rs.progress[f] < cost) break;
       rs.progress[f] -= cost;
       learn(rs, id);
@@ -288,6 +289,7 @@ export function endTurn(state: GameState): void {
   processMegastructures(state);
   processEndgame(state);
   processUnderdogs(state);
+  processOpenSecret(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

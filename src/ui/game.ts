@@ -994,6 +994,16 @@ export class GameScreen {
     });
   }
 
+  /** The Open Secret line on the victory screen: whose discoveries are leaking and what we gain. */
+  private openSecretHtml(v: ReturnType<typeof makeView>): string {
+    const os = v.openSecret;
+    if (os.leaderId === null) return `<p class="dim">🔓 <b>The Open Secret</b>: from turn 120, if one empire runs far ahead, its discoveries leak and everyone behind it catches up faster. No empire is that far ahead now.</p>`;
+    const leader = this.state.empires[os.leaderId]!;
+    if (os.leaderId === PLAYER) return `<p>🔓 <b>The Open Secret</b>: <span class="bad">your discoveries are leaking</span> (since turn ${os.since}). Every empire behind you builds and researches faster, and copies your technologies cheaply.</p>`;
+    const pct = (x: number) => Math.round(x * 100);
+    return `<p>🔓 <b>The Open Secret</b>: the <span style="color:${leader.color}">${esc(leader.name)}</span> have run so far ahead that their discoveries are leaking (since turn ${os.since}). <span class="good">You gain +${pct(os.production)}% production, +${pct(os.research)}% research, and their technologies cost you ${pct(os.copyDiscount)}% less.</span></p>`;
+  }
+
   /** Paths to victory and how everyone is doing. */
   private showVictory(): void {
     const v = makeView(this.state, PLAYER);
@@ -1010,6 +1020,7 @@ export class GameScreen {
         </ul>
         <table class="standings"><tr><th>Empire</th><th>Votes</th><th>Culture</th><th>Tier 10</th><th>Home worlds</th></tr>${rows}</table>
         <p class="dim">Shows you and the empires you have met. Total votes among them: ${total}.</p>
+        ${this.openSecretHtml(v)}
         <h3 style="margin:10px 0 4px">🏅 Galactic firsts</h3>
         ${FIRSTS.map((f) => { const w = v.firsts.find((x) => x.id === f.id); const who = w ? this.state.empires[w.empireId]! : null;
           return `<div style="font-size:13px">${w ? "🏅" : "○"} <b>${esc(f.name)}</b>: first to ${esc(f.deed)} <span class="dim">· +${f.culture} culture${who ? ` · won by <span style="color:${who.color}">${esc(who.name)}</span>, turn ${w!.turn}` : " · not yet won"}</span></div>`; }).join("")}`;

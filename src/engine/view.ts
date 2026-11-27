@@ -3,6 +3,7 @@
 
 import { RESOLUTION_BY_ID } from "./resolutions";
 import { endgameSummary } from "./endgame";
+import { openSecretSummary } from "./openSecret";
 import type { EmpireBonus } from "./data/buildings";
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
@@ -101,6 +102,8 @@ export interface EmpireView {
   standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean; homeWorlds: number }[];
   /** Endgame paths and great works: ours, the Gate requirements, and the great works of empires we know (endgame.ts, Claude 2). */
   endgame: ReturnType<typeof endgameSummary>;
+  /** The Open Secret: which runaway empire's discoveries are leaking, and how much we gain (openSecret.ts). Public news. */
+  openSecret: ReturnType<typeof openSecretSummary>;
   /** Galactic firsts won so far (public: they are announced to everyone). */
   firsts: { id: string; name: string; deed: string; empireId: Id; turn: number }[];
   /** Home worlds needed for a conquest victory (0 = not in this game), out of how many. */
@@ -204,6 +207,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     homeWorldsNeeded: homeWorldsNeeded(state),
     homeWorldsTotal: state.homeStars?.length ?? 0,
     endgame: endgameSummary(state, e),
+    openSecret: openSecretSummary(state, e.id),
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),
       techFields: techVictoryProgress(o), alive: o.alive, homeWorlds: homeWorldsHeld(state, o),

@@ -420,6 +420,8 @@ export interface GameState {
   endgame?: Record<Id, import("./endgame").EndgameState>;
   /** Underdog catch-up: peaks, last stands, refugees. See src/engine/underdogs.ts. */
   underdogs?: import("./underdogs").UnderdogState;
+  /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
+  openSecret?: import("./openSecret").OpenSecretState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -441,4 +443,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 38;
+export const SAVE_VERSION = 39;

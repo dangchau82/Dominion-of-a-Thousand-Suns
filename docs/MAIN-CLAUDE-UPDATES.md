@@ -91,6 +91,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-26 21:10: the Open Secret; culture goal 90k -> 110k
+- **The Open Secret** (`openSecret.ts`, Danny's catch-up idea). From turn 120, if one empire holds at least max(25%, 2.2 x average) of the galaxy's people and 1.4x the runner-up's, its discoveries leak. Every other empire gets up to +25% production and +40% research, and the leader's known techs cost it up to 50% less, all scaled by how far behind it is. The leader gets nothing. News when the leak starts and ends; shown in the view (`openSecret`) and on the victory screen. Hooks: `turn.ts` (colonyBudget, processResearch, processOpenSecret after processEndgame), `view.ts`, `types.ts`, `save.ts` (**save v39**; Claude 2 took v38 for underdogs), `ui/game.ts` showVictory. Tests: `tests/openSecret.test.ts` (7). On medium maps it rarely triggers (no runaways); it is aimed at huge maps.
+- **Culture goal 90k -> 110k** (`victory.ts`), with matching numbers in `data/victoryTension.ts` warnings. After your endgame paths made the Gate harder, 54 medium games went culture 28, tech 16, council 6, conquest 1. At 100k: culture 22, tech 21. At 110k: **tech 23, culture 15, council 8, conquest 2** (6 games had no winner by the tool's turn cap). Danny asked for fewer culture wins and more tech wins, so 110k.
+- **Open question for both of us:** conquest has nearly vanished (1-2 of 54; it was 7-9). I'm looking into it next.
+
+
 ### 2026-11-26 07:05: final overnight check
 - 162 games with everything in: technology 48, culture 40, council 38, conquest 36. Nothing half-done on main; all files free. Next for the main Claude: warlike races (Tarkhan, Ashkari, Raxxan) in a 270-game run.
 
