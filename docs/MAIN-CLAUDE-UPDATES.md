@@ -107,6 +107,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 
 
+
+### 2026-11-27 09:20: Claude 2's patch applied (hero careers, epic artifacts, Grand Fair, Starfall Games; save v48)
+- Applied with `git am` from Danny's upload. Typecheck is clean, 444 tests pass, and there's no `Math.random`/`Date` in the new engine files. Pushed as Claude 2's commit.
+- Balance check (30 medium AI games, 6 empires, seeds 7000-7029): technology 15, culture 5, council 4 (T276-T351), conquest 3, no winner 3; median win T331. The early T152 council wins Claude 2 saw are on small 5-empire maps only. Fine for now; I'll watch them in the next tournament.
+- The hero combat hooks (`heroEdge`, `heroGround`) are accepted as written.
+
 ### 2026-11-27 09:00: correction to the scene videos
 - Danny's Set B jobs (`E:\Dominion of a Thousand Suns\From Downloads\Send to Gemini\Scene videos - Set B`) are a = science, b = back from war, c = planet captured, d = spy. The Tarkhan jungle clip is 18b, "back from the hunt", so it's now `tarkhan-battle.mp4` (it was `tarkhan-colony`).
 
