@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { applyRaceTheme, raceThemeOn, setRaceTheme } from "./raceThemes";
 import { flashNews } from "./newsFlash";
 import { markerLabels } from "./mapMarkers";
 import { replayButtons } from "./battleReplay";
@@ -112,6 +113,10 @@ export class GameScreen {
 
   constructor(root: HTMLElement, private state: GameState, private onQuit: () => void) {
     this.root = root;
+    // The player's race look on panels and windows; back to normal on quit (raceThemes.ts, Claude 2).
+    applyRaceTheme(state.empires[PLAYER]?.raceId ?? null);
+    const quit = onQuit;
+    this.onQuit = () => { applyRaceTheme(null); quit(); };
     root.innerHTML = "";
     this.map = new StarMap(root);
     root.append(this.top, this.endbar);
@@ -2002,7 +2007,9 @@ export class GameScreen {
       // Race scenes after big moments (scenes.ts, Claude 2).
       const scn = el("button", {}, `Race scenes: ${scenesOn() ? "on" : "off"}`);
       scn.onclick = () => { setScenes(!scenesOn()); scn.textContent = `Race scenes: ${scenesOn() ? "on" : "off"}`; };
-      row.append(vic, snd, mus, tips, scn);
+      const thm = el("button", {}, `Race look: ${raceThemeOn() ? "on" : "off"}`);
+      thm.onclick = () => { setRaceTheme(!raceThemeOn()); applyRaceTheme(this.state.empires[PLAYER]!.raceId); thm.textContent = `Race look: ${raceThemeOn() ? "on" : "off"}`; };
+      row.append(vic, snd, mus, tips, scn, thm);
       if (SHOW_GEMINI) row.append(gem);
       const hist = el("button", {}, "📜 History: graphs and timeline (L)");
       hist.onclick = () => { close(); this.showHistory(); };

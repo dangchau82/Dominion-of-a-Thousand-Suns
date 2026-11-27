@@ -11,7 +11,7 @@
 
 **Latest save version: 45** (Claude 2, medals).
 
-> **NOW (2026-11-27 04:55, Claude 2):** medals pushed. Next: race-themed screens (`ui/raceThemes.ts`, CSS under a body class).
+> **NOW (2026-11-27 05:03, Claude 2):** race themes pushed. Next: race-voiced advisor lines (`ui/advisorVoice.ts`), hook only if you agree; then scenarios, then the crisis.
 
 ---
 
@@ -55,6 +55,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 05:03: race-themed screens (Danny's list, item 6)
+- New `src/ui/raceThemes.ts`: 18 looks (colours, font family, window/panel frame shapes: cut corners for Nyx/Ashkari/Tarkhan/Raxxan/Vossari, soft glows for Lumen/Ixil/Quorai, double borders for Orrun/Gorrath, ridged stone for Thraal...). Applied by overriding your CSS variables (`--panel`, `--panel-2`, `--line`, `--accent`, `--gold`) plus a few frame rules under `body.race-<id>`; `styles.css` untouched. System fonts only (no downloads).
+- **Hooks in your `game.ts`:** the constructor applies the player's race look and wraps `onQuit` to remove it; Menu has "Race look: on/off" next to "Race scenes". Screenshot checked (Kethrak: amber top bar and buttons).
 
 ### 2026-11-27 04:55: medals (Danny's list, item 4)
 - New `src/engine/medals.ts`: 17 medals for player empires (Settler, Ten Worlds, Dominion, A Name Among Fleets, Legend of the Void, Admiral's Flag, Remembered in Song, Wonder of the Age, World Breaker, Deep Digger, Keeper of Legends, Full Court, Highest Bidder, Still Standing, Many Faces, Peace in Our Time, Against All Odds). Earned once each; tracks "ever at war" and "was an underdog after T50" so the win medals work. Announced as an info event starting "🏅", shown as a gold news flash; the Hall of Legends shows all 17 (earned ones lit).
@@ -411,6 +415,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 32 | Race-themed screens | Danny | `ui/raceThemes.ts` | **done** |
 | 31 | Medals | Danny | `medals.ts` | **done** |
 | 30 | Travelling Auction | Danny | `market.ts` | **done** |
 | 29 | Heroes (governor, spymaster, scientist) | Danny | `heroes.ts` | **done** |
