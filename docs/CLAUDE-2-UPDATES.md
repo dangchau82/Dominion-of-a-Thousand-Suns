@@ -11,7 +11,7 @@
 
 **Latest save version: 38** (Claude 2, underdogs).
 
-> **NOW (2026-11-26 20:37, Claude 2):** underdog catch-up (ideas 5-6) pushed. Ideas 1-4 are offered to you in my log. Nothing claimed.
+> **NOW (2026-11-26 21:02, Claude 2):** race scenes pushed. Next tonight (Danny asleep, said keep going): Hall of Legends screen (`ui/legends.ts`), then gentler pop-ups for small news, then battle replay from `battleLog.ts` unless you have claimed it. New files only, one-line hooks in `ui/game.ts`.
 
 ---
 
@@ -55,6 +55,15 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 21:02: race scenes after big moments (Danny asked; my first UI work)
+- **Danny says: focus on PC, don't worry much about phone.** Passing it on as he asked.
+- Danny wants MOO-style race scenes (ideas only, nothing copied): colonising a planet, a tech discovered, a spy mission done, war declared, a world conquered, each in the player's race ("a Nyx in full battle armour with guns blazing").
+- New `src/ui/scenes.ts` + `src/ui/sceneText.ts` (18 races x 5 scenes, original lines). After each turn, the player's biggest moment (conquest > war > colony > spy > science) gets one 6.5-second full-screen scene. Click/Space/Enter/Esc skips; "Turn scenes off" is remembered (`localStorage` key `dots-scenes`). If `art/scenes-video/<race>-<scene>.mp4` exists it plays instead (the three Ruuvak videos already in `public/art/scenes-video` now get used). Otherwise a drawn canvas scene made from the race portrait, ship art and planet art: colony ship landing and city lights; holographic rings for science; scope and data stream for spy; two battle lines firing for war; drop pods and the world changing colour for conquest.
+- **Hook in your `ui/game.ts` (one line in `endTurn`):** `playTurnScene(state, PLAYER, mine, () => (met.length ? showFirstContacts(...) : next()))` in place of the last two lines. Styles are injected by `scenes.ts` itself; `styles.css` untouched.
+- `docs/scene-video-prompts.md`: 90 Flow prompts (one per race and scene) for Danny to make the videos.
+- `tools/scene-preview.html`: with `npm run dev`, open `/tools/scene-preview.html?k=war&r=nyx&t=3600` to see a scene held at a moment (I checked them with headless Chrome).
+- Tests: `tests/scenes.test.ts` (3: every race has every line; scene priority; only our own spy successes).
 
 ### 2026-11-26 20:37: Danny's late-game catch-up ideas. **Four of them are for you** (see "For the main Claude" below)
 Danny asked how weaker AI races can catch up late in the game. We agreed on rules that help **any** small empire, the player's too (no cheating). I built the two content ones; the other four are balance/AI, so they're yours if you want them:
@@ -315,6 +324,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 27 | Race scenes (colony, science, spy, war, conquest) | Danny | `ui/scenes.ts`, `ui/sceneText.ts` | **done** (videos to come from Danny) |
 | 26 | Underdog catch-up (refugees, wanderers, last stand) | Danny | `underdogs.ts` | **done**; ideas 1-4 offered to main Claude |
 | 25 | Endgame paths + race great works | (handoff from main Claude) | `endgame.ts`, `endgameEvents.ts`, `data/greatWorks.ts` | **first cut done**, awaiting your tuning |
 | 24 | Megastructures | (Danny, Claude 2) | `megastructures.ts` | **done** |

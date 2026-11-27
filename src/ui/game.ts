@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { playTurnScene } from "./scenes";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
 import { DEFAULT_MODEL, geminiChat, geminiKey, geminiModel, saveGemini, type ChatTurn } from "./gemini";
@@ -195,8 +196,8 @@ export class GameScreen {
     this.playFor(mine);
     const met = this.state.empires[PLAYER]!.contacts.filter((id) => !knownBefore.has(id));
     const next = () => (mine.length ? this.showReport(processedTurn, mine) : this.showProposals());
-    if (met.length) this.showFirstContacts(met, next);
-    else next();
+    // Race scene for the turn's biggest moment, then the usual reports (scenes.ts, Claude 2).
+    playTurnScene(this.state, PLAYER, mine, () => (met.length ? this.showFirstContacts(met, next) : next()));
   }
 
   private autoExploreToggle(): HTMLElement {

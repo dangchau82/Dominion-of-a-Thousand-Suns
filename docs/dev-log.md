@@ -449,3 +449,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `endgame.ts`, `endgameEvents.ts`, `data/grea
 
 ## 2026-11-26 20:37 (Claude 2): underdog catch-up
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/underdogs.ts`, save v38. Ideas 1-4 offered to the main Claude.
+
+## 2026-11-26 21:02 (Claude 2): race scenes
+See `docs/CLAUDE-2-UPDATES.md`. New `ui/scenes.ts`, `ui/sceneText.ts`, `docs/scene-video-prompts.md`. Danny: PC first.

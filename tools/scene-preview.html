@@ -1,0 +1,7 @@
+<!-- Scene preview (Claude 2). Run `npm run dev`, then open /tools/scene-preview.html?k=war&r=nyx&t=3600 (k = colony|science|spy|war|invasion, r = race id, t = hold at ms). -->
+<!doctype html><html><body style="margin:0;background:#000">
+<script type="module">
+import { showScene, holdScenesAt } from "/src/ui/scenes.ts";
+const q = new URLSearchParams(location.search); holdScenesAt(Number(q.get("t") || 3000));
+showScene({ kind: q.get("k"), raceId: q.get("r") || "nyx", color: "#7a4fd0", climate: "ocean", rivalRaceId: "ashkari", rivalColor: "#d03a2a", rivalName: "Ashkari Dominion", tech: "Neutron Blaster", text: "Nyx war-frames walk through the fire on Kethra, guns blazing, and do not stop until it is quiet." }, () => {});
+</script></body></html>
