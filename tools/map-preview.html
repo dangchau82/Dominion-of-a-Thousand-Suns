@@ -1,0 +1,21 @@
+<!-- Map marker preview (Claude 2). Run `npm run dev`, open /tools/map-preview.html -->
+<!doctype html><html><head><base href="/"><link rel="stylesheet" href="/src/ui/styles.css"></head><body style="margin:0;background:#000;width:100vw;height:100vh">
+<div id="m" style="position:fixed;inset:0"></div>
+<script type="module">
+import { newGame, endTurn } from "/src/engine/index.ts";
+import { makeView } from "/src/engine/view.ts";
+import { exploreStar } from "/src/engine/knowledge.ts";
+import { StarMap } from "/src/ui/map.ts";
+const g = newGame({ seed: 12, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "nyx", playerName: "P" });
+const e = g.empires[0];
+for (const s of g.stars) exploreStar(g, e, s, false);
+e.contacts.push(1, 2);
+const free = g.stars.filter((s) => s.planet && !g.colonies[s.id]);
+free[0].planet.special = "death:x"; free[1].planet.special = "death:cracked"; free[2].planet.special = "natives:x";
+g.lairs = [{ lairId: "driftwake-raider-post", starId: free[3].id, left: [1], seenBy: [0], clearedBy: null }];
+g.supernovae = [{ starId: free[4].id, startTurn: 1, blowTurn: 20, affected: [], plans: {}, remnantId: null }];
+g.endgame = { 1: { paths: { builder: 1 }, offered: ["builder"], works: [{ workId: "gw-dyson-shell", starId: g.empires[1].capitalStarId, started: 1, done: 40, finished: true, finishedTurn: 1, sabotageAt: 99 }] } };
+const map = new StarMap(document.getElementById("m"));
+const v = makeView(g, 0);
+map.update(v, { selectedStar: null, moving: null });
+</script></body></html>

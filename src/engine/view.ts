@@ -2,6 +2,7 @@
 // It is a deep copy, so nothing done to it can touch the real game.
 
 import { RESOLUTION_BY_ID } from "./resolutions";
+import { mapMarkers, type MapMarker } from "./mapMarkers";
 import { endgameSummary } from "./endgame";
 import { openSecretSummary } from "./openSecret";
 import type { EmpireBonus } from "./data/buildings";
@@ -102,6 +103,8 @@ export interface EmpireView {
   standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean; homeWorlds: number }[];
   /** Endgame paths and great works: ours, the Gate requirements, and the great works of empires we know (endgame.ts, Claude 2). */
   endgame: ReturnType<typeof endgameSummary>;
+  /** Places from Claude 2's features that we know of, for the map (mapMarkers.ts). */
+  markers: MapMarker[];
   /** The Open Secret: which runaway empire's discoveries are leaking, and how much we gain (openSecret.ts). Public news. */
   openSecret: ReturnType<typeof openSecretSummary>;
   /** Galactic firsts won so far (public: they are announced to everyone). */
@@ -207,6 +210,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     homeWorldsNeeded: homeWorldsNeeded(state),
     homeWorldsTotal: state.homeStars?.length ?? 0,
     endgame: endgameSummary(state, e),
+    markers: mapMarkers(state, e),
     openSecret: openSecretSummary(state, e.id),
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),

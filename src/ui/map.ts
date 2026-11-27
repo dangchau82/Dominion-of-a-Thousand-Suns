@@ -1,6 +1,7 @@
 // The star map: a canvas you can drag, pinch/scroll to zoom, and tap.
 
 import { CLIMATES, type EmpireView } from "../engine";
+import { drawMarkers } from "./mapMarkers";
 import type { Fleet, Id, StarColor } from "../engine/types";
 import { art, img, ready } from "./assets";
 
@@ -475,6 +476,9 @@ export class StarMap {
         ctx.restore();
       }
     }
+
+    // Lairs, gates, great works and other places from Claude 2's features (mapMarkers.ts).
+    drawMarkers(ctx, v, (gx, gy) => this.toScreen(gx, gy), this.scale, colorOf);
 
     // Fleets.
     const shipSize = Math.max(20, Math.min(44, this.scale * 0.75));

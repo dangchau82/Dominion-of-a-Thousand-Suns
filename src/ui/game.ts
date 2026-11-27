@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { markerLabels } from "./mapMarkers";
 import { replayButtons } from "./battleReplay";
 import { legendsHTML } from "./legends";
 import { playTurnScene } from "./scenes";
@@ -479,6 +480,9 @@ export class GameScreen {
     const close = el("button", { class: "small close" }, "✕");
     close.onclick = () => this.select(null);
     p.append(close);
+    // What's known to be here from Claude 2's features (lairs, gates, great works...): mapMarkers.ts.
+    const marks = markerLabels(v, s.id);
+    if (marks.length) p.append(el("div", { class: "dim", style: "margin:2px 0 6px;line-height:1.5" }, marks.map(esc).join("<br>")));
 
     const fleetsHere = v.fleets.filter((f) => f.starId === s.id || f.destStarId === s.id);
     const foreignHere = v.seenFleets.filter((f) => f.starId === s.id);
