@@ -65,7 +65,7 @@ describe("veteran fleets and admirals", () => {
     const mine = park(g, 0, star, { [design(g, 0, "Destroyer").id]: 30 });
     for (let i = 0; i < times; i++) {
       g.turn++;
-      park(g, 1, star, { [design(g, 1, "Fighter").id]: 1 });
+      park(g, 1, star, { [design(g, 1, "Fighter").id]: 2 });
       resolveCombat(g);
       processVeterans(g);
     }
@@ -73,24 +73,24 @@ describe("veteran fleets and admirals", () => {
   }
 
   it("a fleet that keeps winning earns a name, then an admiral", () => {
-    const { g, mine } = winMany(1);
+    const { g, mine } = winMany(2);
     expect(g.veterans![mine]!.name).toBeUndefined();
-    const two = winMany(2);
+    const two = winMany(3);
     expect(rankOf(two.g.veterans![two.mine])).toBe(1);
     expect(two.g.veterans![two.mine]!.name).toBeTruthy();
-    const five = winMany(5);
+    const five = winMany(7);
     expect(rankOf(five.g.veterans![five.mine])).toBe(2);
     expect(five.g.veterans![five.mine]!.admiral?.name).toBeTruthy();
-    expect(g.veterans![mine]!.victories).toBe(1);
+    expect(g.veterans![mine]!.victories).toBe(2);
   });
 
   it("names and admirals come from the seed, not random draws", () => {
-    const a = winMany(5), b = winMany(5);
+    const a = winMany(7), b = winMany(7);
     expect(a.g.veterans![a.mine]).toEqual(b.g.veterans![b.mine]);
   });
 
   it("a famous fleet's ships fight better", () => {
-    const { g, mine } = winMany(2);
+    const { g, mine } = winMany(3);
     const f = g.fleets.find((x) => x.id === mine)!;
     const plain = shipUnit(g, 0, g.empires[0]!, design(g, 0, "Destroyer"), 5);
     const u = shipUnit(g, 0, g.empires[0]!, design(g, 0, "Destroyer"), 5);
@@ -99,7 +99,7 @@ describe("veteran fleets and admirals", () => {
   });
 
   it("losing a famous fleet makes galaxy history", () => {
-    const { g, mine, star } = winMany(2);
+    const { g, mine, star } = winMany(3);
     g.fleets.find((x) => x.id === mine)!.ships = { [design(g, 0, "Fighter").id]: 1 };
     park(g, 1, star, { [design(g, 1, "Destroyer").id]: 30 });
     g.turn++;
@@ -109,7 +109,7 @@ describe("veteran fleets and admirals", () => {
   });
 
   it("the record follows the ships when the fleet merges into another", () => {
-    const { g, mine, star } = winMany(2);
+    const { g, mine, star } = winMany(3);
     const v = g.veterans![mine]!;
     g.fleets = g.fleets.filter((f) => f.id !== mine);
     const heir = park(g, 0, star, { [design(g, 0, "Destroyer").id]: 40 });
@@ -123,20 +123,20 @@ describe("great battles", () => {
     const g = newGame(settings());
     war(g);
     const star = openStar(g);
-    park(g, 0, star, { [design(g, 0, "Destroyer").id]: 12 });
-    park(g, 1, star, { [design(g, 1, "Destroyer").id]: 12 });
+    park(g, 0, star, { [design(g, 0, "Destroyer").id]: 32 });
+    park(g, 1, star, { [design(g, 1, "Destroyer").id]: 32 });
     resolveCombat(g);
     expect(g.greatBattles?.length).toBe(1);
     expect(g.greatBattles![0]!.name).toMatch(new RegExp(`of ${g.stars[star]!.name}$`));
     expect(g.events.some((e) => e.kind === "saga" && e.text.includes(g.stars[star]!.name))).toBe(true);
   });
 
-  it("small battles are not", () => {
+  it("one-sided slaughters are not", () => {
     const g = newGame(settings());
     war(g);
     const star = openStar(g);
-    park(g, 0, star, { [design(g, 0, "Destroyer").id]: 3 });
-    park(g, 1, star, { [design(g, 1, "Destroyer").id]: 3 });
+    park(g, 0, star, { [design(g, 0, "Destroyer").id]: 60 });
+    park(g, 1, star, { [design(g, 1, "Fighter").id]: 2 });
     resolveCombat(g);
     expect(g.greatBattles ?? []).toHaveLength(0);
   });

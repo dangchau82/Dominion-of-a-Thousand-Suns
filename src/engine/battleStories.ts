@@ -1,12 +1,12 @@
 // Battle stories (written by Claude 2): veteran fleets, hero admirals and great battles.
 //
-// - Veteran fleets: a fleet that wins battles earns victories. At 2 it gets a name and the
-//   rank Veteran, at 5 Elite, at 9 Legendary. Its ships fight a little better (attack +1,
-//   +1, +2). Losing a famous fleet makes the news.
+// - Veteran fleets: a fleet that wins a real battle (the enemy loses 2+ ships and more than
+//   we do) earns a victory. At 3 it gets a name and the rank Veteran, at 7 Elite, at 12
+//   Legendary. Its ships fight a little better (attack +1, +1, +2). Losing one makes history.
 // - Hero admirals: when a fleet turns Elite, an admiral takes command, with a personality
 //   that gives a small edge, a saying after each win, and a death scene if the fleet falls.
-// - Great battles: any battle with 20+ ships gets a name and an entry in the galaxy's
-//   history (event kind "saga").
+// - Great battles: 40+ ships with both sides losing 4+ gets a name and an entry in the
+//   galaxy's history (event kind "saga"), at most once per star every 20 turns.
 // No random draws: names come from hashing the seed, fleet id and turn.
 //
 // Hooks in combat.ts `battle`: `veteranEdge` before the fight, `noteBattle` after it (before
@@ -48,11 +48,17 @@ export interface GreatBattle {
 }
 
 export const RANKS = [
-  { at: 2, title: "Veteran", attack: 1 },
-  { at: 5, title: "Elite", attack: 1 },
-  { at: 9, title: "Legendary", attack: 2 },
+  { at: 3, title: "Veteran", attack: 1 },
+  { at: 7, title: "Elite", attack: 1 },
+  { at: 12, title: "Legendary", attack: 2 },
 ] as const;
-export const GREAT_BATTLE_SHIPS = 20;
+/** A great battle: this many ships in all, and each side loses at least GREAT_BATTLE_LOSSES. */
+export const GREAT_BATTLE_SHIPS = 40;
+export const GREAT_BATTLE_LOSSES = 4;
+/** No second great battle at the same star within this many turns. */
+export const GREAT_BATTLE_GAP = 20;
+/** A win only counts as a victory if the enemy lost at least this many ships. */
+export const VICTORY_KILLS = 2;
 export const GREAT_KEPT = 30;
 
 const NAME_A = ["Iron", "Ash", "Silent", "Crimson", "Hollow", "Ember", "Grey", "Last", "Burning", "Black", "Winter", "Star", "Pale", "Storm", "Hungry", "Seventh"];
@@ -166,7 +172,7 @@ export function noteBattle(state: GameState, s: Star, a: Empire, b: Empire, roun
         delete vets[f.id];
         continue;
       }
-      if (winner !== side) continue;
+      if (winner !== side || killed[1 - side]! < VICTORY_KILLS) continue;
       const vf = (vets[f.id] ??= { empireId: e.id, victories: 0, kills: 0, lastStar: s.id });
       const before = rankOf(vf);
       vf.victories++;
@@ -192,7 +198,8 @@ export function noteBattle(state: GameState, s: Star, a: Empire, b: Empire, roun
 
   // Great battles.
   const ships = units.filter((u) => u.key !== "planet" && !u.fighter).reduce((acc, u) => acc + u.start, 0);
-  if (ships >= GREAT_BATTLE_SHIPS) {
+  const recent = (state.greatBattles ?? []).some((g) => g.starId === s.id && state.turn - g.turn < GREAT_BATTLE_GAP);
+  if (ships >= GREAT_BATTLE_SHIPS && Math.min(killed[0]!, killed[1]!) >= GREAT_BATTLE_LOSSES && !recent) {
     const word = pick(BATTLE_WORDS, hash(state.settings.seed, s.id, state.turn));
     const name = `the ${word} of ${s.name}`;
     const g: GreatBattle = { turn: state.turn, starId: s.id, name, empires: [a.id, b.id], ships, losses: [killed[0]!, killed[1]!] };
