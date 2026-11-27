@@ -1,7 +1,7 @@
 // Dig sites (written by Claude 2; Danny's list): ancient ruins on a few unclaimed worlds.
 // When an empire settles a world with ruins, it can excavate them in three stages, each a few
 // turns of work with a choice: dig deeper, take the finds and seal it, or sell the site.
-// Finds are research, money, culture, and sometimes an artifact (common, rare, legendary)
+// Finds are research, money, culture, and sometimes an artifact (common, rare, epic, legendary)
 // that pays a little every turn while the empire holds it. Some sites wake something at the
 // bottom. Sites are placed from the seed; no random draws.
 

@@ -28,6 +28,10 @@ export const MEDALS: MedalDef[] = [
   { id: "m-deep-digger", icon: "⛏", name: "Deep Digger", text: "Excavated ruins to the very bottom." },
   { id: "m-legendary-artifact", icon: "💎", name: "Keeper of Legends", text: "Held a legendary artifact." },
   { id: "m-full-court", icon: "👑", name: "Full Court", text: "Three heroes served at once." },
+  { id: "m-epic-artifact", icon: "🔮", name: "Treasure Hunter", text: "Held an epic artifact." },
+  { id: "m-career", icon: "🎓", name: "Rise Through the Ranks", text: "A hero of ours reached the highest title of their career." },
+  { id: "m-fair", icon: "🎪", name: "Showtime", text: "Welcomed the Grand Fair to our capital." },
+  { id: "m-games-champion", icon: "🏅", name: "Champions of the Games", text: "Won the Starfall Games." },
   { id: "m-auction", icon: "🔨", name: "Highest Bidder", text: "Won the Travelling Auction." },
   { id: "m-last-stand", icon: "🔥", name: "Still Standing", text: "Survived 50 turns after a last stand." },
   { id: "m-two-paths", icon: "☯", name: "Many Faces", text: "Opened two endgame paths." },
@@ -72,6 +76,10 @@ function qualifies(state: GameState, e: Empire, st: MedalState): string[] {
   if ((state.digs?.artifacts[e.id] ?? []).some((id) => ARTIFACT_BY_ID.get(id)?.quality === "legendary")) out.push("m-legendary-artifact");
   if ((state.heroes?.heroes[e.id]?.length ?? 0) >= 3) out.push("m-full-court");
   if (state.market?.history.some((h) => h.winner === e.id)) out.push("m-auction");
+  if ((state.digs?.artifacts[e.id] ?? []).some((id) => ARTIFACT_BY_ID.get(id)?.quality === "epic")) out.push("m-epic-artifact");
+  if ((state.heroes?.heroes[e.id] ?? []).some((h) => h.branch && h.level >= 5) || (state.heroes?.fallen ?? []).some((f) => f.empireId === e.id && f.title && /Archon|High Chancellor|Hand in the Dark|Voice of the Stars|Luminary|Master Builder|Lord Marshal|Grand Admiral/.test(f.title))) out.push("m-career");
+  if ((state.fair?.festivals[e.id] ?? 0) > 0) out.push("m-fair");
+  if ((state.games?.champions ?? []).some((c) => c.empireId === e.id)) out.push("m-games-champion");
   const stand = state.underdogs?.lastStand.includes(e.id);
   if (stand && state.events.some((x) => x.kind === "saga" && x.text.startsWith(`Down to their last worlds, the ${e.name}`) && state.turn - x.turn >= 50)) out.push("m-last-stand");
   if (state.winner?.empireId === e.id) {

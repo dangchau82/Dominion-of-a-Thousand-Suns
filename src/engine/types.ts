@@ -426,6 +426,10 @@ export interface GameState {
   heroes?: import("./heroes").HeroState;
   /** The Travelling Auction. See src/engine/market.ts. */
   market?: import("./market").MarketState;
+  /** The Grand Fair of the Wandering Stars. See src/engine/fair.ts. */
+  fair?: import("./fair").FairState;
+  /** The Starfall Games. See src/engine/games.ts. */
+  games?: import("./games").GamesState;
   /** The player's medals. See src/engine/medals.ts. */
   medals?: import("./medals").MedalState;
   /** The late-game crisis (the Hollow Tide). See src/engine/crisis.ts. */
@@ -457,4 +461,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 47;
+export const SAVE_VERSION = 48;

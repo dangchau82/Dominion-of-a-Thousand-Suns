@@ -8,7 +8,7 @@ import { WORK_BY_ID } from "./data/greatWorks";
 import { gateType } from "./gates";
 import type { Empire, GameState, Id } from "./types";
 
-export type MarkerKind = "kingdom" | "tide" | "digSite" | "lair" | "deathWorld" | "cracked" | "natives" | "minorRace" | "gate" | "raiders" | "hive" | "supernova" | "greatWork" | "cult";
+export type MarkerKind = "kingdom" | "tide" | "digSite" | "lair" | "deathWorld" | "cracked" | "natives" | "minorRace" | "gate" | "raiders" | "hive" | "supernova" | "greatWork" | "cult" | "fair";
 
 export interface MapMarker {
   starId: Id;
@@ -72,6 +72,10 @@ export function mapMarkers(state: GameState, e: Empire): MapMarker[] {
   const cult = state.deathCult;
   if (cult && cult.empireId === e.id && cult.stance !== "purged") {
     for (const sid of cult.colonies) out.push({ starId: sid, kind: "cult", label: cult.stance === "adopted" ? "Cult of the Last Sun (state faith)" : "Cult of the Last Sun", empireId: e.id });
+  }
+  const fair = state.fair;
+  if (fair?.starId != null && fair.hostId !== null && (e.knowledge[fair.starId]?.explored || fair.hostId === e.id)) {
+    out.push({ starId: fair.starId, kind: "fair", label: state.turn >= fair.arrives ? "The Grand Fair is here" : "The Grand Fair is heading here", empireId: fair.hostId, active: state.turn >= fair.arrives });
   }
   return out;
 }

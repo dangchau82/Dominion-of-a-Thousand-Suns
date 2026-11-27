@@ -231,3 +231,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 - How: autopilot ran the economy; I took fleets and diplomacy by hand around T200, parked the main fleets on the emptied Drovani and Verdane home worlds (Umbriel, Rhydian) and settled both with colony ships.
 - Playtest notes for later: (1) AIs never accept peace terms from their main threat, so the leader can never get worlds by treaty — fine but worth knowing; (2) the autopilot defended well but never pushed for enemy home worlds on its own — the warlike autopilot could aim at home worlds; (3) home worlds can be bombed empty and then simply resettled, which makes conquest easy once the defenders are gone.
 - Fix (Claude 2's crusade.ts): story read "The The Candescent Fold arrived" — removed the extra "The".
+
+## 2026-11-27 08:45 (Claude 2): hero careers, epic artifacts, the Grand Fair, the Starfall Games
+See `docs/CLAUDE-2-UPDATES.md`. New `fair.ts`, `games.ts`, `data/heroCareers.ts`; two one-line hooks in `combat.ts` (hero admirals and generals); save v48. Please add them to the playtest queue. Next claimed: race sagas (`sagas.ts`, `data/sagas*`).
+

@@ -24,6 +24,7 @@ import { ambushing } from "./gates";
 
 import { BattleRecorder } from "./battleLog";
 import { noteBattle, veteranEdge } from "./battleStories";
+import { heroEdge, heroGround } from "./heroes";
 import { coalitionEdge } from "./coalition";
 
 /** Told about each shot (battle recordings). */
@@ -297,6 +298,7 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
   if (!units.some(armed)) return; // nobody here can shoot
   if (!units.some((u) => u.side === 0) || !units.some((u) => u.side === 1)) return;
   veteranEdge(state, here, units); // famous fleets and admirals (battleStories.ts, Claude 2)
+  heroEdge(state, here, units); // hero admirals (heroes.ts, Claude 2)
   coalitionEdge(state, units); // the galaxy against a giant (coalition.ts)
 
   const rec = new BattleRecorder(units);
@@ -371,8 +373,8 @@ function invade(state: GameState, s: Star, f: Fleet, attacker: Empire): void {
   const troops = f.ships.transport ?? 0;
   if (!c || troops <= 0) return;
   const owner = state.empires[c.empireId]!;
-  const atkBonus = empireRace(attacker).ground * 10 + (techStats(attacker).specials.includes("personal-shields") ? 10 : 0);
-  const defBonus = empireRace(owner).ground * 10 + (techStats(owner).specials.includes("personal-shields") ? 10 : 0) + 5 + edictShare(c, "defense") * EDICT_DEFENSE_POINTS;
+  const atkBonus = empireRace(attacker).ground * 10 + (techStats(attacker).specials.includes("personal-shields") ? 10 : 0) + heroGround(state, attacker, null); // heroGround: generals (heroes.ts, Claude 2)
+  const defBonus = empireRace(owner).ground * 10 + (techStats(owner).specials.includes("personal-shields") ? 10 : 0) + 5 + edictShare(c, "defense") * EDICT_DEFENSE_POINTS + heroGround(state, owner, s.id);
   let att = troops;
   let def = Math.max(1, Math.round(c.population));
   while (att > 0 && def > 0) {

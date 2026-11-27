@@ -20,6 +20,7 @@ const LOOK: Record<MarkerKind, { glyph: string; color: string }> = {
   supernova: { glyph: "✹", color: "#ffd84a" },
   greatWork: { glyph: "★", color: "#ffd27a" },
   cult: { glyph: "◐", color: "#b0b0b0" },
+  fair: { glyph: "🎪", color: "#ff9ad5" },
 };
 
 /** Draw every marker. `toScreen` turns galaxy coordinates into canvas pixels; `scale` is the map zoom. */

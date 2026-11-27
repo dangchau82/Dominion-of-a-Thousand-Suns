@@ -1,7 +1,7 @@
 // Dig sites: ancient ruins excavated in three stages (written by Claude 2; Danny's list).
 // Each kind of site has its own story. Every stage offers: dig deeper, take what we have and
 // seal it, or sell the find. Digging deeper pays more but the last stage of some sites wakes
-// something. Finds can include an artifact of common, rare or legendary quality (an idea
+// something. Finds can include an artifact of common, rare, epic or legendary quality (an idea
 // borrowed from loot tiers in online role-playing games; names and text are original).
 
 import type { GameEventDef } from "./events";
@@ -9,10 +9,13 @@ import type { ResearchField } from "../types";
 
 export type DigKind = "archive" | "vault" | "tomb" | "armory" | "seedbank";
 
+export type ArtifactQuality = "common" | "rare" | "epic" | "legendary";
+export const QUALITY_ORDER: ArtifactQuality[] = ["common", "rare", "epic", "legendary"];
+
 export interface ArtifactDef {
   id: string;
   name: string;
-  quality: "common" | "rare" | "legendary";
+  quality: ArtifactQuality;
   /** Per-turn bonus while the empire keeps it. */
   money?: number;
   research?: { field: ResearchField; amount: number };
@@ -27,6 +30,15 @@ export const ARTIFACTS: ArtifactDef[] = [
   { id: "a-thinking-stone", name: "Thinking Stone", quality: "rare", research: { field: "computers", amount: 14 }, text: "A crystal that solves problems while you sleep beside it." },
   { id: "a-forge-heart", name: "Forge Heart", quality: "rare", research: { field: "weapons", amount: 14 }, text: "A palm-sized reactor that never cools. Weapon smiths fight to work near it." },
   { id: "a-world-seed", name: "World Seed", quality: "rare", research: { field: "planetology", amount: 14 }, text: "Plant it, and a barren valley is green within a year." },
+  { id: "a-merchant-seal", name: "Merchant Prince's Seal", quality: "rare", money: 12, text: "Any contract stamped with it is honoured on a thousand worlds." },
+  { id: "a-kings-sceptre", name: "Sceptre of the First Kings", quality: "rare", culture: 3, text: "Pilgrims queue for days just to stand in the same room." },
+  // Epic: rarer than rare, a step below the legends.
+  { id: "a-oracle-engine", name: "Oracle Engine", quality: "epic", research: { field: "computers", amount: 18 }, money: 6, text: "Ask it a question and it answers next week, correctly, every time." },
+  { id: "a-gilded-throne", name: "Gilded Throne", quality: "epic", money: 14, culture: 2, text: "The seat of a dead empire. Envoys bow to it before they remember not to." },
+  { id: "a-eternal-garden", name: "Eternal Garden", quality: "epic", research: { field: "planetology", amount: 18 }, culture: 1, text: "A garden in a crystal sphere that has bloomed, unwatered, since before our sun." },
+  { id: "a-void-compass", name: "Void Compass", quality: "epic", research: { field: "propulsion", amount: 18 }, money: 4, text: "Its needle points to wherever you most need to go." },
+  { id: "a-titan-gauntlet", name: "Titan's Gauntlet", quality: "epic", research: { field: "weapons", amount: 18 }, money: 4, text: "Built for a hand three times ours. Our engineers study every joint." },
+  { id: "a-bastion-stone", name: "Bastion Stone", quality: "epic", research: { field: "forceFields", amount: 18 }, money: 4, text: "Strike it and the air around it hardens like glass." },
   { id: "a-crown-of-ages", name: "Crown of Ages", quality: "legendary", money: 20, culture: 4, text: "Whoever wears it, the galaxy listens to. For a while." },
   { id: "a-shield-of-dawn", name: "Shield of Dawn", quality: "legendary", research: { field: "forceFields", amount: 25 }, text: "A barrier generator older than our sun, still humming." },
 ];
@@ -36,11 +48,11 @@ interface Stage { text: string; dig: string; take: string; sell: string }
 
 /** What each kind of site rewards at each stage (index 0-2): research, money, culture, artifact. */
 export const DIG_REWARDS: Record<DigKind, { field: ResearchField; research: number[]; money: number[]; culture: number[]; artifact: string[]; danger: string }> = {
-  archive: { field: "computers", research: [150, 300, 600], money: [40, 80, 160], culture: [20, 40, 80], artifact: ["a-star-chart", "a-thinking-stone", "a-thinking-stone"], danger: "A defence program wakes in the deepest vault and burns out half our equipment." },
-  vault: { field: "construction", research: [80, 160, 300], money: [150, 300, 600], culture: [10, 20, 40], artifact: ["a-coin-hoard", "a-coin-hoard", "a-crown-of-ages"], danger: "The vault's guardians wake. Diggers die before the doors can be sealed." },
-  tomb: { field: "planetology", research: [60, 120, 240], money: [40, 80, 120], culture: [60, 120, 300], artifact: ["a-death-mask", "a-death-mask", "a-crown-of-ages"], danger: "Something in the deepest chamber was not dead. A sickness spreads through the colony." },
+  archive: { field: "computers", research: [150, 300, 600], money: [40, 80, 160], culture: [20, 40, 80], artifact: ["a-star-chart", "a-thinking-stone", "a-oracle-engine"], danger: "A defence program wakes in the deepest vault and burns out half our equipment." },
+  vault: { field: "construction", research: [80, 160, 300], money: [150, 300, 600], culture: [10, 20, 40], artifact: ["a-coin-hoard", "a-merchant-seal", "a-crown-of-ages"], danger: "The vault's guardians wake. Diggers die before the doors can be sealed." },
+  tomb: { field: "planetology", research: [60, 120, 240], money: [40, 80, 120], culture: [60, 120, 300], artifact: ["a-death-mask", "a-kings-sceptre", "a-gilded-throne"], danger: "Something in the deepest chamber was not dead. A sickness spreads through the colony." },
   armory: { field: "weapons", research: [150, 300, 600], money: [40, 60, 100], culture: [10, 20, 30], artifact: ["a-forge-heart", "a-forge-heart", "a-shield-of-dawn"], danger: "An ancient weapon fires as the last door opens. The blast is felt across the colony." },
-  seedbank: { field: "planetology", research: [150, 300, 600], money: [30, 60, 100], culture: [20, 40, 60], artifact: ["a-world-seed", "a-world-seed", "a-world-seed"], danger: "A blight escapes the sealed seed vaults and withers the colony's farms." },
+  seedbank: { field: "planetology", research: [150, 300, 600], money: [30, 60, 100], culture: [20, 40, 60], artifact: ["a-world-seed", "a-world-seed", "a-eternal-garden"], danger: "A blight escapes the sealed seed vaults and withers the colony's farms." },
 };
 
 export const DIG_NAMES: Record<DigKind, string> = { archive: "Drowned Archive", vault: "Sealed Vault", tomb: "Tomb of the First Kings", armory: "Buried Armory", seedbank: "Seed Vault of the Ancients" };

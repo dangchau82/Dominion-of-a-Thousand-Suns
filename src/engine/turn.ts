@@ -34,6 +34,8 @@ import { processUnderdogs } from "./underdogs";
 import { processDigSites } from "./digSites";
 import { processHeroes } from "./heroes";
 import { processMarket } from "./market";
+import { processFair } from "./fair";
+import { processGames } from "./games";
 import { processMedals } from "./medals";
 import { processCrisis } from "./crisis";
 import { processScenario } from "./scenarios";
@@ -299,6 +301,8 @@ export function endTurn(state: GameState): void {
   processDigSites(state);
   processHeroes(state);
   processMarket(state);
+  processFair(state);
+  processGames(state);
   processOpenSecret(state);
   processCoalition(state);
   rollEvents(state);

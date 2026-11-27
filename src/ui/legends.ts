@@ -7,7 +7,10 @@ import { famousFleets, rankTitle } from "../engine/battleStories";
 import { PATH_NAMES, WORK_BY_ID, type EndgamePath } from "../engine/data/greatWorks";
 import { gateWorlds, raceWork } from "../engine/endgame";
 import { artifactsOf } from "../engine/digSites";
-import { heroesOf, ROLE_NAMES } from "../engine/heroes";
+import { residentTroupes } from "../engine/fair";
+import { CONTESTS, medalTable } from "../engine/games";
+import { heroesOf, heroTitle, ROLE_NAMES } from "../engine/heroes";
+import { BRANCH_BY_ID, TRAIT_BY_ID } from "../engine/data/heroCareers";
 import { MEDALS, medalsOf } from "../engine/medals";
 import type { GameState, Id } from "../engine/types";
 import { portraitHTML } from "./assets";
@@ -80,22 +83,43 @@ export function legendsHTML(state: GameState, playerId: Id): string {
     const where = h.starId !== undefined ? ` at ${esc(state.stars[h.starId]?.name ?? "?")}` : h.field ? ` (${h.field})` : "";
     parts.push(`<div style="display:flex;gap:12px;align-items:center;margin:6px 0;padding:6px 8px;border:1px solid #333;border-radius:10px">
       ${portraitHTML(me.raceId, 'style="width:52px;height:64px;object-fit:cover;border-radius:8px"')}
-      <div><b>${ROLE_NAMES[h.role]} ${esc(h.name)}</b>${where} <span class="gold-text">level ${h.level}</span><br>
+      <div><b>${esc(heroTitle(h))} ${esc(h.name)}</b>${where} <span class="gold-text">level ${h.level}</span>${h.branch ? ` <span class="dim">(was ${ROLE_NAMES[h.role].toLowerCase()})</span>` : ""}<br>
+      ${h.branch ? `<span>${esc(BRANCH_BY_ID.get(h.branch)!.does)}</span><br>` : h.level < 3 ? `<span class="dim">Chooses a career at level 3.</span><br>` : ""}
+      ${(h.traits ?? []).length ? `<span>Traits: ${(h.traits ?? []).map((t) => `<b title="${esc(TRAIT_BY_ID.get(t)?.text ?? "")}">${esc(TRAIT_BY_ID.get(t)?.name ?? t)}</b>`).join(", ")}</span><br>` : ""}
       <span class="dim">Serving since turn ${h.since}; ${h.deeds} great deeds.</span></div></div>`);
   }
   const lost = (state.heroes?.fallen ?? []).filter((f) => f.empireId === playerId).slice(-5).reverse();
-  if (lost.length) parts.push(`<p class="dim">Remembered: ${lost.map((f) => `${ROLE_NAMES[f.role]} ${esc(f.name)} (turn ${f.turn}, ${esc(f.how)})`).join("; ")}.</p>`);
+  if (lost.length) parts.push(`<p class="dim">Remembered: ${lost.map((f) => `${esc(f.title ?? ROLE_NAMES[f.role])} ${esc(f.name)} (turn ${f.turn}, ${esc(f.how)})`).join("; ")}.</p>`);
 
   // Artifacts from dig sites.
   const arts = artifactsOf(state, me);
   if (arts.length) {
-    const qc = { common: "#c8c8c8", rare: "#6fa8ff", legendary: "#ffb340" } as const;
+    const qc = { common: "#c8c8c8", rare: "#6fa8ff", epic: "#b77cff", legendary: "#ffb340" } as const;
     parts.push(`<h3>Our artifacts</h3><ul>`);
     for (const a of arts) {
       const gives = [a.money ? `+${a.money} BC` : "", a.research ? `+${a.research.amount} ${a.research.field} research` : "", a.culture ? `+${a.culture} culture` : ""].filter(Boolean).join(", ");
       parts.push(`<li><b style="color:${qc[a.quality]}">${esc(a.name)}</b> <span class="dim">(${a.quality}; ${gives} a turn)</span><br><span class="dim">${esc(a.text)}</span></li>`);
     }
     parts.push(`</ul>`);
+  }
+
+  // Troupes of the Grand Fair who stayed with us.
+  const troupes = residentTroupes(state, me);
+  if (troupes.length) parts.push(`<h3>Troupes of the Grand Fair at our capital</h3><ul>${troupes.map((t) => {
+    const s = t.stay; const gives = [s.money ? `+${s.money} BC` : "", s.culture ? `+${s.culture} culture` : "", s.research ? `+${s.research.amount} ${s.research.field} research` : ""].filter(Boolean).join(", ");
+    return `<li><b>${esc(t.name[0]!.toUpperCase() + t.name.slice(1))}</b> <span class="dim">(${gives} a turn): they ${esc(t.act)}</span></li>`;
+  }).join("")}</ul>`);
+
+  // The Starfall Games: medal table, champions, records.
+  const table = medalTable(state).filter((r) => r.empireId === playerId || known(r.empireId));
+  if (table.length) {
+    parts.push(`<h3>The Starfall Games</h3><table style="border-collapse:collapse"><tr><th style="text-align:left;padding-right:12px">Empire</th><th>🥇</th><th>🥈</th><th>🥉</th></tr>`);
+    for (const { empireId, m } of table.slice(0, 10)) parts.push(`<tr><td style="padding-right:12px"><span style="color:${color(empireId)}">${name(empireId)}</span></td><td style="text-align:center">${m.gold}</td><td style="text-align:center">${m.silver}</td><td style="text-align:center">${m.bronze}</td></tr>`);
+    parts.push(`</table>`);
+    const champs = (state.games?.champions ?? []).filter((c) => c.empireId !== null);
+    if (champs.length) parts.push(`<p class="dim">Champions: ${champs.map((c) => `turn ${c.turn}: ${name(c.empireId!)}`).join("; ")}.</p>`);
+    const recs = CONTESTS.map((c) => ({ c, r: state.games?.records[c.id] })).filter((x) => x.r);
+    if (recs.length) parts.push(`<p class="dim">Galactic records: ${recs.map(({ c, r }) => `${c.name}: ${esc(r!.athlete)} of the ${name(r!.empireId)} (${r!.score}, turn ${r!.turn})`).join("; ")}.</p>`);
   }
 
   // Our famous fleets.

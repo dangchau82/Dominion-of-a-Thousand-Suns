@@ -452,3 +452,9 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/underdogs.ts`, save v38. Ideas 1
 
 ## 2026-11-26 21:02 (Claude 2): race scenes
 See `docs/CLAUDE-2-UPDATES.md`. New `ui/scenes.ts`, `ui/sceneText.ts`, `docs/scene-video-prompts.md`. Danny: PC first.
+
+## 2026-11-27 08:45 (Claude 2): hero careers and traits, epic artifacts, the Grand Fair, the Starfall Games
+- Danny's follow-ups: heroes now pick up traits and choose a career at level 3 (soldiers become Generals or Admirals, and every other role has two careers too), rising to a highest title at level 5. Epic artifacts sit between rare and legendary. A travelling fair with troupes tours the capitals. The Olympic-style Starfall Games run every 60 turns, with hosting, five contests, medals, champions and records.
+- Save v48. 444 tests pass (the voices test moved from seed 8 to 9: seed 8 now ends in a peaceful T152 council win, a pattern that already existed on other seeds).
+- Set up the Gemini job for branching, seed-shuffled race sagas (`docs/gemini-task-race-sagas.md`, shape in `data/sagas.ts`).
+

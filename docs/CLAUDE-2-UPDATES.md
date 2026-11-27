@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 47** (Claude 2, scenarios).
+**Latest save version: 48** (Claude 2, hero careers / fair / Starfall Games).
 
-> **NOW (2026-11-27 05:43, Claude 2):** Danny's whole list is in (dig sites, heroes, auction, medals, race looks, advisor voice, Hollow Tide, scenarios). Waiting for your notes: the Tide's effect on council wins, and the scenario victory hook.
+> **NOW (2026-11-27 08:45, Claude 2):** Ready (not yet pushed: this session has no write access, so it is delivered as a patch): hero careers and traits, epic artifacts, the Grand Fair and the Starfall Games (save v48). Next, claimed: **race sagas** (new `src/engine/sagas.ts`, `data/sagas.ts`, `data/sagas/*`): branching, seed-shuffled race stories whose endings change the endgame. The writing is a Gemini job (`docs/gemini-task-race-sagas.md`); the engine waits for it. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
 
 ---
 
@@ -30,6 +30,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## For the main Claude (things to decide or watch)
+- **New 2026-11-27 (Claude 2): two one-line hooks in `combat.ts`.** `heroEdge(state, here, units)` right after `veteranEdge` (a hero Admiral gives their fleet +1 attack; a Grand Admiral +2 and +1 defence), and `heroGround(...)` added to `atkBonus`/`defBonus` in `invade` (General +10, Lord Marshal +18, a soldier at the capital +4 a level). The numbers are yours to tune; they live in `heroes.ts`.
+- **Peaceful council wins at T152 in small 5-empire AI games** (seeds 8 and 14 now; 14 and 16 before my changes, so not new): no wars at all, and the council crowns someone at T152. Your area. `tests/voices.test.ts` moved from seed 8 to 9 because seed 8 now has no battles.
+- **Goodwill sources added:** Ambassador heroes (+2 opinion of us from every contact every 10 turns), silver-tongued heroes (+1 every 10), the Starfall Games (the host gets +4 from each team, the champion +2) and the fair's storytellers (+5 once). Watch council win timing in your tournament runs.
+- **AIs and the new events:** the crossroads, fair and games events all say "nothing" in their effects (the code applies them), so `basicAI` picks by its tie rule. The versions rotate, so AIs vary. If you want the AIs to choose on purpose, the choice meanings are in `heroes.ts`, `fair.ts` and `games.ts`.
 - **Story choices give small bonuses** (relations, culture, research). In one test game (seed 14, medium, 6 AIs) they helped tip an early council win at turn 151; the other games ran normal length. Watch the win-type balance in your tournament runs; tune the chapter effects in `data/storylines*.ts` if council wins rise.
 - `tests/resolutions.test.ts`: the council test was moved from seed 14 to 15 because seed 14 now ends early (see above).
 - **Crusade and the AI:** in 3 AI-only games every AI answered the Crusade's crossroads (event 4) with "bargain" (the money choice), so AI games never see the resist or embrace branches. That is `basicAI`'s event logic (yours); fine to leave, just so you know. No revolts came from the pilgrims in those games (0 rebel empires with or without the Crusade).
@@ -55,6 +59,14 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 08:45: hero careers and traits, epic artifacts, the Grand Fair, the Starfall Games (save v48)
+- **Heroes** (`heroes.ts`, new `data/heroCareers.ts`): a fourth role, **Soldier**. Every hero joins with a trait and gains more at levels 2 and 4 (11 traits). At level 3 a **crossroads event** picks a career: Soldier -> General or Admiral; Governor -> Viceroy or Chancellor; Spymaster -> Shadow Master or Ambassador; Scientist -> Visionary or Chief Engineer. At level 5 they rise to the highest title (Lord Marshal, Grand Admiral, Archon, High Chancellor, Hand in the Dark, Voice of the Stars, Luminary, Master Builder). Offers now rotate over 4 roles (`hero-offer:0-3`).
+- **Epic artifacts** (`data/digSites.ts`): a new quality between rare and legendary; 6 epic and 2 new rare artifacts. The archive, tomb and seed vault now end in an epic. The auction prices epics at 720. Gold Rush counts any rare-or-better artifact.
+- **The Grand Fair of the Wandering Stars** (new `fair.ts`): every ~40 turns a fair tours every capital, nearest first, with 3 troupes from 11. At our capital: a grand festival (120 BC, every troupe gives a gift), the market square (free: tourists plus the star troupe), or hire the star troupe for good (250 BC, a small bonus every turn, at most 2). Map marker `fair`.
+- **The Starfall Games** (new `games.ts`): every 60 turns from ~T70. Bid to host (200 BC), train (80 BC), send a team, or boycott. Five contests, gold/silver/bronze culture, a champion, galactic records; the host earns tourist money and goodwill; boycotters annoy the host.
+- **Medals:** 4 new (Treasure Hunter, Rise Through the Ranks, Showtime, Champions of the Games). The **Legends page** shows hero titles, careers and traits, resident troupes, and the games' medal table, champions and records.
+- Shared files touched: `combat.ts` (2 hooks, see above), `events.ts`, `turn.ts`, `types.ts`, `save.ts` (v48), `medals.ts`, `mapMarkers.ts` (engine and ui), `scenarios.ts` (Gold Rush check), `market.ts` (epic price), `tests/voices.test.ts` (seed). New tests: `heroCareers`, `fair`, `games`. 444 tests pass.
 
 ### 2026-11-27 07:34: colony scene gets a ground shot with your Blender landing kit
 - Your new `landingKit.ts` models are lovely, so I used them (read-only, via `loadKit()` / `kit.make()`): the 3D colony scene now cuts from space to the ground at 4.9 s: climate-coloured rolling terrain, trees for the climate (conifer/palm/rocks), your dropship touching down in a dust cloud, then hab domes and a tower rising in the player's colour with lights coming on, camera slowly orbiting. Scene is 9.5 s; bloom lowered to 0.45 for this scene only. Falls back to your stand-in shapes if the models don't load.

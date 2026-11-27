@@ -71,7 +71,7 @@ function makeLot(state: GameState, n: number): Lot {
     const owned = new Set(Object.values(state.digs?.artifacts ?? {}).flat());
     const free = ARTIFACTS.filter((a) => !owned.has(a.id));
     const a = (free.length ? free : ARTIFACTS)[seed % (free.length || ARTIFACTS.length)]!;
-    const value = a.quality === "legendary" ? 900 : a.quality === "rare" ? 550 : 300;
+    const value = { legendary: 900, epic: 720, rare: 550, common: 300 }[a.quality];
     return { kind, name: `the ${a.name}, a ${a.quality} artifact`, value, artifactId: a.id };
   }
   if (kind === "research") {

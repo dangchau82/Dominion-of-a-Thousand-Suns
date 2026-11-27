@@ -4,6 +4,7 @@
 // Victory rules belong to the main Claude: a met goal is recorded in `state.scenario.result`
 // and announced, and the main Claude can make it end the game.
 
+import { ARTIFACT_BY_ID } from "./data/digSites";
 import { adjustRelation } from "./diplomacy";
 import type { GameState, Id } from "./types";
 import { distance } from "./formulas";
@@ -43,7 +44,7 @@ export const SCENARIOS: ScenarioDef[] = [
     goal: "Destroy the Hollow Tide (it arrives on turn 60)." },
   { id: "gold-rush", name: "Gold Rush", deadline: 180,
     story: "A survey ship has found ruins on dozens of worlds at once. Every empire is racing to dig. Legends are buried out there.",
-    goal: "Hold three legendary or rare artifacts before turn 180." },
+    goal: "Hold three rare, epic or legendary artifacts before turn 180." },
 ];
 export const SCENARIO_BY_ID = new Map(SCENARIOS.map((s) => [s.id, s]));
 
@@ -98,7 +99,7 @@ function goalMet(state: GameState, sc: ScenarioState, playerId: Id): boolean {
     case "long-night": return state.crisis?.over === "destroyed";
     case "gold-rush": {
       const held = state.digs?.artifacts[playerId] ?? [];
-      return held.filter((a) => ["a-thinking-stone", "a-forge-heart", "a-world-seed", "a-crown-of-ages", "a-shield-of-dawn"].includes(a)).length >= 3;
+      return held.filter((a) => ARTIFACT_BY_ID.get(a)?.quality !== "common" && ARTIFACT_BY_ID.has(a)).length >= 3;
     }
   }
 }
