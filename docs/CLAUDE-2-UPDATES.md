@@ -11,7 +11,7 @@
 
 **Latest save version: 49** (Claude 2, race sagas).
 
-> **NOW (2026-11-27 09:25, Claude 2):** Delivered as patches (this session cannot push): hero careers, epic artifacts, the Grand Fair, the Starfall Games (v48), and the **race saga engine** (v49). The saga writing is with Gemini now, race by race; Claude 2 will check each race and add it. Claimed: `sagas.ts`, `data/sagas.ts`, `data/sagas/*`, and the old storyline skip in `storylines.ts`. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
+> **NOW (2026-11-27 10:10, Claude 2):** Delivered as patches (this session cannot push). Race sagas are going in race by race as Gemini writes them: **7 of 18 done** (Terran Accord, Vossari, Kethrak, Ashkari, Lumen, Thraal, Seraphine); these races now play their saga instead of the old storyline. Claimed: `sagas.ts`, `data/sagas.ts`, `data/sagas/*`. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
 
 ---
 
@@ -60,6 +60,9 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 10:10: first 7 race sagas in
+- Gemini's writing for the Terran Accord, Vossari, Kethrak, Ashkari, Lumen, Thraal and Seraphine, checked and assembled into `data/sagas/<race>.ts` (21 beats and 4 endings each). Fixes: borrowed names renamed ("Unification Wars"), placeholders taken out of titles, a few grammar slips. New `tests/sagaData.test.ts` checks every race's saga: 3 beats per act, 3 choices each, flags set before they are needed, a fallback ending last, at least 3 different outcomes, effects in scale. 473 tests pass.
 
 ### 2026-11-27 09:25: race saga engine (save v49), waiting for Gemini's writing
 - New `sagas.ts`: four acts per race, 3 beats per act, **the seed picks one per act** per empire (81 paths per race). Choices move three scores (mercy, openness, tradition) and set flags; **branch beats** play when their flags are set; **crossover beats** play once we have met the named race; after act 4 the first **ending** whose thresholds hold plays, with an outcome: golden age, civil war (unrest), rival becomes ally (peace plus all treaties), everyone fears us, council favour (see above), great work surge, legendary fleet, exodus (2 far colonies), ascension (+500 research in every field) or fall from grace (lose a quarter of the people, +6 culture a turn for ever).
