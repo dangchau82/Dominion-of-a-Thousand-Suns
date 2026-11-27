@@ -36,6 +36,7 @@ import { processHeroes } from "./heroes";
 import { processMarket } from "./market";
 import { processMedals } from "./medals";
 import { processCrisis } from "./crisis";
+import { processScenario } from "./scenarios";
 import { processCoalition } from "./coalition";
 import { processOpenSecret, openSecretProduction, openSecretResearch, openSecretCostFactor } from "./openSecret";
 import { processRaiders } from "./raiders";
@@ -323,6 +324,7 @@ export function endTurn(state: GameState): void {
   processResolutions(state);
   checkVictory(state);
   processMedals(state); // after victory, so winning medals count (medals.ts, Claude 2)
+  processScenario(state); // scenario goals (scenarios.ts, Claude 2)
   convene(state);
   recordChronicle(state);
   state.turn++;

@@ -1,0 +1,7 @@
+<!-- Scenario picker preview (Claude 2). Run `npm run dev`, open /tools/scenario-preview.html -->
+<!doctype html><html><head><base href="/"></head><body style="margin:0;background:#05070d;height:100vh"><div id="app" style="height:100%"></div>
+<script type="module">
+import "/src/ui/styles.css";
+import { showScenarios } from "/src/ui/scenarioMenu.ts";
+showScenarios(document.getElementById("app"), (g) => { document.title = "STARTED " + g.scenario.id; }, () => {});
+</script></body></html>

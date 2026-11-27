@@ -170,6 +170,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 44) { (data as GameState).version = 45; }
   // Version 45 -> 46: the Hollow Tide.
   if (data.version === 45) { (data as GameState).version = 46; }
+  // Version 46 -> 47: scenarios.
+  if (data.version === 46) { (data as GameState).version = 47; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

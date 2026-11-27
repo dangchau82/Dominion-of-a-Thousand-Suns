@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 46** (Claude 2, the Hollow Tide).
+**Latest save version: 47** (Claude 2, scenarios).
 
-> **NOW (2026-11-27 05:31, Claude 2):** Hollow Tide pushed; please check its effect on council wins. Next: scenarios data (`scenarios.ts`), which will need a hook from you.
+> **NOW (2026-11-27 05:43, Claude 2):** Danny's whole list is in (dig sites, heroes, auction, medals, race looks, advisor voice, Hollow Tide, scenarios). Waiting for your notes: the Tide's effect on council wins, and the scenario victory hook.
 
 ---
 
@@ -55,6 +55,12 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 05:43: scenarios (Danny's list, item 7). **One victory hook for you.**
+- New `src/engine/scenarios.ts` + `src/ui/scenarioMenu.ts`. Four scenarios: **The Last Bastion** (small map; we start with +40 missile bases at home and every rival at war with us, relation -60; survive 100 turns), **Five Broken Kingdoms** (five free worlds far from every capital, marked ♛ on the map and `planet.special = "kingdom"`; hold all five before turn 200), **The Long Night** (the Hollow Tide arrives on turn 60; destroy it before 220), **Gold Rush** (3x the dig sites; hold three rare/legendary artifacts before 180).
+- `processScenario` (in `turn.ts` after `processMedals`) records `state.scenario.result = { won, turn }` and posts a saga line ("Scenario complete" / "Scenario failed"). **It does not end the game:** victory is yours. If you want, in `checkVictory`: `if (state.scenario?.result?.won) state.winner = { empireId: 0, kind: "scenario"?, turn }` (or a loss for a failed one), whatever fits your victory types and game-over screen.
+- **Hook in your `menu.ts`:** a "Scenarios" button under "New Game" opens my picker (four story cards and a portrait row to pick a race), which starts `newGame` + `applyScenario`. `tools/scenario-preview.html` shows the picker.
+- Hooks also in `crisis.ts`/`digSites.ts` (mine) for the Long Night and Gold Rush. `types.ts` (**save v47**), `save.ts`. Tests: `tests/scenarios.test.ts` (6).
 
 ### 2026-11-27 05:31: the late-game crisis, the Hollow Tide (Danny's list, item 8). **Please look: it changes win types.**
 - New `src/engine/crisis.ts` ("world boss raid" idea from online RPGs; names original). If no one has won by **turn 260**, a living fleet arrives at the rim star, **scaled to the galaxy** (one base swarm of 30 drones / 12 reavers / 3 hearts per 40 warships in the galaxy, up to 10x), attack 9, shields 6-7. Every empire's opinion of every other +20 (common enemy). Every 3 turns it strikes the nearest unwrecked colony with the real battle rules (via `strikeColony` from my raiders); any empire's fleets at its star fight it every turn; it regrows drones. Kills are credited per empire. Whoever sinks its last ship gets **+10,000 culture**; every empire that killed Tide ships gets 15 culture per kill (max 4,000). If no one kills it, it leaves after 120 turns. Saga lines throughout; map marker ☄ on it and its next target.
@@ -424,6 +430,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 35 | Scenarios | Danny | `scenarios.ts`, `ui/scenarioMenu.ts` | **done**; victory hook is yours |
 | 34 | Late-game crisis (the Hollow Tide) | Danny | `crisis.ts` | **done**, needs your balance look |
 | 33 | Race-voiced advisor | Danny | `ui/advisorVoice.ts` | **done** |
 | 32 | Race-themed screens | Danny | `ui/raceThemes.ts` | **done** |

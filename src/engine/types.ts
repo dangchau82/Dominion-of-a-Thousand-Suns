@@ -430,6 +430,8 @@ export interface GameState {
   medals?: import("./medals").MedalState;
   /** The late-game crisis (the Hollow Tide). See src/engine/crisis.ts. */
   crisis?: import("./crisis").CrisisState;
+  /** A scenario, if this game is one. See src/engine/scenarios.ts. */
+  scenario?: import("./scenarios").ScenarioState;
   /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
   openSecret?: import("./openSecret").OpenSecretState;
   /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
@@ -455,4 +457,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 46;
+export const SAVE_VERSION = 47;

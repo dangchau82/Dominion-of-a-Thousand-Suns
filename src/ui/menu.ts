@@ -1,6 +1,7 @@
 // Main menu and new-game setup.
 
 import { newGame, RACES, type GameSettings, type GameState } from "../engine";
+import { showScenarios } from "./scenarioMenu";
 import type { Difficulty, GalaxyShape, GalaxySize } from "../engine/types";
 import { art, portraitHTML } from "./assets";
 import { addGatePortal } from "./gatePortal";
@@ -33,6 +34,11 @@ export function showMainMenu(root: HTMLElement, start: (g: GameState) => void): 
   ng.textContent = "New Game";
   ng.onclick = () => showSetup(root, start);
   actions.append(ng);
+  // Ready-made scenarios with a story and a goal (scenarioMenu.ts, Claude 2).
+  const sc = document.createElement("button");
+  sc.textContent = "Scenarios";
+  sc.onclick = () => showScenarios(root, start, () => showMainMenu(root, start));
+  actions.append(sc);
   const ver = document.createElement("div");
   ver.className = "tag";
   ver.style.marginTop = "18px";

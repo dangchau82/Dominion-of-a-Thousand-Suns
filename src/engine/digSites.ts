@@ -42,7 +42,7 @@ function seedNumber(state: GameState): number {
 function place(state: GameState): DigState {
   const homes = new Set(state.empires.map((e) => e.capitalStarId));
   const spots = state.stars.filter((s) => s.planet && !s.planet.special && !state.colonies[s.id] && !homes.has(s.id));
-  const n = Math.max(2, Math.round(state.stars.length / 16));
+  const n = Math.max(2, Math.round(state.stars.length / 16)) * (state.scenario?.digMultiplier ?? 1);
   const seed = seedNumber(state);
   const sites: DigSite[] = [];
   for (let i = 0; i < n && spots.length; i++) {

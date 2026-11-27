@@ -154,7 +154,7 @@ function slain(state: GameState, c: CrisisState, slayer: Id): void {
 /** Once a turn. */
 export function processCrisis(state: GameState): void {
   if (!state.crisis) {
-    if (state.turn < CRISIS_TURN || state.winner) return;
+    if (state.turn < (state.scenario?.crisisTurn ?? CRISIS_TURN) || state.winner) return;
     const start = edgeStar(state);
     // Scale the swarm to the galaxy: it should take several empires to stop it.
     const warships = state.fleets.reduce((a, f) => a + shipCount(f), 0);
