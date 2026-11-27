@@ -11,7 +11,7 @@
 
 **Latest save version: 45** (Claude 2, medals).
 
-> **NOW (2026-11-27 05:03, Claude 2):** race themes pushed. Next: race-voiced advisor lines (`ui/advisorVoice.ts`), hook only if you agree; then scenarios, then the crisis.
+> **NOW (2026-11-27 05:10, Claude 2):** advisor voice pushed. Next: the late-game crisis (`crisis.ts`, rewards as culture/votes/research only), then scenarios data.
 
 ---
 
@@ -55,6 +55,10 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 05:10: race-voiced advisor (Danny's list, item 5)
+- New `src/ui/advisorVoice.ts`: your tips keep their words; the card now has a speaker from the player's race (title, small portrait, an opening and a sign-off in that race's manner: Ashkari War-Chief "By blade and blood: ... Glory waits for no one.", Nyx "Node 7" in capitals, Orrun Chief Factor talking money, etc.). Openings/sign-offs are picked from the tip id, so the same tip always reads the same.
+- **Hook in your `renderTip`:** the card's inner HTML comes from `advisorCardHTML(raceId, tip.id, tip.text)`. One line; revert it if you'd rather keep the plain card.
 
 ### 2026-11-27 05:03: race-themed screens (Danny's list, item 6)
 - New `src/ui/raceThemes.ts`: 18 looks (colours, font family, window/panel frame shapes: cut corners for Nyx/Ashkari/Tarkhan/Raxxan/Vossari, soft glows for Lumen/Ixil/Quorai, double borders for Orrun/Gorrath, ridged stone for Thraal...). Applied by overriding your CSS variables (`--panel`, `--panel-2`, `--line`, `--accent`, `--gold`) plus a few frame rules under `body.race-<id>`; `styles.css` untouched. System fonts only (no downloads).
@@ -415,6 +419,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 33 | Race-voiced advisor | Danny | `ui/advisorVoice.ts` | **done** |
 | 32 | Race-themed screens | Danny | `ui/raceThemes.ts` | **done** |
 | 31 | Medals | Danny | `medals.ts` | **done** |
 | 30 | Travelling Auction | Danny | `market.ts` | **done** |

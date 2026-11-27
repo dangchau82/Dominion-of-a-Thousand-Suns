@@ -2,6 +2,7 @@
 // End Turn with the "next up" bar, turn reports and the game menu.
 
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
+import { advisorCardHTML } from "./advisorVoice";
 import { applyRaceTheme, raceThemeOn, setRaceTheme } from "./raceThemes";
 import { flashNews } from "./newsFlash";
 import { markerLabels } from "./mapMarkers";
@@ -178,7 +179,8 @@ export class GameScreen {
     document.getElementById("advisor")?.remove();
     const tip = nextTip(this.view);
     if (!tip) return;
-    const card = el("div", { id: "advisor", class: "advisor" }, `<b>Advisor</b><div>${esc(tip.text)}</div>`);
+    // Spoken by an advisor of the player's own race (advisorVoice.ts, Claude 2).
+    const card = el("div", { id: "advisor", class: "advisor" }, advisorCardHTML(this.state.empires[PLAYER]!.raceId, tip.id, tip.text));
     const ok = el("button", { class: "small" }, "Got it");
     ok.onclick = () => { markSeen(tip.id); this.renderTip(); };
     card.append(ok);
