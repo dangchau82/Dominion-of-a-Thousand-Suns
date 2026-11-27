@@ -8,6 +8,7 @@ import { PATH_NAMES, WORK_BY_ID, type EndgamePath } from "../engine/data/greatWo
 import { gateWorlds, raceWork } from "../engine/endgame";
 import { artifactsOf } from "../engine/digSites";
 import { heroesOf, ROLE_NAMES } from "../engine/heroes";
+import { MEDALS, medalsOf } from "../engine/medals";
 import type { GameState, Id } from "../engine/types";
 import { portraitHTML } from "./assets";
 
@@ -34,6 +35,14 @@ export function legendsHTML(state: GameState, playerId: Id): string {
   const name = (id: Id) => (known(id) ? esc(state.empires[id]!.name) : "an unknown empire");
   const color = (id: Id) => (known(id) ? state.empires[id]!.color : "#888");
   const parts: string[] = [`<h2>🏆 Hall of Legends</h2>`];
+
+  // Medals earned this game.
+  const medals = medalsOf(state, me);
+  parts.push(`<h3>Medals <span class="dim">(${medals.length} of ${MEDALS.length})</span></h3>`);
+  parts.push(`<div style="display:flex;flex-wrap:wrap;gap:6px">${MEDALS.map((m) => {
+    const got = medals.find((x) => x.id === m.id);
+    return `<span title="${esc(m.text)}${got ? ` (turn ${got.turn})` : ""}" style="padding:4px 8px;border-radius:8px;border:1px solid ${got ? "#c9a54a" : "#333"};opacity:${got ? 1 : 0.35}">${m.icon} ${esc(m.name)}</span>`;
+  }).join("")}</div>`);
 
   // Our endgame path and great work.
   const st = state.endgame?.[playerId];

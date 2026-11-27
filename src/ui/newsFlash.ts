@@ -29,7 +29,9 @@ function style(): void {
 /** Show this turn's galaxy-wide moments as news flashes. */
 export function flashNews(state: GameState, playerId: number, events: GameEvent[]): void {
   const me = state.empires[playerId]!;
-  const news = events.filter((e) => e.kind === "saga").slice(0, MAX);
+  // Our medals first (medals.ts), then galaxy-wide moments.
+  const medals = events.filter((e) => e.empireId === playerId && e.text.startsWith("🏅"));
+  const news = [...medals, ...events.filter((e) => e.kind === "saga")].slice(0, MAX + medals.length);
   if (!news.length) return;
   style();
   let stack = document.querySelector<HTMLElement>(".news-stack");
@@ -43,7 +45,11 @@ export function flashNews(state: GameState, playerId: number, events: GameEvent[
     const box = document.createElement("div");
     box.className = "news-flash";
     box.style.setProperty("--c", who?.color ?? "#c9a54a");
-    box.innerHTML = `${who ? portraitHTML(who.raceId) : ""}<div><b>Galactic news</b>${esc(ev.text)}</div>`;
+    const medal = ev.text.startsWith("🏅");
+    if (medal) box.style.setProperty("--c", "#e8c060");
+    box.innerHTML = medal
+      ? `<div style="font-size:34px;line-height:1">🏅</div><div><b>Medal earned</b>${esc(ev.text.replace(/^🏅 Medal earned: /, ""))}</div>`
+      : `${who ? portraitHTML(who.raceId) : ""}<div><b>Galactic news</b>${esc(ev.text)}</div>`;
     const remove = () => { box.classList.add("out"); setTimeout(() => box.remove(), 600); };
     box.onclick = remove;
     setTimeout(() => stack!.append(box), i * 600);

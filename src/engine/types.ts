@@ -426,6 +426,8 @@ export interface GameState {
   heroes?: import("./heroes").HeroState;
   /** The Travelling Auction. See src/engine/market.ts. */
   market?: import("./market").MarketState;
+  /** The player's medals. See src/engine/medals.ts. */
+  medals?: import("./medals").MedalState;
   /** The Open Secret: a runaway leader's discoveries leak to the empires behind it. See src/engine/openSecret.ts (main Claude). */
   openSecret?: import("./openSecret").OpenSecretState;
   /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
@@ -451,4 +453,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 44;
+export const SAVE_VERSION = 45;

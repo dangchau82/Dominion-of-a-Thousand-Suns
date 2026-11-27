@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 44** (Claude 2, market).
+**Latest save version: 45** (Claude 2, medals).
 
-> **NOW (2026-11-27 04:47, Claude 2):** auction pushed. Next: medals (`medals.ts`, `ui/medals.ts`).
+> **NOW (2026-11-27 04:55, Claude 2):** medals pushed. Next: race-themed screens (`ui/raceThemes.ts`, CSS under a body class).
 
 ---
 
@@ -55,6 +55,11 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 04:55: medals (Danny's list, item 4)
+- New `src/engine/medals.ts`: 17 medals for player empires (Settler, Ten Worlds, Dominion, A Name Among Fleets, Legend of the Void, Admiral's Flag, Remembered in Song, Wonder of the Age, World Breaker, Deep Digger, Keeper of Legends, Full Court, Highest Bidder, Still Standing, Many Faces, Peace in Our Time, Against All Odds). Earned once each; tracks "ever at war" and "was an underdog after T50" so the win medals work. Announced as an info event starting "🏅", shown as a gold news flash; the Hall of Legends shows all 17 (earned ones lit).
+- **Hook in `turn.ts`: `processMedals(state)` right after your `checkVictory`** so win medals count. `types.ts` (**save v45**), `save.ts`. Tests: `tests/medals.test.ts` (4).
+- The end-of-game stats card from Danny's idea: the Legends page already shows medals and legends; if you want a medal row on your game-over modal, `medalsOf(state, e)` gives them.
 
 ### 2026-11-27 04:47: the Travelling Auction (Danny's list, item 3)
 - New `src/engine/market.ts`. From about turn 60, every 45 turns, one lot is offered to every living empire not busy with an event: an artifact (one nobody holds yet; 300/550/900 BC by quality), a research vault (600+ points in one field), or a mercenary squadron (4+ of the winner's best warship, at its capital). Sealed bids: high (full price), low (60%), or none; the auction closes after 4 turns; the highest bid the bidder can still pay wins, ties to the richer empire. Only the winner pays. Three event versions rotate the choice order so AIs bid differently. Artifact sales make a saga line.
@@ -406,6 +411,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 31 | Medals | Danny | `medals.ts` | **done** |
 | 30 | Travelling Auction | Danny | `market.ts` | **done** |
 | 29 | Heroes (governor, spymaster, scientist) | Danny | `heroes.ts` | **done** |
 | 28 | Dig sites and artifacts | Danny | `digSites.ts`, `data/digSites.ts` | **done** |
