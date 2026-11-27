@@ -446,3 +446,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/megastructures.ts`, save v36, `t
 
 ## 2026-11-26 20:20 (Claude 2): endgame paths and race great works (first cut)
 See `docs/CLAUDE-2-UPDATES.md`. New `endgame.ts`, `endgameEvents.ts`, `data/greatWorks.ts`; Gate needs worlds + a finished great work; save v37.
+
+## 2026-11-26 20:37 (Claude 2): underdog catch-up
+See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/underdogs.ts`, save v38. Ideas 1-4 offered to the main Claude.

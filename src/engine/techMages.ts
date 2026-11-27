@@ -5,6 +5,7 @@
 // which field and which visit turn come from the seed.
 
 import type { GameEventDef } from "./data/events";
+import { isUnderdog } from "./underdogs";
 import { FIELDS, type Empire, type GameState, type Id, type PendingEvent } from "./types";
 import { ensureProject, learn, researchChoices, tech } from "./tech";
 
@@ -19,6 +20,8 @@ export const MAGES_EVENT_ID = "tech-mages-visit";
 export const FIRST_VISIT = 60;
 export const VISIT_EVERY = 80;
 export const MAX_VISITS = 3;
+/** Visits come this often to small empires (underdogs.ts). */
+export const UNDERDOG_VISIT_EVERY = 50;
 /** Their price: BC per tier of the secret, plus a base. */
 export const PRICE_PER_TIER = 120;
 export const PRICE_BASE = 100;
@@ -64,10 +67,12 @@ export function processTechMages(state: GameState): void {
   for (const e of state.empires) {
     if (!e.alive || e.rebelOf !== undefined) continue;
     const v = ((state.techMages ??= {})[e.id] ??= { nextAt: FIRST_VISIT + ((seedNumber(state) + e.id * 11) % 40), offer: null, visits: 0 });
-    if (v.visits >= MAX_VISITS || state.turn < v.nextAt || state.pendingEvents.some((p) => p.empireId === e.id)) continue;
+    // Underdogs (underdogs.ts) get one extra visit and see the mages sooner.
+    const small = isUnderdog(state, e);
+    if (v.visits >= MAX_VISITS + (small ? 1 : 0) || state.turn < v.nextAt || state.pendingEvents.some((p) => p.empireId === e.id)) continue;
     const id = mageSecret(state, e);
     const where = Object.values(state.colonies).filter((c) => c.empireId === e.id).sort((a, b) => a.starId - b.starId)[0]?.starId ?? null;
-    v.nextAt = state.turn + VISIT_EVERY;
+    v.nextAt = state.turn + (small ? UNDERDOG_VISIT_EVERY : VISIT_EVERY);
     if (!id || where === null) continue;
     const price = magePrice(id);
     v.offer = { techId: id, price, culture: Math.round(price * CULTURE_PER_BC) };

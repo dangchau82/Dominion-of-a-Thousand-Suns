@@ -146,6 +146,8 @@ export function deserialize(json: string): GameState {
   if (data.version === 35) { (data as GameState).version = 36; }
   // Version 36 -> 37: endgame paths and great works.
   if (data.version === 36) { (data as GameState).version = 37; }
+  // Version 37 -> 38: underdog catch-up.
+  if (data.version === 37) { (data as GameState).version = 38; }
   if (data.version !== SAVE_VERSION) {
     throw new Error(`Save is from version ${data.version}; this game reads version ${SAVE_VERSION}.`);
   }

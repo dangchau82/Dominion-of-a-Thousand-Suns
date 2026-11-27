@@ -12,6 +12,7 @@
 //   who hate conquest turn against the conqueror.
 
 import { MINOR_RACES, type MinorRaceDef } from "./data/minorRaces";
+import { isUnderdog } from "./underdogs";
 import { ENVOY_PREFIX } from "./minorRaceEvents";
 import { distance } from "./formulas";
 import type { Empire, GameState, Id } from "./types";
@@ -143,6 +144,9 @@ function absorb(state: GameState, st: MinorRacesState): void {
   }
 }
 
+/** Attitude gained every 10 turns by an underdog empire (underdogs.ts). */
+export const UNDERDOG_WARMTH = 2;
+
 function drift(state: GameState, st: MinorRacesState): void {
   for (const [id, r] of Object.entries(st.races)) {
     if (r.absorbedBy !== null) continue;
@@ -150,6 +154,8 @@ function drift(state: GameState, st: MinorRacesState): void {
     for (const eid of r.met) {
       const e = state.empires[eid]!;
       if (e.alive && dislikes(state, e, m.dislikes)) r.attitude[eid] = Math.max(0, (r.attitude[eid] ?? START_ATTITUDE) - DISLIKE_DRIFT);
+      // Minor races side with the small (underdogs.ts): a slow warm drift, every 10 turns.
+      else if (e.alive && state.turn % 10 === 0 && isUnderdog(state, e)) r.attitude[eid] = Math.min(100, (r.attitude[eid] ?? START_ATTITUDE) + UNDERDOG_WARMTH);
     }
   }
 }

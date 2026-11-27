@@ -5,6 +5,7 @@
 // game. No random draws, and no fleets or combat involved.
 
 import type { GameEventDef } from "./data/events";
+import { isUnderdog } from "./underdogs";
 import { adjustRelation } from "./diplomacy";
 import type { GameState, PendingEvent } from "./types";
 
@@ -49,11 +50,13 @@ export function processBountyHunters(state: GameState): void {
   for (const e of state.empires) {
     if (!e.alive || e.rebelOf !== undefined) continue;
     const st = ((state.bountyHunters ??= {})[e.id] ??= { offers: 0, nextAt: 0 });
-    if (st.offers >= MAX_OFFERS || state.turn < st.nextAt || state.pendingEvents.some((p) => p.empireId === e.id)) continue;
+    // Underdogs (underdogs.ts): one more offer, and the Guild comes after half as many turns of war.
+    const small = isUnderdog(state, e);
+    if (st.offers >= MAX_OFFERS + (small ? 1 : 0) || state.turn < st.nextAt || state.pendingEvents.some((p) => p.empireId === e.id)) continue;
     // The longest-running war against a living empire.
     const wars = Object.entries(e.atWar)
       .map(([id, since]) => ({ id: Number(id), since }))
-      .filter((w) => state.empires[w.id]?.alive && state.turn - w.since >= WAR_TURNS)
+      .filter((w) => state.empires[w.id]?.alive && state.turn - w.since >= (small ? WAR_TURNS / 2 : WAR_TURNS))
       .sort((a, b) => a.since - b.since || a.id - b.id);
     if (!wars.length) continue;
     const rival = wars[(seedNumber(state) + e.id) % Math.min(2, wars.length)]!.id;

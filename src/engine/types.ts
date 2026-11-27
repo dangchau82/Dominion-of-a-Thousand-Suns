@@ -418,6 +418,8 @@ export interface GameState {
   megastructures?: Record<Id, import("./megastructures").MegaState>;
   /** Endgame paths and great works per empire. See src/engine/endgame.ts. */
   endgame?: Record<Id, import("./endgame").EndgameState>;
+  /** Underdog catch-up: peaks, last stands, refugees. See src/engine/underdogs.ts. */
+  underdogs?: import("./underdogs").UnderdogState;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -439,4 +441,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 37;
+export const SAVE_VERSION = 38;

@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 37** (Claude 2, endgame paths).
+**Latest save version: 38** (Claude 2, underdogs).
 
-> **NOW (2026-11-26 20:20, Claude 2):** endgame paths first cut pushed; hooks done in `victory.ts`, `civ.ts`, `view.ts`, `data/buildings.ts` (claims released). Over to you for the balance check on small/medium/huge.
+> **NOW (2026-11-26 20:37, Claude 2):** underdog catch-up (ideas 5-6) pushed. Ideas 1-4 are offered to you in my log. Nothing claimed.
 
 ---
 
@@ -55,6 +55,20 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 20:37: Danny's late-game catch-up ideas. **Four of them are for you** (see "For the main Claude" below)
+Danny asked how weaker AI races can catch up late in the game. We agreed on rules that help **any** small empire, the player's too (no cheating). I built the two content ones; the other four are balance/AI, so they're yours if you want them:
+1. **Cheaper research for widely known techs** ("tech diffusion"): a tech known by most empires costs less for everyone else. The strongest single catch-up rule.
+2. **The galaxy reacts to a runaway leader, but only about half of it.** Danny's words: "take 2 out or balance it, like half of them gang up because if all gang up they will lose". So: when one empire pulls far ahead, roughly half the others (e.g. those it borders, or that already dislike it) warm to each other and lean toward joint wars on it; the rest stay out or even side with the leader. Not a total dogpile.
+3. **Big empires get harder to run**: unrest/upkeep rising faster with size.
+4. **Stronger defence for small empires' homeworlds.**
+Helpers you can use for any of them: `isUnderdog(state, e)` and `galaxyLeader(state)` in `src/engine/underdogs.ts`.
+
+**Built (ideas 5 and 6):** new `src/engine/underdogs.ts`. An underdog = at most half the average living empire's worlds.
+- **Refugees:** every 20 turns, each leader colony with unrest >= 40 (up to 6) sends +15 research and +8 BC to every underdog that knows the leader.
+- **Wanderers favour the small:** tech-mages visit underdogs every 50 turns instead of 80, once more (`techMages.ts`); the Bounty Guild comes after 5 turns of war instead of 10, once more (`bountyHunters.ts`); minor races warm to underdogs by +2 every 10 turns (`minorRaces.ts`). All my files.
+- **The Last Stand:** once a game, an empire that held 5+ worlds and is down to 2 or fewer gets one choice: all its BC for 6 warships at home, +12 missile bases on the homeworld, or relations +35 with everyone at war with it (to make peace possible). Saga line either way.
+- Hooks: `turn.ts`, `events.ts`, `types.ts` (**save v38**), `save.ts`. Tests: `tests/underdogs.test.ts` (7).
 
 ### 2026-11-26 20:20: endgame paths and race great works (your handoff), first cut. **Ready for your balance check.**
 - New `src/engine/endgame.ts`, `src/engine/endgameEvents.ts` (split out to avoid an import cycle), `src/engine/data/greatWorks.ts`. Original names throughout.
@@ -301,6 +315,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 26 | Underdog catch-up (refugees, wanderers, last stand) | Danny | `underdogs.ts` | **done**; ideas 1-4 offered to main Claude |
 | 25 | Endgame paths + race great works | (handoff from main Claude) | `endgame.ts`, `endgameEvents.ts`, `data/greatWorks.ts` | **first cut done**, awaiting your tuning |
 | 24 | Megastructures | (Danny, Claude 2) | `megastructures.ts` | **done** |
 | 23 | Battle recordings, veteran fleets, admirals, great battles | (Danny, Claude 2) | `battleLog.ts`, `battleStories.ts` | **done** (engine only) |
