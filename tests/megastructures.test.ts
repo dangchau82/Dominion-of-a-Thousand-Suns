@@ -18,6 +18,7 @@ function offered(): GameState {
   const cap = g.colonies[e.capitalStarId]!;
   for (const s of g.stars.filter((x) => x.planet && !g.colonies[x.id]).slice(0, 3)) g.colonies[s.id] = { ...JSON.parse(JSON.stringify(cap)), starId: s.id, population: 5 };
   e.treasury = 2000;
+  g.endgame = { 0: { paths: { builder: 1 }, works: [], offered: ["builder"] } };
   for (g.turn = 1; g.turn < 400 && !g.pendingEvents.some((p) => p.empireId === 0 && p.eventId === MEGA_OFFER_ID); g.turn++) processMegastructures(g);
   return g;
 }
@@ -31,6 +32,11 @@ describe("megastructures", () => {
     expect(p.colonyStarId).toBe(g.empires[0]!.capitalStarId);
     const kind = g.megastructures![0]!.offerKind!;
     expect(describeEvent(g, p).text).toContain(MEGA_INFO[kind].name);
+  });
+
+  it("empires off the Builder path are not offered one", () => {
+    const g = offered();
+    expect(g.pendingEvents.some((p) => p.empireId !== 0 && p.eventId === MEGA_OFFER_ID)).toBe(false);
   });
 
   it("small or poor empires are not offered one", () => {

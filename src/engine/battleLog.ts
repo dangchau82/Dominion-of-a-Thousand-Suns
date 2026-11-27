@@ -46,8 +46,8 @@ export interface Shot {
   damage: number;
 }
 
-export const KEEP = 8;
-export const MAX_SHOTS = 2500;
+export const KEEP = 5;
+export const MAX_SHOTS = 1200;
 const KINDS: ShotKind[] = ["beam", "missile", "torpedo"];
 const RESULTS: ShotResult[] = ["miss", "intercepted", "dodged", "blocked", "hit", "kill"];
 

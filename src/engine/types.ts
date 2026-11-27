@@ -416,6 +416,8 @@ export interface GameState {
   greatBattles?: import("./battleStories").GreatBattle[];
   /** Great works (Sun Tap, Thinking Moon, Halo of Songs) per empire. See src/engine/megastructures.ts. */
   megastructures?: Record<Id, import("./megastructures").MegaState>;
+  /** Endgame paths and great works per empire. See src/engine/endgame.ts. */
+  endgame?: Record<Id, import("./endgame").EndgameState>;
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;
@@ -437,4 +439,4 @@ export interface GameState {
   };
 }
 
-export const SAVE_VERSION = 36;
+export const SAVE_VERSION = 37;

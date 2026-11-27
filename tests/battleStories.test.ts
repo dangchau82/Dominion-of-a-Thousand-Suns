@@ -123,8 +123,8 @@ describe("great battles", () => {
     const g = newGame(settings());
     war(g);
     const star = openStar(g);
-    park(g, 0, star, { [design(g, 0, "Destroyer").id]: 32 });
-    park(g, 1, star, { [design(g, 1, "Destroyer").id]: 32 });
+    park(g, 0, star, { [design(g, 0, "Destroyer").id]: 45 });
+    park(g, 1, star, { [design(g, 1, "Destroyer").id]: 45 });
     resolveCombat(g);
     expect(g.greatBattles?.length).toBe(1);
     expect(g.greatBattles![0]!.name).toMatch(new RegExp(`of ${g.stars[star]!.name}$`));

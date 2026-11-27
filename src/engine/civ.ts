@@ -2,6 +2,7 @@
 // golden ages, and leaders who serve the empire. Same rules for everyone.
 
 import { resolutionBonuses } from "./resolutions";
+import { gateReady } from "./endgame";
 import { edictShare, proclamationBonuses } from "./decrees";
 import { maxMissileBases } from "./data/ships";
 import {
@@ -71,6 +72,7 @@ export function buildable(state: GameState, e: Empire, c: Colony): BuildingDef[]
     if (b.requires && fieldTier(e.research, b.requires[0]) < b.requires[1]) return false;
     if (b.wonder && state.wonders[b.id]) return false;
     if (b.id === "w-ascension" && !FIELDS.every((f) => fieldTier(e.research, f) >= 10)) return false;
+    if (b.id === "w-ascension" && !gateReady(state, e)) return false; // worlds + a finished great work (endgame.ts, Claude 2)
     return true;
   });
 }

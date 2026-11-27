@@ -3,6 +3,7 @@
 // biggest empires stand, and a three-fifths (60%) majority wins the galaxy.
 
 import { declareWar } from "./combat";
+import { endgameVotes } from "./endgame";
 import { boughtVotes } from "./abilities";
 import { fieldTier } from "./tech";
 import { FIELDS, type Empire, type GameState, type Id, type VictoryKind } from "./types";
@@ -53,7 +54,8 @@ export function votesOf(state: GameState, e: Empire): number {
   const base = Math.max(1, Math.round(votingPopulation(state, e) / POP_PER_VOTE));
   const lobby = e.councilBoost && e.councilBoost.until > state.turn ? e.councilBoost.votes : 0;
   // minorRaceVotes: friendly minor races' votes, already at half weight (minorRaces.ts, Claude 2).
-  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base) + lobby + minorRaceVotes(state, e);
+  // endgameVotes: Worldship and race great works (endgame.ts, Claude 2).
+  return (e.wonders.includes("w-embassy") ? Math.round(base * 1.2) : base) + boughtVotes(e, base) + lobby + minorRaceVotes(state, e) + endgameVotes(state, e, base);
 }
 
 export function techVictoryProgress(e: Empire): number {

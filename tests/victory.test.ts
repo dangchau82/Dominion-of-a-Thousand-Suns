@@ -1,3 +1,4 @@
+import { gateWorlds } from "../src/engine/endgame";
 import { describe, expect, it } from "vitest";
 import { applyCommand, endTurn, newGame, type GameSettings } from "../src/engine";
 import { learn } from "../src/engine/tech";
@@ -47,6 +48,11 @@ describe("victory", () => {
     const home = e.capitalStarId;
     expect(applyCommand(g, 0, { type: "setBuilding", starId: home, buildingId: "w-ascension" }).ok).toBe(false);
     for (const t of TECHS) learn(e.research, t.id);
+    // Tech alone is not enough (endgame.ts): it also needs enough worlds and a finished great work.
+    expect(applyCommand(g, 0, { type: "setBuilding", starId: home, buildingId: "w-ascension" }).ok).toBe(false);
+    for (const s of g.stars.filter((x) => x.planet && !g.colonies[x.id]).slice(0, gateWorlds(g))) g.colonies[s.id] = { ...structuredClone(g.colonies[home]!), starId: s.id, isCapital: false, buildQueue: null };
+    expect(applyCommand(g, 0, { type: "setBuilding", starId: home, buildingId: "w-ascension" }).ok).toBe(false);
+    g.endgame = { 0: { paths: { builder: 1 }, offered: ["builder"], works: [{ workId: "gw-dyson-shell", starId: home, started: 1, done: 40, finished: true, finishedTurn: 1, sabotageAt: 999 }] } };
     expect(applyCommand(g, 0, { type: "setBuilding", starId: home, buildingId: "w-ascension" }).ok).toBe(true);
     e.treasury = 1e6;
     expect(applyCommand(g, 0, { type: "buyBuilding", starId: home }).ok).toBe(false);

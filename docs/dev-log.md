@@ -443,3 +443,6 @@ See `docs/CLAUDE-2-UPDATES.md`. New `battleLog.ts`, `battleStories.ts`, save v35
 
 ## 2026-11-26 17:14 (Claude 2): megastructures in play
 See `docs/CLAUDE-2-UPDATES.md`. New `src/engine/megastructures.ts`, save v36, `tests/megastructures.test.ts`.
+
+## 2026-11-26 20:20 (Claude 2): endgame paths and race great works (first cut)
+See `docs/CLAUDE-2-UPDATES.md`. New `endgame.ts`, `endgameEvents.ts`, `data/greatWorks.ts`; Gate needs worlds + a finished great work; save v37.

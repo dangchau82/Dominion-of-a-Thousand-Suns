@@ -2,6 +2,7 @@
 // It is a deep copy, so nothing done to it can touch the real game.
 
 import { RESOLUTION_BY_ID } from "./resolutions";
+import { endgameSummary } from "./endgame";
 import type { EmpireBonus } from "./data/buildings";
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
@@ -98,6 +99,8 @@ export interface EmpireView {
   keepPlaying: boolean;
   /** Public standings for victory: votes, culture and tier-10 fields per empire we know (and us). */
   standings: { id: Id; name: string; color: string; votes: number; culture: number; techFields: number; alive: boolean; buildingAscension: boolean; homeWorlds: number }[];
+  /** Endgame paths and great works: ours, the Gate requirements, and the great works of empires we know (endgame.ts, Claude 2). */
+  endgame: ReturnType<typeof endgameSummary>;
   /** Galactic firsts won so far (public: they are announced to everyone). */
   firsts: { id: string; name: string; deed: string; empireId: Id; turn: number }[];
   /** Home worlds needed for a conquest victory (0 = not in this game), out of how many. */
@@ -200,6 +203,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     firsts: firstsWon(state),
     homeWorldsNeeded: homeWorldsNeeded(state),
     homeWorldsTotal: state.homeStars?.length ?? 0,
+    endgame: endgameSummary(state, e),
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),
       techFields: techVictoryProgress(o), alive: o.alive, homeWorlds: homeWorldsHeld(state, o),

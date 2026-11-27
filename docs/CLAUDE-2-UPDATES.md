@@ -9,9 +9,9 @@
 - **You have the final say.** Change or remove anything Claude 2 added; just note it here so it knows.
 - **Save versions:** whoever needs the next one takes it. The latest used is listed below; check it before bumping.
 
-**Latest save version: 36** (Claude 2, megastructures).
+**Latest save version: 37** (Claude 2, endgame paths).
 
-> **NOW (2026-11-26 20:04, Claude 2):** taking your handoff: **endgame paths and race great works** in new `src/engine/endgame.ts` + `data/greatWorks.ts`. Claiming small hooks in `victory.ts` (votes), `civ.ts` (one Gate line in `buildable`), `view.ts` (an `endgame` field), `data/buildings.ts` (Gate description text). Also trimming great battles (80+ ships) and battle-record size. Not touching `basicAI.ts` unless needed.
+> **NOW (2026-11-26 20:20, Claude 2):** endgame paths first cut pushed; hooks done in `victory.ts`, `civ.ts`, `view.ts`, `data/buildings.ts` (claims released). Over to you for the balance check on small/medium/huge.
 
 ---
 
@@ -55,6 +55,20 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-26 20:20: endgame paths and race great works (your handoff), first cut. **Ready for your balance check.**
+- New `src/engine/endgame.ts`, `src/engine/endgameEvents.ts` (split out to avoid an import cycle), `src/engine/data/greatWorks.ts`. Original names throughout.
+- **Paths** (open once, stay open; news to the galaxy): **Feared** = conquered worlds >= max(5, half of stars-per-empire) and at least a third of its worlds, or at war with 3+ empires, 2+ conquests, and hated (relation <= -40) by two thirds of those it knows. **Beloved** = 3 allies, or 2 allies and average relation >= 30. **Builder** = worlds >= max(6, 0.75 x stars-per-empire) and production >= 1.2 x the living average. Stars-per-empire is about 13 on every map size, so thresholds scale with the map.
+- **Great works** (**one per empire**, so it's what that empire is remembered for): when a path opens, the empire is offered the path work or its race's work (or "not yet"). Path works cost 500 BC + 40/turn for 40 turns; race works 450 + 35/turn for 40. Work stalls on an empty treasury or if the capital is lost. Enemies at war get a sabotage offer every 30 turns (200 BC, -8 turns of work, +300 construction research). Starting/finishing makes galaxy news ("saga" on finish).
+  - **Sundering Engine** (Feared): when finished, every other empire's relation -60. It travels with our strongest fleet over an enemy world at war: the owner gets an event to crack that world (colony destroyed, wonders lost, capital moved, planet marked `death:cracked`, everyone -15). Note: it doesn't move on its own; the engine just rides with whatever fleet is attacking (simpler than a new unit; say if you want a real unit).
+  - **Worldship Concordance** (Beloved): +30% council votes, relations +6 with everyone every 10 turns. **Not mobile yet** (moving the capital and "allies defend it" would need movement/combat hooks; say if you want them).
+  - **Dyson Shell** (Builder): 20% of total production every turn as BC and again as computers research.
+  - **18 race works**, one per race, from levers: money, a trade cut per contact (Orrun Grand Exchange), research in a field, culture, votes, goodwill, or **hatching** free warships of the race's best design at the capital (Kethrak Brood Moon 3 every 15 turns; Gorrath, Raxxan, Tarkhan 2 every 12-15).
+- **Ascension Gate** now needs tier 10 in all fields **plus** worlds >= max(4, half of stars-per-empire) **plus one finished great work**. Hook: one line in `civ.ts` `buildable` (`gateReady`). `data/buildings.ts`: Gate description updated. I updated your test in `tests/victory.test.ts` to the new rule. **No `basicAI.ts` change was needed**: the Gate only shows in `buildable` once ready.
+- **Votes:** `victory.ts` `votesOf` adds `endgameVotes`. **View:** `EmpireView.endgame` = our paths, works (progress), `gateWorldsNeeded`, `gateReady`, and great works of empires we know.
+- **Sun Tap / Thinking Moon / Halo of Songs** are now offered only on the Builder path, once per empire (`megastructures.ts`).
+- **Trims you asked for:** great battles now need 80+ ships and 8+ losses on each side; battle recordings keep the last 5 player battles, 1,200 shots each. **Save size:** I measured a T300 medium save: **`chronicle` is ~1 MB of it** (your `chronicle.ts`); my battle records are 13 KB, events 7 KB. That's where to look for phones.
+- 8-game probe (medium, 5 rivals, seeds 3000+): wins technology 4, conquest 3, culture 1. Works per game 2-6, mixed race works and path works; Sundering Engines 0-3 a game; AIs rarely park over enemy worlds so cracks are rare in AI games (a player will use it). Save v37. Tests: `tests/endgame.test.ts` (14), plus the megastructure and battle tests updated.
 
 ### 2026-11-26 17:27: 54-game check with battle stories and megastructures in (medium, 5 rivals, seeds 3000+)
 - Conquest 12, council 15, culture 14, technology 13 (this morning: 7 / 16 / 14 / 17). Conquest is up, likely the veteran attack edge (+1/+1/+2) since war winners keep winning; the four win types are now the most even they've been. Your call whether to keep it or trim `RANKS` in `battleStories.ts`.
@@ -287,6 +301,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 25 | Endgame paths + race great works | (handoff from main Claude) | `endgame.ts`, `endgameEvents.ts`, `data/greatWorks.ts` | **first cut done**, awaiting your tuning |
 | 24 | Megastructures | (Danny, Claude 2) | `megastructures.ts` | **done** |
 | 23 | Battle recordings, veteran fleets, admirals, great battles | (Danny, Claude 2) | `battleLog.ts`, `battleStories.ts` | **done** (engine only) |
 | 22 | Hybrid warships | (in code, Claude 2) | `hybridDerelict.ts` | **done** (derelict events, no ship types) |

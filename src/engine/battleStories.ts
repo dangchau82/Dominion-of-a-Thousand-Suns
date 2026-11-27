@@ -5,7 +5,7 @@
 //   Legendary. Its ships fight a little better (attack +1, +1, +2). Losing one makes history.
 // - Hero admirals: when a fleet turns Elite, an admiral takes command, with a personality
 //   that gives a small edge, a saying after each win, and a death scene if the fleet falls.
-// - Great battles: 40+ ships with both sides losing 4+ gets a name and an entry in the
+// - Great battles: 80+ ships with both sides losing 8+ gets a name and an entry in the
 //   galaxy's history (event kind "saga"), at most once per star every 20 turns.
 // No random draws: names come from hashing the seed, fleet id and turn.
 //
@@ -53,8 +53,8 @@ export const RANKS = [
   { at: 12, title: "Legendary", attack: 2 },
 ] as const;
 /** A great battle: this many ships in all, and each side loses at least GREAT_BATTLE_LOSSES. */
-export const GREAT_BATTLE_SHIPS = 40;
-export const GREAT_BATTLE_LOSSES = 4;
+export const GREAT_BATTLE_SHIPS = 80;
+export const GREAT_BATTLE_LOSSES = 8;
 /** No second great battle at the same star within this many turns. */
 export const GREAT_BATTLE_GAP = 20;
 /** A win only counts as a victory if the enemy lost at least this many ships. */

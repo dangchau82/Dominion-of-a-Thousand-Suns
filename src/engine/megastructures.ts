@@ -1,8 +1,8 @@
 // Megastructures (written by Claude 2, Danny's idea list). Late in the game a rich empire
-// may begin one great work at its capital: a Sun Tap (money every turn), a Thinking Moon
+// on the Builder path (endgame.ts) may begin one smaller great work at its capital: a Sun Tap (money every turn), a Thinking Moon
 // (research every turn) or a Halo of Songs (culture every turn). Building takes many turns
 // of payments; an empire at war with the builder may be offered a chance to sabotage it,
-// setting the work back. Up to 2 per empire per game. Paid in BC and run by events, so the
+// setting the work back. One per empire per game. Paid in BC and run by events, so the
 // production formula and the AIs are untouched. No random draws.
 
 import type { GameEventDef } from "./data/events";
@@ -41,7 +41,7 @@ const KINDS: MegaKind[] = ["sunTap", "thinkingMoon", "haloOfSongs"];
 
 export const OFFER_FROM = 150;
 export const OFFER_GAP = 100;
-export const MAX_MEGAS = 2;
+export const MAX_MEGAS = 1;
 export const MIN_COLONIES = 4;
 export const MIN_TREASURY = 300;
 /** Fast: 300 BC down, then 20 BC a turn for 30 turns. Slow: 100 BC down, 10 BC a turn for 60 turns. */
@@ -136,7 +136,9 @@ export function processMegastructures(state: GameState): void {
     if (st.offers >= MAX_MEGAS || state.turn < st.nextOffer || busy(state, e)) continue;
     if (st.built.some((m) => !m.finished)) continue;
     const mine = Object.values(state.colonies).filter((c) => c.empireId === e.id);
-    if (mine.length < MIN_COLONIES || e.treasury < MIN_TREASURY || state.colonies[e.capitalStarId]?.empireId !== e.id) { st.nextOffer = state.turn + 10; continue; }
+    // Only empires on the Builder path (endgame.ts) are offered these smaller works.
+    const builder = state.endgame?.[e.id]?.paths.builder !== undefined;
+    if (!builder || mine.length < MIN_COLONIES || e.treasury < MIN_TREASURY || state.colonies[e.capitalStarId]?.empireId !== e.id) { st.nextOffer = state.turn + 10; continue; }
     const have = new Set(st.built.map((m) => m.kind));
     const free = KINDS.filter((k) => !have.has(k));
     st.offerKind = free[(seedNumber(state) + e.id + st.offers) % free.length]!;

@@ -29,6 +29,7 @@ import { processParasites } from "./parasites";
 import { processHybridDerelict } from "./hybridDerelict";
 import { processVeterans } from "./battleStories";
 import { processMegastructures } from "./megastructures";
+import { processEndgame } from "./endgame";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
 import { growthMultiplier, shipCost } from "./abilities";
@@ -284,6 +285,7 @@ export function endTurn(state: GameState): void {
   processHybridDerelict(state);
   processVeterans(state);
   processMegastructures(state);
+  processEndgame(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);
