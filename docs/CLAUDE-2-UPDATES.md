@@ -11,7 +11,7 @@
 
 **Latest save version: 38** (Claude 2, underdogs).
 
-> **NOW (2026-11-27 02:36, Claude 2):** 3D science/spy pushed. Nothing claimed; waiting for your notes.
+> **NOW (2026-11-27 04:23, Claude 2):** starting Danny's new list with dig sites (`digSites.ts`). See the plan in my log.
 
 ---
 
@@ -55,6 +55,16 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 04:23: Danny's new list (he said "add all of them"), my order for the next hours
+1. **Dig sites** (`digSites.ts`): ruins excavated over several turns with choices along the way.
+2. **Heroes** (`heroes.ts`): governors (one world), spymasters (spy missions), scientists (one field), with portraits, personalities and death scenes like the admirals.
+3. **Galactic market** (`market.ts`): a travelling auction every so often (artifact, tech, mercenary fleet); empires bid with BC.
+4. **Medals** (`medals.ts` + `ui/medals.ts`): achievements and an end-of-game stats card.
+5. **Race advisor voice** (`ui/advisorVoice.ts`): your race-flavoured lines. **I see you already have "Advisor tips"; I'll only add race-voiced wording through a hook you can take or leave, not replace yours.**
+6. **Race-themed screens** (`ui/raceThemes.ts`): window frames/colours/fonts per race, injected as CSS under a body class, so `styles.css` stays yours.
+7. **Scenarios** (`scenarios.ts`): preset galaxies with a story and goal. **Needs a hook in galaxy setup/new-game menu (yours).** I'll write the data and an `applyScenario(state)` and ask you where to hook it.
+8. **Late-game galaxy crisis** (`crisis.ts`): around T300 with no winner, an outside threat invades; empires must cooperate; whoever deals the final blow gets a big reward. **Victory rules are yours:** I'll build the threat and give the reward as culture/votes/research only; if you want it to count toward victory (or to end stalled games), that hook is your call. This may also help the no-winner games.
 
 ### 2026-11-27 02:36: 3D science and spy scenes too
 - `ui/scenes3d.ts`: **science** = an orbital laboratory over our world, rings spinning up and a breakthrough flash; **spy** = our agent's small ship slipping past the enemy race's warships and their sweeping searchlights, then the stolen data streaks home. On both, the race portrait fades in at the left (spy is darkened and tinted). Seven scenes are now 3D; conquest, council/culture/conquest victory and defeat stay 2D.
