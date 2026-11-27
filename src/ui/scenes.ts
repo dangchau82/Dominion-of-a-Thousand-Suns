@@ -13,7 +13,7 @@
 
 import { art, img, ready } from "./assets";
 import { play } from "./sound";
-import { DEFAULT_LINES, SCENE_LINES, SCENE_TITLES, type SceneKind } from "./sceneText";
+import { DEFAULT_LINES, DEFEAT_LINE, SCENE_LINES, SCENE_TITLES, VICTORY_LINES, type RaceSceneKind, type SceneKind } from "./sceneText";
 import { ALL_WORKS } from "../engine/data/greatWorks";
 import type { GameEvent, GameState, Id } from "../engine/types";
 
@@ -41,15 +41,17 @@ export interface Scene {
   work?: string;
   /** Great work id, for its concept art (art/works/<id>.png) if there is any. */
   workId?: string;
+  /** End of game: how it was won, and the winner's race and colour. */
+  victoryKind?: string;
   text: string;
 }
 
-const PRIORITY: SceneKind[] = ["wonder", "invasion", "war", "battle", "colony", "spy", "science"];
+const PRIORITY: RaceSceneKind[] = ["wonder", "invasion", "war", "battle", "colony", "spy", "science"];
 
 /** Pick this turn's scene for the player, if any. */
 export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): Scene | null {
   const me = state.empires[playerId]!;
-  const found: Partial<Record<SceneKind, GameEvent>> = {};
+  const found: Partial<Record<RaceSceneKind, GameEvent>> = {};
   for (const ev of events) {
     if (ev.kind === "invasion" && ev.starId !== undefined && state.colonies[ev.starId]?.empireId === playerId) found.invasion ??= ev;
     else if (ev.kind === "war" && /declared war/.test(ev.text) && ev.text.includes(me.name)) found.war ??= ev;
@@ -93,6 +95,23 @@ export function sceneFor(state: GameState, playerId: Id, events: GameEvent[]): S
     kind, raceId: me.raceId, color: me.color, starId: star?.id, climate: star?.planet?.climate,
     rivalRaceId: rival?.raceId, rivalColor: rival?.color, rivalName: rival?.name, tech, work, workId, text,
   };
+}
+
+const shownEnds = new Set<string>();
+
+/** The end-of-game scene, once per game end. Returns false (and does nothing) if already shown. */
+export function playEndScene(state: GameState, playerId: Id, done: () => void): boolean {
+  const w = state.winner;
+  if (!w || !scenesOn()) return false;
+  const key = `${state.settings.seed}:${w.empireId}:${w.turn}`;
+  if (shownEnds.has(key)) return false;
+  shownEnds.add(key);
+  const won = w.empireId === playerId;
+  const winner = state.empires[w.empireId]!;
+  const me = state.empires[playerId]!;
+  const text = (won ? VICTORY_LINES[w.kind] ?? "The galaxy is ours." : DEFEAT_LINE).replace(/\{empire\}/g, winner.name);
+  showScene({ kind: won ? "victory" : "defeat", raceId: me.raceId, color: me.color, rivalRaceId: winner.raceId, rivalColor: winner.color, rivalName: winner.name, victoryKind: w.kind, text }, done);
+  return true;
 }
 
 /** Play this turn's scene (if any), then call `done`. */
@@ -139,7 +158,7 @@ export function showScene(scene: Scene, done: () => void): void {
   stage.append(cap, skip);
   back.append(stage);
   document.body.append(back);
-  play(scene.kind === "war" || scene.kind === "invasion" ? "war" : scene.kind === "battle" ? "battle" : scene.kind === "colony" ? "colony" : scene.kind === "wonder" ? "victory" : "discovery");
+  play(scene.kind === "defeat" ? "defeat" : scene.kind === "war" || scene.kind === "invasion" ? "war" : scene.kind === "battle" ? "battle" : scene.kind === "colony" ? "colony" : scene.kind === "wonder" ? "victory" : "discovery");
 
   let finished = false;
   let stopDraw = () => {};
@@ -262,6 +281,43 @@ function portrait(c: Ctx, raceId: string, x: number, y: number, h: number, alpha
 const ease = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 const SCENES: Record<SceneKind, (c: Ctx) => void> = {
+  victory(c) {
+    const { g, t, s } = c;
+    stars(c, 0.4);
+    const k = s.victoryKind;
+    const cx = W * 0.62, cy = H * 0.46;
+    if (k === "technology") {
+      // The Ascension Gate opens: a ring of light widening, our ships flying in.
+      const open = ease(t / 3500);
+      flash(c, cx, cy, 80 + open * 260, "#ffffff", 0.9);
+      for (let i = 0; i < 3; i++) { g.strokeStyle = rgba(s.color, 0.8 - i * 0.2); g.lineWidth = 10 - i * 3; g.beginPath(); g.ellipse(cx, cy, 200 + i * 30, 260 + i * 30, 0, 0, Math.PI * 2); g.stroke(); }
+      for (let i = 0; i < 6; i++) { const p = ease((t - 1500 - i * 350) / 2200); if (p > 0 && p < 1) ship(c, s.raceId, 3, W * 0.1 + p * (cx - W * 0.1), H * (0.25 + i * 0.1) + p * (cy - H * (0.25 + i * 0.1)), 110 * (1 - p * 0.8), Math.atan2(cy - H * (0.25 + i * 0.1), cx - W * 0.1), 1 - p); }
+    } else if (k === "council") {
+      // The council: every race's face in a ring, ours rising in the middle.
+      const races = ["humans", "vossari", "kethrak", "ashkari", "lumen", "thraal", "seraphine", "orrun", "nyx", "velari", "drovani", "gorrath"].filter((r) => r !== s.raceId);
+      races.forEach((r, i) => { const a = (i / races.length) * Math.PI * 2 - Math.PI / 2; portrait(c, r, cx + Math.cos(a) * 300 - 50, cy + Math.sin(a) * 210 - 60, 120, 0.45 * ease((t - i * 120) / 900)); });
+      portrait(c, s.raceId, cx - 130, cy - 170 + (1 - ease(t / 2500)) * 60, 330, ease(t / 1800));
+    } else if (k === "culture") {
+      // Our people's face, and light spreading to a thousand worlds.
+      for (let i = 0; i < 160 * ease(t / 4000); i++) flash(c, (Math.sin(i * 77.1) * 0.5 + 0.5) * W, (Math.sin(i * 31.7) * 0.5 + 0.5) * H, 8, "#ffd27a", 0.8);
+      portrait(c, s.raceId, cx - 150, cy - 220, 440, ease(t / 1500));
+    } else {
+      // Conquest: our fleets over a galaxy of worlds turned to our colour.
+      for (let i = 0; i < 7; i++) { const x = W * 0.15 + i * W * 0.12, y = H * 0.55 + Math.sin(i * 1.7) * 90; c.s = { ...s, climate: ["terran", "ocean", "desert", "jungle", "tundra", "arid", "barren"][i] }; planet(c, x, y, 50 + (i % 3) * 14, ease((t - i * 300) / 800) > 0.5 ? s.color : "#666666"); c.s = s; }
+      for (let i = 0; i < 5; i++) ship(c, s.raceId, 4, W * 0.15 + i * W * 0.17 + Math.sin(t / 700 + i) * 15, H * 0.2, 130, Math.PI / 2 * 0.15);
+    }
+  },
+  defeat(c) {
+    const { g, t, s } = c;
+    stars(c, 0.2);
+    g.fillStyle = `rgba(0,0,0,${0.3 + 0.4 * ease(t / 5000)})`; g.fillRect(0, 0, W, H);
+    // The winner looms; our homeworld goes dark.
+    portrait(c, s.rivalRaceId ?? s.raceId, W * 0.52, H * 0.04, H * 0.9, 0.9 * ease(t / 1500));
+    c.s = { ...s, climate: "terran" };
+    planet(c, W * 0.24, H * 0.55, 170, s.color);
+    c.s = s;
+    g.fillStyle = `rgba(0,0,0,${0.6 * ease((t - 1500) / 3500)})`; g.beginPath(); g.arc(W * 0.24, H * 0.55, 172, 0, Math.PI * 2); g.fill();
+  },
   battle(c) {
     // The battle lines from the war scene; after the exchange, the enemy line breaks apart.
     SCENES.war({ ...c, t: Math.min(c.t, 3400) });

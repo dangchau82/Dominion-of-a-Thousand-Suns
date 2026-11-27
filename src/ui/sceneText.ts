@@ -1,7 +1,10 @@
 // Words for the race scenes (written by Claude 2). One line per race per scene, shown under
 // the picture. Original text. `{star}`, `{tech}`, `{rival}` and `{work}` are filled in by scenes.ts.
 
-export type SceneKind = "colony" | "science" | "spy" | "war" | "invasion" | "battle" | "wonder";
+/** Scenes with a line per race. */
+export type RaceSceneKind = "colony" | "science" | "spy" | "war" | "invasion" | "battle" | "wonder";
+/** All scenes, including the end of the game. */
+export type SceneKind = RaceSceneKind | "victory" | "defeat";
 
 export const SCENE_TITLES: Record<SceneKind, string> = {
   colony: "A New World",
@@ -11,9 +14,11 @@ export const SCENE_TITLES: Record<SceneKind, string> = {
   invasion: "Conquest",
   battle: "Victory",
   wonder: "A Great Work",
+  victory: "Victory",
+  defeat: "Defeat",
 };
 
-type Lines = Record<SceneKind, string>;
+type Lines = Record<RaceSceneKind, string>;
 
 export const SCENE_LINES: Record<string, Lines> = {
   humans: {
@@ -190,3 +195,12 @@ export const DEFAULT_LINES: Lines = {
   battle: "The battle is won.",
   wonder: "{work} is finished.",
 };
+
+/** The end of the game: how it was won. `{empire}` is the winner's name. */
+export const VICTORY_LINES: Record<string, string> = {
+  conquest: "Every rival has fallen or bent the knee. From one rim of the galaxy to the other, there is only the {empire}.",
+  council: "The Galactic Council has spoken: the {empire} will lead the thousand suns.",
+  culture: "Their songs are sung on every world, their stories told in every language. The galaxy has chosen the {empire}.",
+  technology: "The Ascension Gate opens. The {empire} step through into a future no one else will ever see.",
+};
+export const DEFEAT_LINE = "The {empire} have won the galaxy. Our story ends here; theirs is only beginning.";

@@ -6,7 +6,7 @@ import { flashNews } from "./newsFlash";
 import { markerLabels } from "./mapMarkers";
 import { replayButtons } from "./battleReplay";
 import { legendsHTML } from "./legends";
-import { playTurnScene, scenesOn, setScenes } from "./scenes";
+import { playEndScene, playTurnScene, scenesOn, setScenes } from "./scenes";
 import { say } from "../engine/dialogue";
 import { play, setSound, soundOn } from "./sound";
 import { duckMusic, musicOn, setMood, setMusic, startMusic, stopMusic } from "./music";
@@ -964,6 +964,8 @@ export class GameScreen {
   }
 
   private showGameOver(): void {
+    // A victory or defeat scene first, once per game end (scenes.ts, Claude 2).
+    if (playEndScene(this.state, PLAYER, () => this.showGameOver())) return;
     const v = makeView(this.state, PLAYER);
     const w = v.winner!;
     const won = w.empireId === PLAYER;
