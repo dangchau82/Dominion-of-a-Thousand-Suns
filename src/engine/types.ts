@@ -442,6 +442,8 @@ export interface GameState {
   openSecret?: import("./openSecret").OpenSecretState;
   /** The Grand Coalition against a giant empire. See src/engine/coalition.ts (main Claude). */
   coalition?: import("./coalition").CoalitionState;
+  /** Ancient Leviathans asleep in empty space (leviathans.ts, main Claude). Placed at turn 160. */
+  leviathans?: import("./leviathans").Leviathan[];
   /** Random events waiting for their empire's choice. */
   pendingEvents: PendingEvent[];
   nextEventId: number;

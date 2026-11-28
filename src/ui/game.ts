@@ -1,6 +1,7 @@
 // The in-game screen: star map, top bar, star/colony/fleet panel, research,
 // End Turn with the "next up" bar, turn reports and the game menu.
 
+import { WAKE_COST } from "../engine/leviathans";
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
 import { advisorCardHTML } from "./advisorVoice";
 import { applyRaceTheme, raceThemeOn, setRaceTheme } from "./raceThemes";
@@ -715,6 +716,14 @@ export class GameScreen {
           this.refresh();
         };
         box.append(crack);
+      }
+      if (v.leviathans.some((l) => l.starId === starId && l.wokenBy === null)) {
+        const wake = el("button", { class: "small gold" }, `🐉 Wake the Ancient Leviathan (${WAKE_COST} BC)`);
+        wake.onclick = () => {
+          if (this.cmd({ type: "wakeLeviathan", fleetId: f.id })) this.toast("The Ancient Leviathan wakes, and answers to you.");
+          this.refresh();
+        };
+        box.append(wake);
       }
       if (colonyShipCount(this.state, f.ships) > 0 && v.canSettle(starId)) {
         const col = el("button", { class: "small primary" }, "Colonize");

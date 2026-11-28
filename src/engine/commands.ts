@@ -1,6 +1,7 @@
 // Every action a player OR an AI can take goes through applyCommand.
 // Same rules, same checks for everyone — this is how the no-cheat rule is enforced.
 
+import { wakeLeviathan } from "./leviathans";
 import { PRISON_COLONY } from "./data/hazardWorlds";
 import { castResolutionVote, underRule } from "./resolutions";
 import { investSink } from "./moneySinks";
@@ -57,6 +58,7 @@ export type Command =
   | { type: "keepPlaying" }
   | { type: "chooseEvent"; eventId: number; choice: number }
   | { type: "crackPlanet"; fleetId: Id }
+  | { type: "wakeLeviathan"; fleetId: Id }
   | { type: "fundShips"; starId: Id; bc: number }
   | { type: "dismissLeader"; leaderId: number }
   | { type: "offerPeace"; targetId: Id }
@@ -224,6 +226,12 @@ export function applyCommand(state: GameState, empireId: Id, cmd: Command): Comm
     }
     case "councilVote": {
       const err = castVote(state, e, cmd.candidateId);
+      return err ? fail(err) : { ok: true };
+    }
+    case "wakeLeviathan": {
+      const f = state.fleets.find((x) => x.id === cmd.fleetId);
+      if (!f) return fail("No such fleet");
+      const err = wakeLeviathan(state, e, f);
       return err ? fail(err) : { ok: true };
     }
     case "crackPlanet": {

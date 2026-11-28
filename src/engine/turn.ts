@@ -41,6 +41,7 @@ import { processMedals } from "./medals";
 import { processCrisis } from "./crisis";
 import { processScenario } from "./scenarios";
 import { processCoalition } from "./coalition";
+import { processLeviathans } from "./leviathans";
 import { processOpenSecret, openSecretProduction, openSecretResearch, openSecretCostFactor } from "./openSecret";
 import { processRaiders } from "./raiders";
 import { processReplicators } from "./replicators";
@@ -310,6 +311,7 @@ export function endTurn(state: GameState): void {
   processGames(state);
   processOpenSecret(state);
   processCoalition(state);
+  processLeviathans(state);
   rollEvents(state);
   processEspionage(state);
   applyTreaties(state);

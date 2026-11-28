@@ -6,6 +6,7 @@ import { mapMarkers, type MapMarker } from "./mapMarkers";
 import { endgameSummary } from "./endgame";
 import { openSecretSummary } from "./openSecret";
 import { coalitionSummary } from "./coalition";
+import { leviathanSummary } from "./leviathans";
 import type { EmpireBonus } from "./data/buildings";
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
@@ -117,6 +118,8 @@ export interface EmpireView {
   openSecret: ReturnType<typeof openSecretSummary>;
   /** The Grand Coalition: which giant the galaxy has united against (coalition.ts). Public news. */
   coalition: ReturnType<typeof coalitionSummary>;
+  /** Ancient Leviathans found so far (public news): where they sleep and who woke them. */
+  leviathans: ReturnType<typeof leviathanSummary>;
   /** Galactic firsts won so far (public: they are announced to everyone). */
   firsts: { id: string; name: string; deed: string; empireId: Id; turn: number }[];
   /** Home worlds needed for a conquest victory (0 = not in this game), out of how many. */
@@ -223,6 +226,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
     markers: mapMarkers(state, e),
     openSecret: openSecretSummary(state, e.id),
     coalition: coalitionSummary(state),
+    leviathans: leviathanSummary(state),
     standings: state.empires.filter((o) => o.id === empireId || e.contacts.includes(o.id)).map((o) => ({
       id: o.id, name: o.name, color: o.color, votes: votesOf(state, o), culture: Math.round(o.culture),
       techFields: techVictoryProgress(o), alive: o.alive, homeWorlds: homeWorldsHeld(state, o),

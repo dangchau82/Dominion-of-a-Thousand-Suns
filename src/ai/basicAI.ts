@@ -8,6 +8,7 @@
 // colony production -> scouts and colony ships -> war fleets and invasions.
 
 import type { Command } from "../engine/commands";
+import { WAKE_COST, WAKE_TECH } from "../engine/leviathans";
 import { bayPart, canUseFuelTanks, designStats, fighterBayChoices, partChoices, weaponFitsHull, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
 import { fieldTier, researchChoices } from "../engine/tech";
@@ -1022,6 +1023,22 @@ function military(ctx: Ctx): void {
   }
 }
 
+/** Ancient Leviathans (leviathans.ts): once we know Titan Slipways and can spare the BC, send a small war fleet to wake one. */
+function leviathanHunt(ctx: Ctx): void {
+  const { view, cmds } = ctx;
+  const sleeping = view.leviathans.filter((l) => l.wokenBy === null);
+  if (!sleeping.length || !view.me.research.known.includes(WAKE_TECH) || view.me.treasury < WAKE_COST + 300) return;
+  const sleepStars = new Set(sleeping.map((l) => l.starId));
+  const here = view.fleets.find((f) => f.starId !== null && sleepStars.has(f.starId));
+  if (here) { cmds.push({ type: "wakeLeviathan", fleetId: here.id }); return; }
+  if (view.fleets.some((f) => f.destStarId !== null && sleepStars.has(f.destStarId))) return; // already on the way
+  const fleets = view.fleets.filter((f) => idle(f) && warPower(ctx, f) > 0).sort((a, b) => warPower(ctx, a) - warPower(ctx, b));
+  for (const f of fleets) {
+    const target = sleeping.map((l) => ctx.starById.get(l.starId)!).filter((st) => view.reachable(st.id, f)).sort((a, b) => dist(a, f) - dist(b, f))[0];
+    if (target) { cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: target.id }); return; }
+  }
+}
+
 // ---------- entry point ----------
 
 /** Only the answers to waiting proposals (for an instant reply to the player). */
@@ -1091,6 +1108,7 @@ export function basicAITurn(view: EmpireView): Command[] {
   const openTargets = expansion(ctx);
   production(ctx, openTargets);
   military(ctx);
+  leviathanHunt(ctx);
   prophecies(ctx);
   return ctx.cmds;
 }

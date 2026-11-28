@@ -27,7 +27,7 @@ export function playSpaceBattle(state: GameState, rec: BattleRecord, playerId: I
   const hulls = new Set<string>();
   for (const u of rec.units) {
     const race = state.empires[u.empireId]?.raceId;
-    const d = race ? designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) : undefined;
+    const d = race ? (designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) ?? state.designs[u.key.replace("#fighters", "")]) : undefined;
     if (race && d) { hulls.add(`${race}_${d.hull}`); if (d.hull === "titan" || d.hull === "colossus") hulls.add(`${race}_huge`); }
   }
   void preloadShips(races, 4000, hulls).then(() => playNow(state, rec, playerId, onClose));
@@ -76,7 +76,7 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
     const isPlanet = u.key === "planet";
     const isFighters = u.key.endsWith("#fighters");
     const designId = u.key.replace("#fighters", "");
-    const design = designsOf(state, u.empireId).find((d) => d.id === designId);
+    const design = (designsOf(state, u.empireId).find((d) => d.id === designId) ?? state.designs[designId]);
     const hull = design?.hull ?? "medium";
     const dir = u.side === 0 ? 1 : -1;
     const models: Model[] = [];
@@ -156,7 +156,7 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
   // ion streams, plasma bolts, spinal lances, stinger swarms and plasma missiles each look different.
   const families = rec.units.map((u) => {
     const out: { beam?: string; missile?: string } = {};
-    const d = designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", ""));
+    const d = (designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) ?? state.designs[u.key.replace("#fighters", "")]);
     if (!d || u.key.endsWith("#fighters")) return out;
     for (const w of d.weapons) {
       if (w.count <= 0) continue;
