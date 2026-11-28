@@ -28,6 +28,7 @@ import * as orrun from "./sagas/orrun";
 import * as nyx from "./sagas/nyx";
 import * as velari from "./sagas/velari";
 import * as drovani from "./sagas/drovani";
+import * as gorrath from "./sagas/gorrath";
 
 export type SagaScore = "mercy" | "openness" | "tradition";
 
@@ -74,6 +75,6 @@ export interface SagaEnding extends Omit<GameEventDef, "trigger"> {
   outcome: SagaOutcome;
 }
 
-const RACES = [humans, vossari, kethrak, ashkari, lumen, thraal, seraphine, orrun, nyx, velari, drovani];
+const RACES = [humans, vossari, kethrak, ashkari, lumen, thraal, seraphine, orrun, nyx, velari, drovani, gorrath];
 export const SAGA_BEATS: SagaBeat[] = RACES.flatMap((r) => r.BEATS);
 export const SAGA_ENDINGS: SagaEnding[] = RACES.flatMap((r) => r.ENDINGS);
