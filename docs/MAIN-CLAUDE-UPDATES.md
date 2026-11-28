@@ -102,6 +102,13 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 03:30: Coalition Armada
+- `coalition.ts`: 5 turns after the Grand Coalition forms, `armadaTarget()` picks one of the giant's worlds: the one nearest the middle of the members' capitals, weighted a little by population. No randomness. It goes out as news ("The Coalition Armada sets out…") and appears in the view as `coalition.armadaStarId`.
+- AI: coalition members at war with the giant all aim at that world (reach 20 instead of 12). Other members' warships gathering there count toward the strike, so they go in together. Fair: these are only the members' own ships, and everyone sees the same public news.
+- UI: the coalition line in the empire overview names the Armada's target.
+- Balance on the same 30 seeds: technology 13, council 9, culture 4, no winner 4; median T317. Technology wins dropped a little, as expected when runaway leaders get pushed back.
+
+
 ### 2026-11-28 03:00: Kethrak Mother Queen trait
 - `titanTrait()` in combat.ts gives a Kethrak Titan an extra brood swarm of 30 stingers (3-4 damage) that fire every round; a Colossus gets 150. The replay draws them as stinger darts. Other races' titan traits are still to come.
 

@@ -21,6 +21,32 @@ export const COALITION_DEFENSE = 1;
 export interface CoalitionState {
   leaderId: Id;
   since: number;
+  /** The Coalition Armada's target (Danny, 2026-11-27): one of the giant's worlds every member strikes together. */
+  armadaStarId?: Id | null;
+}
+
+/** Turns after the coalition forms before its Armada picks a target and sets out. */
+export const ARMADA_AFTER = 5;
+
+/**
+ * The Armada aims at the giant's world nearest the middle of the coalition's capitals, weighted by population,
+ * so every member is pointed at the same place. Public news, worked out from the map; no randomness.
+ */
+export function armadaTarget(state: GameState): Id | null {
+  const giant = state.coalition?.leaderId;
+  if (giant === undefined) return null;
+  const members = state.empires.filter((e) => e.alive && e.id !== giant && state.stars[e.capitalStarId]);
+  if (members.length < 2) return null;
+  const cx = members.reduce((a, e) => a + state.stars[e.capitalStarId]!.x, 0) / members.length;
+  const cy = members.reduce((a, e) => a + state.stars[e.capitalStarId]!.y, 0) / members.length;
+  let best: Id | null = null, bestScore = Infinity;
+  for (const c of Object.values(state.colonies)) {
+    if (c.empireId !== giant) continue;
+    const s = state.stars[c.starId]!;
+    const score = Math.hypot(s.x - cx, s.y - cy) - c.population * 0.05;
+    if (score < bestScore - 1e-9 || (Math.abs(score - bestScore) <= 1e-9 && c.starId < (best ?? Infinity))) { best = c.starId; bestScore = score; }
+  }
+  return best;
 }
 
 /** The empire the galaxy unites against, if any. */
@@ -43,7 +69,19 @@ export function coalitionTarget(state: GameState): Id | null {
 export function processCoalition(state: GameState): void {
   const now = coalitionTarget(state);
   const before = state.coalition?.leaderId ?? null;
-  if (now === before) return;
+  if (now === before) {
+    // The Armada: after a few turns, the members pick one of the giant's worlds and strike it together.
+    const co = state.coalition;
+    if (co && state.turn - co.since >= ARMADA_AFTER) {
+      const t = armadaTarget(state);
+      if (t !== (co.armadaStarId ?? null)) {
+        co.armadaStarId = t;
+        if (t !== null) state.events.push({ turn: state.turn, empireId: null, kind: "saga", starId: t,
+          text: `The Coalition Armada sets out: every empire standing against the ${state.empires[co.leaderId]!.name} sends its warships against ${state.stars[t]!.name}.` });
+      }
+    }
+    return;
+  }
   if (now !== null) {
     state.coalition = { leaderId: now, since: state.turn };
     state.events.push({ turn: state.turn, empireId: null, kind: "saga",
@@ -70,6 +108,6 @@ export function coalitionEdge(state: GameState, units: Unit[]): void {
 }
 
 /** For the empire view: who the coalition stands against (public news). */
-export function coalitionSummary(state: GameState): { leaderId: Id | null; since: number | null } {
-  return { leaderId: state.coalition?.leaderId ?? null, since: state.coalition?.since ?? null };
+export function coalitionSummary(state: GameState): { leaderId: Id | null; since: number | null; armadaStarId: Id | null } {
+  return { leaderId: state.coalition?.leaderId ?? null, since: state.coalition?.since ?? null, armadaStarId: state.coalition?.armadaStarId ?? null };
 }

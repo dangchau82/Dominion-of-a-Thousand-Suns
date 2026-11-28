@@ -1,7 +1,7 @@
 // The Grand Coalition (src/engine/coalition.ts).
 import { describe, expect, it } from "vitest";
 import { newGame, type GameSettings } from "../src/engine";
-import { COALITION_START, coalitionEdge, coalitionTarget, processCoalition } from "../src/engine/coalition";
+import { ARMADA_AFTER, COALITION_START, coalitionEdge, coalitionTarget, processCoalition } from "../src/engine/coalition";
 import { makeView } from "../src/engine/view";
 import { deserialize, serialize } from "../src/engine/save";
 import type { Unit } from "../src/engine/combat";
@@ -30,6 +30,17 @@ describe("Grand Coalition", () => {
     processCoalition(g);
     expect(g.coalition).toBeUndefined();
     expect(g.events.some((e) => e.text.includes("comes apart"))).toBe(true);
+  });
+  it("sends the Coalition Armada against one of the giant's worlds, with news, a few turns in", () => {
+    const g = giant();
+    processCoalition(g);
+    expect(g.coalition?.armadaStarId ?? null).toBeNull();
+    g.turn += ARMADA_AFTER;
+    processCoalition(g);
+    const t = g.coalition!.armadaStarId!;
+    expect(g.colonies[t]?.empireId).toBe(2);
+    expect(g.events.filter((e) => e.text.startsWith("The Coalition Armada")).length).toBe(1);
+    expect(makeView(g, 0).coalition.armadaStarId).toBe(t);
   });
   it("gives everyone fighting the giant +1 attack and defence, and nobody else", () => {
     const g = giant(); processCoalition(g);

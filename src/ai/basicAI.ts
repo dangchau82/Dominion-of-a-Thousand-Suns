@@ -963,14 +963,17 @@ function military(ctx: Ctx): void {
   }
 
   // Offense: pick the weakest reachable enemy colony near us.
+  // Coalition Armada (coalition.ts): every member strikes the same world of the giant, so their fleets arrive together.
+  const armada = view.coalition.armadaStarId;
+  const armadaOn = armada !== null && view.coalition.leaderId !== view.me.id && ctx.wars.some((w) => w.id === view.coalition.leaderId);
   const targets = ctx.wars.flatMap((w) => enemyColonies(ctx, w.id))
     .map((t) => {
       const home = nearestColony(ctx, t.star);
       const d = home ? dist(ctx.starById.get(home.starId)!, t.star) : 99;
       const isThreat = enemyColonies(ctx, ctx.threat ?? -1).some((x) => x.star.id === t.star.id);
-      return { ...t, d, score: t.pop + d * 3 - (isThreat ? 60 : 0) };
+      return { ...t, d, score: t.pop + d * 3 - (isThreat ? 60 : 0) - (armadaOn && t.star.id === armada ? 1000 : 0) };
     })
-    .filter((t) => t.d <= 12)
+    .filter((t) => t.d <= (armadaOn && t.star.id === armada ? 20 : 12))
     .sort((a, b) => a.score - b.score);
   const target = targets[0];
   if (!target) return;
@@ -1006,7 +1009,11 @@ function military(ctx: Ctx): void {
   const free = warFleets.filter((f) => !used.has(f.id) && f.starId !== target.star.id);
   const total = free.reduce((a, f) => a + warPower(ctx, f), 0);
   const nearby = view.seenFleets.filter((sf) => ctx.wars.some((w) => w.id === sf.empireId) && dist(sf, target.star) <= 3).reduce((a, sf) => a + sf.ships, 0);
-  const threshold = 250 + target.pop * 8 + (enemyThere + nearby) * 40 * (ctx.level === LEVEL.hard ? 1.2 : 1);
+  // Armada members count the other members' warships gathering at the target as part of the strike.
+  const allies = armadaOn && target.star.id === armada
+    ? view.seenFleets.filter((sf) => sf.empireId !== view.coalition.leaderId && !ctx.wars.some((w) => w.id === sf.empireId) && (sf.starId === armada || sf.destStarId === armada || dist(sf, target.star) <= 3)).reduce((a, sf) => a + sf.ships, 0)
+    : 0;
+  const threshold = Math.max(150, 250 + target.pop * 8 + (enemyThere + nearby) * 40 * (ctx.level === LEVEL.hard ? 1.2 : 1) - allies * 30);
   if (total >= threshold || strengthThere > 0) {
     for (const f of free) if (view.reachable(target.star.id, f)) cmds.push({ type: "moveFleet", fleetId: f.id, destStarId: target.star.id });
   } else {
