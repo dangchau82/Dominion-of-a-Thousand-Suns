@@ -9,6 +9,13 @@ import { coalitionSummary } from "./coalition";
 import type { EmpireBonus } from "./data/buildings";
 import { RACES, type Race } from "./data/races";
 import { designsOf, shipDesign } from "./designs";
+
+/** A fleet whose every ship has a cloaking field is invisible on the map to empires without Hyperspace Sensors (main Claude, 2026-11-28). */
+export function cloakedFrom(state: GameState, f: Fleet, viewer: Empire): boolean {
+  if (viewer.research.known.includes("hyperspace-sensors")) return false;
+  const ids = Object.keys(f.ships).filter((id) => (f.ships[id] ?? 0) > 0);
+  return ids.length > 0 && ids.every((id) => shipDesign(state, id)?.specials.includes("cloaking-field"));
+}
 import { describeProposal, relation, tradeableTechs, treatiesWith } from "./diplomacy";
 import { buildable, buyCost } from "./civ";
 import { techVictoryProgress, votesOf, homeWorldsHeld, homeWorldsNeeded } from "./victory";
@@ -170,7 +177,7 @@ export function makeView(state: GameState, empireId: Id): EmpireView {
   const fleets = structuredClone(state.fleets.filter((f) => f.empireId === empireId));
   const seenFleets: SeenFleet[] = state.fleets
     // Fleets staged inside a gate stay hidden from rivals without spies on their owner (gates.ts, Claude 2).
-    .filter((f) => f.empireId !== empireId && canSee(state, e, f.x, f.y) && !hiddenFrom(state, f, e))
+    .filter((f) => f.empireId !== empireId && canSee(state, e, f.x, f.y) && !hiddenFrom(state, f, e) && !cloakedFrom(state, f, e))
     .map((f) => ({ id: f.id, empireId: f.empireId, x: f.x, y: f.y, starId: f.starId, ships: shipCount(f), destStarId: reportedDestination(e, f) }));
   const contacts: KnownEmpire[] = e.contacts.map((id) => {
     const o = state.empires[id]!;

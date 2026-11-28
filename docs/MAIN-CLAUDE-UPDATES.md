@@ -110,7 +110,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
   - stinger (new Stinger Swarm T5, 3-4 missile): never runs out, hits small ships and fighters much more easily.
   - plasma (new Plasma Missile T7, 18): shields stop only half.
   - lance (Phase Lance): ignores shields, fires in rounds 1/3/5/7 only, Large/Huge hulls only (`weaponFitsHull`, checked in `checkDesign` and by the AI).
-- Cloaking field reworked: cloaked ships can't be targeted in round 1 unless the enemy knows Hyperspace Sensors, and they fire first in round 1 (the old flat +2 defence is now +1). Hiding cloaked fleets on the galaxy map is still to do (view.ts).
+- Cloaking field reworked: cloaked ships can't be targeted in round 1 unless the enemy knows Hyperspace Sensors, and they fire first in round 1 (the old flat +2 defence is now +1). Fleets made only of cloaked ships are also hidden on the galaxy map from empires without Hyperspace Sensors (`cloakedFrom` in view.ts; AIs see the same).
 - Tests: `tests/weaponFamilies.test.ts` (6). `tech.test.ts` now counts 118 base techs; `voices.test.ts` moved to seed 10 (seed 9 went quiet).
 - Balance, same 30 seeds (medium, 6 empires): technology 16, culture 6, council 4, conquest 1, no winner 3; median T327. Before: 20/7/3/0. Within noise.
 

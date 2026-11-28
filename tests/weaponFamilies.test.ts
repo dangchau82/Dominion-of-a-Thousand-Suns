@@ -83,3 +83,18 @@ describe("weapon families", () => {
     expect(checkDesign(g, e, spec)).toMatch(/Large or Huge/);
   });
 });
+
+describe("cloaked fleets on the map", () => {
+  it("are hidden from rivals until they learn Hyperspace Sensors", async () => {
+    const { cloakedFrom } = await import("../src/engine/view");
+    const g = game();
+    const owner = g.empires[1]!, viewer = g.empires[0]!;
+    const d = { id: "cloak-test", empireId: owner.id, name: "Shade", role: "warship" as const, hull: "medium" as const, computer: null, shield: null, ecm: null, armor: null,
+      weapons: [], specials: ["cloaking-field"], cost: 10, space: 0, extraRange: 0 };
+    g.designs[d.id] = d;
+    const f = { id: 999, empireId: owner.id, ships: { [d.id]: 3 }, x: 0, y: 0, starId: null, destStarId: null };
+    expect(cloakedFrom(g, f, viewer)).toBe(true);
+    viewer.research.known.push("hyperspace-sensors");
+    expect(cloakedFrom(g, f, viewer)).toBe(false);
+  });
+});
