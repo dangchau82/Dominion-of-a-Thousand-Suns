@@ -72,8 +72,13 @@ export function weaponPart(e: Empire, techId: string): PartSize {
   const t = tech(techId);
   const w = weaponOf(t);
   const m = mini(e, t);
-  const base = w?.kind === "torpedo" ? 20 : w?.kind === "bomb" || w?.kind === "missile" ? 10 : 8;
+  const base = w?.family === "lance" ? 60 : w?.family === "stinger" ? 7 : w?.kind === "torpedo" ? 20 : w?.kind === "bomb" || w?.kind === "missile" ? 10 : 8;
   return { space: (base + t.tier * 2) * m, cost: (4 + t.tier * 3) * m };
+}
+
+/** Spinal lances need a Large or Huge hull; every other weapon fits any hull. */
+export function weaponFitsHull(techId: string, hull: HullSize): boolean {
+  return weaponOf(tech(techId))?.family !== "lance" || hull === "large" || hull === "huge";
 }
 
 export function specialPart(e: Empire, techId: string, hull: HullSize): PartSize {
@@ -282,6 +287,7 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
   for (const w of spec.weapons) {
     if (!Number.isInteger(w.count) || w.count < 0) return "Bad weapon count";
     if (w.count > 0 && !parts.weapons.some((t) => t.id === w.techId)) return "You don't know that weapon";
+    if (w.count > 0 && !weaponFitsHull(w.techId, spec.hull)) return "A spinal lance needs a Large or Huge hull";
   }
   if (spec.specials.length > 3) return "Three specials at most";
   if (new Set(spec.specials).size !== spec.specials.length) return "Each special only once";

@@ -102,6 +102,19 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 00:00: Weapon families and real cloaking (Danny's request)
+- Weapons now have families with their own battle rules (`WeaponFamily` in `data/techs.ts`, applied in `combat.ts fight()`):
+  - rail (Mass Driver, new Rail Gun T6 6-14): shields stop only half.
+  - ion (Ion Cannon): every hit that lands wears the target's shield down by 1 for the rest of the battle.
+  - cannon (Plasma Cannon): tag only for now.
+  - stinger (new Stinger Swarm T5, 3-4 missile): never runs out, hits small ships and fighters much more easily.
+  - plasma (new Plasma Missile T7, 18): shields stop only half.
+  - lance (Phase Lance): ignores shields, fires in rounds 1/3/5/7 only, Large/Huge hulls only (`weaponFitsHull`, checked in `checkDesign` and by the AI).
+- Cloaking field reworked: cloaked ships can't be targeted in round 1 unless the enemy knows Hyperspace Sensors, and they fire first in round 1 (the old flat +2 defence is now +1). Hiding cloaked fleets on the galaxy map is still to do (view.ts).
+- Tests: `tests/weaponFamilies.test.ts` (6). `tech.test.ts` now counts 118 base techs; `voices.test.ts` moved to seed 10 (seed 9 went quiet).
+- Balance, same 30 seeds (medium, 6 empires): technology 16, culture 6, council 4, conquest 1, no winner 3; median T327. Before: 20/7/3/0. Within noise.
+
+
 ### 2026-11-28 00:00: Modern interface skin; Kethrak Mother Queen concept
 - `styles.css` "Modern skin": frosted-glass panels and dialogs with a light top edge, a floating rounded top bar with stat pills, smoother buttons (hover glow, press), glowing gold End Turn, uppercase sci-fi headings, pop-in dialogs with a blurred backdrop, styled scrollbars, tabs, chips and progress bars. Phones keep the stats on one row so End Turn never covers the nav icons. Layout unchanged.
 - `#play-demo-<race>-<seed>[-map]` starts a game straight away (for interface screenshots).

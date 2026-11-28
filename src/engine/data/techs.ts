@@ -2,6 +2,12 @@
 import type { ResearchField } from "../types";
 import { FUTURE_TECHS } from "./futureTechs";
 
+/** Weapon families (2026-11-28, Danny): how a weapon behaves in battle beyond its damage. See combat.ts.
+ *  rail: kinetic, shields stop half. ion: each hit wears the target's shield down by 1. cannon: heavy bolt.
+ *  stinger: swarms of small darts that fire every round and hit small ships and fighters easily.
+ *  plasma: plasma warhead, shields stop half. lance: spinal weapon, ignores shields, fires every other round, Large/Huge only. */
+export type WeaponFamily = "rail" | "ion" | "cannon" | "stinger" | "plasma" | "lance";
+
 export type TechEffect =
   | { stat: "range"; value: number }          // + light-years of fuel range
   | { stat: "speed"; value: number }          // ship speed in ly/turn (highest known applies)
@@ -19,7 +25,7 @@ export type TechEffect =
   | { stat: "armor"; value: number }          // ship armor level (highest known applies)
   | { stat: "shield"; value: number }         // ship shield level (highest known applies)
   | { stat: "planetShield"; value: number }   // planetary shield strength (highest known applies)
-  | { stat: "weapon"; kind: "beam" | "missile" | "bomb" | "torpedo"; min: number; max: number }
+  | { stat: "weapon"; kind: "beam" | "missile" | "bomb" | "torpedo"; min: number; max: number; family?: WeaponFamily }
   | { stat: "special"; key: string };         // unlocks a special ability used later
 
 export interface Tech {
@@ -936,8 +942,8 @@ const BASE_TECHS: readonly Tech[] = [
     name: "Ion Cannon",
     field: "weapons",
     tier: 3,
-    effects: [{ stat: "weapon", kind: "beam", min: 3, max: 8 }],
-    description: "Fires charged ion streams dealing 3 to 8 damage.",
+    effects: [{ stat: "weapon", kind: "beam", min: 3, max: 8, family: "ion" }],
+    description: "Fires charged ion streams dealing 3 to 8 damage. Each hit wears the target's shield down by 1 for the rest of the battle.",
     quote: "\"It strips shields and fries circuits in the same blinding flash.\" — Technician Zora of the Ixil",
   },
   {
@@ -954,8 +960,8 @@ const BASE_TECHS: readonly Tech[] = [
     name: "Mass Driver",
     field: "weapons",
     tier: 4,
-    effects: [{ stat: "weapon", kind: "beam", min: 5, max: 8 }],
-    description: "Launches hyper-dense slugs dealing 5 to 8 damage.",
+    effects: [{ stat: "weapon", kind: "beam", min: 5, max: 8, family: "rail" }],
+    description: "Launches hyper-dense slugs dealing 5 to 8 damage. Kinetic: shields stop only half as much.",
     quote: "\"No energy matrix can absorb a tungsten spike moving at relativistic speed.\" — Forge-Captain Dren of the Thraal",
   },
   {
@@ -1008,8 +1014,8 @@ const BASE_TECHS: readonly Tech[] = [
     name: "Plasma Cannon",
     field: "weapons",
     tier: 7,
-    effects: [{ stat: "weapon", kind: "beam", min: 6, max: 30 }],
-    description: "Fires superheated plasma bolts dealing 6 to 30 damage.",
+    effects: [{ stat: "weapon", kind: "beam", min: 6, max: 30, family: "cannon" }],
+    description: "Fires superheated plasma bolts dealing 6 to 30 damage. A cannon: heavy hits that keep their punch.",
     quote: "\"Hurl the fury of a solar flare straight down their throat.\" — Warmaster Haska of the Gorrath Clans",
   },
   {
@@ -1040,12 +1046,39 @@ const BASE_TECHS: readonly Tech[] = [
     quote: "\"A miniature sun hurtling across the void that no jammer can fool.\" — Cantor Solis of the Lumen Choir",
   },
   {
+    id: "stinger-swarm",
+    name: "Stinger Swarm",
+    field: "weapons",
+    tier: 5,
+    effects: [{ stat: "weapon", kind: "missile", min: 3, max: 4, family: "stinger" }],
+    description: "Clouds of tiny homing darts dealing 3 to 4 damage. They never run out and easily hit small ships and fighters.",
+    quote: "\"A thousand small bites bring down the biggest beast.\" — Swarm-Mother Kix of the Kethrak Hive",
+  },
+  {
+    id: "rail-gun",
+    name: "Rail Gun",
+    field: "weapons",
+    tier: 6,
+    effects: [{ stat: "weapon", kind: "beam", min: 6, max: 14, family: "rail" }],
+    description: "Magnetic rails throw slugs at a fraction of light speed: 6 to 14 damage, and shields stop only half as much.",
+    quote: "\"Shields love energy. They hate mass.\" — Gun-Chief Orvo of the Tarkhan Hunt",
+  },
+  {
+    id: "plasma-missile",
+    name: "Plasma Missile",
+    field: "weapons",
+    tier: 7,
+    effects: [{ stat: "weapon", kind: "missile", min: 18, max: 18, family: "plasma" }],
+    description: "Missiles with plasma warheads dealing 18 damage; shields stop only half as much.",
+    quote: "\"It does not explode so much as it pours.\" — Ordnance-Sage Ilun of the Vossari",
+  },
+  {
     id: "phase-lance",
     name: "Phase Lance",
     field: "weapons",
     tier: 9,
-    effects: [{ stat: "weapon", kind: "beam", min: 20, max: 50 }],
-    description: "Fires phase-shifted beams dealing 20 to 50 damage.",
+    effects: [{ stat: "weapon", kind: "beam", min: 20, max: 50, family: "lance" }],
+    description: "A spinal lance the length of the ship: 20 to 50 damage straight through shields, firing every other round. Large and Huge hulls only.",
     quote: "\"It materializes inside the enemy core, bypassing armor entirely.\" — Blade-Seer Maelis of the Seraphine",
   },
   {

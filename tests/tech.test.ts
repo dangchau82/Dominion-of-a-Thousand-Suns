@@ -10,8 +10,8 @@ const settings = (over: Partial<GameSettings> = {}): GameSettings => ({
 });
 
 describe("tech tree", () => {
-  it("has 115 base techs plus 56 future techs, all unique, in six fields", () => {
-    expect(TECHS.filter((t) => t.tier <= 10).length).toBe(115);
+  it("has 118 base techs plus 56 future techs, all unique, in six fields", () => {
+    expect(TECHS.filter((t) => t.tier <= 10).length).toBe(118);
     expect(TECHS.filter((t) => t.tier > 10).length).toBe(5 * 10 + 6);
     expect(new Set(TECHS.map((t) => t.id)).size).toBe(TECHS.length);
     for (const f of FIELDS) expect(TECHS.some((t) => t.field === f)).toBe(true);

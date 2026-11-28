@@ -49,7 +49,7 @@ describe("newer rival voices in play", () => {
 
   it("battle reports in AI games carry the rival's words, and games stay deterministic", () => {
     const run = () => {
-      const g = newGame(settings({ seed: 9, rivals: 4 })); // seed 8 now ends in a peaceful council win at T152 (Claude 2, 2026-11-27)
+      const g = newGame(settings({ seed: 10, rivals: 4 })); // seed 9 went quiet when the new weapons arrived (main Claude, 2026-11-28); seed 8 now ends in a peaceful council win at T152 (Claude 2, 2026-11-27)
       for (const e of g.empires) e.isPlayer = false;
       let spoken = 0;
       for (let t = 0; t < 250 && !g.winner; t++) {

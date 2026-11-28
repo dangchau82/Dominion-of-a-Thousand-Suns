@@ -8,7 +8,7 @@
 // colony production -> scouts and colony ships -> war fleets and invasions.
 
 import type { Command } from "../engine/commands";
-import { bayPart, canUseFuelTanks, designStats, fighterBayChoices, partChoices, type DesignSpec } from "../engine/designs";
+import { bayPart, canUseFuelTanks, designStats, fighterBayChoices, partChoices, weaponFitsHull, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
 import { fieldTier, researchChoices } from "../engine/tech";
 import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, maxMissileBases, type HullSize, type ShipDesign } from "../engine/data/ships";
@@ -657,9 +657,12 @@ function designs(ctx: Ctx): void {
     return;
   }
   const parts = partChoices(me);
-  const beam = bestWeapon(parts.weapons, ["beam"]);
-  const missile = bestWeapon(parts.weapons, ["missile", "torpedo"]);
-  const bombT = bestWeapon(parts.weapons, ["bomb"]);
+  const capProd0 = Math.max(...view.colonies.map((c) => c.budget.ship + c.budget.industry + c.budget.research + c.budget.ecology + c.budget.defense), 0);
+  const hull0: HullSize = capProd0 > 900 ? "huge" : capProd0 > 220 ? "large" : "medium";
+  const usable = parts.weapons.filter((t) => weaponFitsHull(t.id, hull0));
+  const beam = bestWeapon(usable, ["beam"]);
+  const missile = bestWeapon(usable, ["missile", "torpedo"]);
+  const bombT = bestWeapon(usable, ["bomb"]);
   const capProd = Math.max(...view.colonies.map((c) => c.budget.ship + c.budget.industry + c.budget.research + c.budget.ecology + c.budget.defense), 0);
   const hull: HullSize = capProd > 900 ? "huge" : capProd > 220 ? "large" : "medium";
   const spec: DesignSpec = {

@@ -45,6 +45,8 @@ export function atWar(a: Empire, b: Empire): boolean {
 
 export interface Gun {
   kind: "beam" | "missile" | "bomb" | "torpedo";
+  /** Weapon family (rail, ion, cannon, stinger, plasma, lance): extra battle rules, see fight(). */
+  family?: string;
   min: number;
   max: number;
   count: number;
@@ -83,13 +85,17 @@ export interface Unit {
   fighter?: boolean;
   /** Fighters only: chance each one shoots down an incoming missile per round. */
   intercept?: number;
+  /** Cloaking field: can't be targeted in the first round unless the enemy has hyperspace sensors, and fires first in round 1. */
+  cloaked?: boolean;
+  /** This side's empire sees cloaked ships (hyperspace sensors). */
+  seesCloak?: boolean;
 }
 
 function guns(d: ShipDesign): Gun[] {
   const out: Gun[] = [];
   for (const w of d.weapons) {
     const t = tech(w.techId);
-    for (const fx of t.effects) if (fx.stat === "weapon") out.push({ kind: fx.kind, min: fx.min, max: fx.max, count: w.count });
+    for (const fx of t.effects) if (fx.stat === "weapon") out.push({ kind: fx.kind, min: fx.min, max: fx.max, count: w.count, ...(fx.family ? { family: fx.family } : {}) });
   }
   return out;
 }
@@ -109,13 +115,14 @@ export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign
   return {
     side, empireId: e.id, key: d.id, name: d.name, count, start: count, hp: maxHp, maxHp,
     attack: levelOf(d.computer, "computer") + r.shipAttack + (d.role === "warship" ? empireBonus(e).attack : 0) + (sp("subspace-interdictor") ? 1 : 0),
-    beamDef: h.defense + r.shipDefense + (sp("inertial-dampers") ? 2 : 0) + (sp("cloaking-field") ? 2 : 0),
-    missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm") + (sp("cloaking-field") ? 2 : 0) + (sp("repulsor-beam") ? 3 : 0),
+    beamDef: h.defense + r.shipDefense + (sp("inertial-dampers") ? 2 : 0) + (sp("cloaking-field") ? 1 : 0),
+    missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm") + (sp("cloaking-field") ? 1 : 0) + (sp("repulsor-beam") ? 3 : 0),
     shield: levelOf(d.shield, "shield"),
     guns: guns(d), small: d.hull === "small",
     invulnerable: !!(e.isPlayer && state.cheats?.godMode),
     bonusDamage: damageBonus(e), first: damageBonus(e) > 0, dodge: sp("displacement-field") ? 0.25 : 0,
     stasis: sp("stasis-field"), dampener: sp("warp-dampener"), frozen: false,
+    cloaked: sp("cloaking-field"), seesCloak: e.research.known.includes("hyperspace-sensors"),
   };
 }
 
@@ -158,6 +165,8 @@ export function armed(u: Unit): boolean {
 
 function hitChance(g: Gun, shooter: Unit, target: Unit): number {
   if (g.kind === "beam") return beamHitChance(shooter.attack, 0, target.beamDef, 1);
+  // Stingers swarm: small ships and fighters can't dodge a cloud of darts.
+  if (g.family === "stinger" && (target.small || target.fighter)) return Math.min(1, Math.max(0.05, (10 + shooter.attack - target.missileDef) / 10));
   // Missiles and torpedoes home in; jammers (ECM) throw them off.
   return Math.min(1, Math.max(0.05, (7 + shooter.attack - target.missileDef) / 10));
 }
@@ -210,15 +219,18 @@ export function fight(state: GameState, units: Unit[], onShot?: ShotListener): n
     // First strikers, then ships before fighters, then best computers; small ships before big ones on ties.
     const order = units.filter((u) => u.count > 0)
       // Fighters launch and close in, so they fire after the ships each round.
-      .sort((a, b) => Number(b.first) - Number(a.first) || Number(!!a.fighter) - Number(!!b.fighter) || b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
+      .sort((a, b) => Number(b.first || (round === 1 && !!b.cloaked)) - Number(a.first || (round === 1 && !!a.cloaked)) || Number(!!a.fighter) - Number(!!b.fighter) || b.attack - a.attack || Number(b.small) - Number(a.small) || a.side - b.side);
     for (const u of order) {
       if (u.count <= 0 || u.frozen) continue;
       for (const g of u.guns) {
         if (g.kind === "bomb") continue;
-        if ((g.kind === "missile" || g.kind === "torpedo") && u.key !== "planet" && round > MISSILE_ROUNDS) continue;
+        if ((g.kind === "missile" || g.kind === "torpedo") && g.family !== "stinger" && u.key !== "planet" && round > MISSILE_ROUNDS) continue;
+        // A spinal lance recharges: it fires in rounds 1, 3, 5 and 7.
+        if (g.family === "lance" && round % 2 === 0) continue;
         const shots = u.count * g.count;
         for (let s = 0; s < shots; s++) {
-          const target = pickTarget(rng, units.filter((x) => x.side !== u.side));
+          // Cloaked ships can't be found in the first round, unless this side has hyperspace sensors.
+          const target = pickTarget(rng, units.filter((x) => x.side !== u.side && !(round === 1 && x.cloaked && !u.seesCloak)));
           if (!target) break;
           if (g.kind === "missile" || g.kind === "torpedo") aimed[target.side]!++;
           if ((g.kind === "missile" || g.kind === "torpedo") && screen[target.side]! > 0 && stopped[target.side]! < aimed[target.side]! / 2) {
@@ -230,8 +242,11 @@ export function fight(state: GameState, units: Unit[], onShot?: ShotListener): n
           if (!R.chance(rng, hitChance(g, u, target))) { onShot?.(round, u, target, g.kind, "miss", 0); continue; }
           if (target.dodge > 0 && R.chance(rng, target.dodge)) { onShot?.(round, u, target, g.kind, "dodged", 0); continue; }
           const raw = R.int(rng, g.min, g.max) + u.bonusDamage;
-          // Torpedoes punch through half of the shield.
-          const dmg = raw - (g.kind === "torpedo" ? Math.floor(target.shield / 2) : target.shield);
+          // Torpedoes, rail slugs and plasma warheads punch through half of the shield; a lance ignores it.
+          const halfShield = g.kind === "torpedo" || g.family === "rail" || g.family === "plasma";
+          const dmg = raw - (g.family === "lance" ? 0 : halfShield ? Math.floor(target.shield / 2) : target.shield);
+          // Ion hits wear the shield down for the rest of the battle, even when the shield holds.
+          if (g.family === "ion" && target.shield > 0) target.shield--;
           if (dmg <= 0 || target.invulnerable) { onShot?.(round, u, target, g.kind, "blocked", 0); continue; }
           target.hp -= dmg;
           onShot?.(round, u, target, g.kind, target.hp <= 0 ? "kill" : "hit", dmg);
