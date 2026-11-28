@@ -7,7 +7,7 @@ export { makeView, forecast, type EmpireView, type Forecast, type PublicStar, ty
 export { serialize, deserialize, exportCode, importCode } from "./save";
 export { RACES, race, type Race } from "./data/races";
 export { CLIMATES } from "./data/planets";
-export { BUILTIN_DESIGNS, HULLS, HULL_SIZES, MAX_DESIGNS, type ShipDesign, type HullSize } from "./data/ships";
+export { BUILTIN_DESIGNS, CAPITAL_HULL_TECH, HULLS, HULL_SIZES, MAX_DESIGNS, type ShipDesign, type HullSize } from "./data/ships";
 export { shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, isColonyShip, colonyShipCount, type DesignSpec, type DesignStats } from "./designs";
 
 export { chronicleText, CHRONICLE_STATS, type Chronicle } from "./chronicle";

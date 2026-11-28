@@ -29,8 +29,8 @@ export const RACE_STYLE: Record<string, { family: Family; p: Palette }> = {
   tarkhan: { family: "hunter", p: { light: "#b8bcc4", mid: "#4a4f5a", dark: "#16181d", accent: "#ff2a2a", glow: "#ff5a4a", flame: "#ff6a3a" } },
 };
 
-const SCALE: Record<HullSize, number> = { small: 0.55, medium: 0.72, large: 0.88, huge: 1 };
-const TIER: Record<HullSize, number> = { small: 0, medium: 1, large: 2, huge: 3 };
+const SCALE: Record<HullSize, number> = { small: 0.55, medium: 0.72, large: 0.88, huge: 1, titan: 1, colossus: 1 };
+const TIER: Record<HullSize, number> = { small: 0, medium: 1, large: 2, huge: 3, titan: 3, colossus: 3 };
 
 let uid = 0;
 

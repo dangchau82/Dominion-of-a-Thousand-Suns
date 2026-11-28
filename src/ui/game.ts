@@ -19,7 +19,7 @@ import { BUILDING_BY_ID, BUILDINGS, LEADER_KINDS } from "../engine/data/building
 import { AUTO_AREAS, AUTOPILOT_FOCI, type AutoArea, type AutopilotFocus, type TreatyKind } from "../engine/types";
 import {
   applyCommand, chronicleText, CHRONICLE_STATS, CLIMATES, endTurn, exportCode, FIELD_NAMES, forecast, importCode, makeView,
-  popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, colonyShipCount, HULLS, HULL_SIZES, MAX_DESIGNS,
+  popGrowth, race, shipDesign, designsOf, designStats, partChoices, checkDesign, canUseFuelTanks, colonyShipCount, HULLS, HULL_SIZES, CAPITAL_HULL_TECH, MAX_DESIGNS,
   type DesignSpec, type HullSize,
   type Command, type EmpireView, type GameState,
 } from "../engine";
@@ -1759,7 +1759,8 @@ export class GameScreen {
     };
     const NAMES: Record<HullSize, string[]> = {
       small: ["Dart", "Wasp", "Lancer", "Kestrel", "Needle"], medium: ["Corsair", "Falchion", "Warden", "Talon", "Harrier"],
-      large: ["Bastion", "Monarch", "Tempest", "Leviathan", "Paladin"], huge: ["Colossus", "Behemoth", "Sovereign", "Titan", "Dominion"],
+      large: ["Bastion", "Monarch", "Tempest", "Leviathan", "Paladin"], huge: ["Dreadnought", "Behemoth", "Sovereign", "Juggernaut", "Dominion"],
+      titan: ["Mother of Storms", "Throne of Ash", "Last Word", "Worldbreaker", "Crown"], colossus: ["Second Capital", "Moonfall", "Eternity", "Godhammer", "Ascendant"],
     };
     const COLONY_NAMES = ["Pathfinder", "Wayfarer", "Seedship", "Long Ark", "Horizon"];
     const v0 = makeView(this.state, PLAYER).stats;
@@ -1807,6 +1808,8 @@ export class GameScreen {
 
         const hullSeg = el("div", { class: "seg", style: "margin:8px 0" });
         for (const h of HULL_SIZES) {
+          const capTech = CAPITAL_HULL_TECH[h];
+          if (capTech && !this.state.empires[PLAYER]!.research.known.includes(capTech)) continue; // capital hulls appear once researched
           const b = el("button", { class: spec.hull === h ? "on" : "" }, `${HULLS[h].name}<br><span class="dim">${HULLS[h].cost} BC · room ${HULLS[h].space}</span>`);
           b.onclick = () => {
             const wasSuggested = Object.values(NAMES).flat().includes(spec.name);

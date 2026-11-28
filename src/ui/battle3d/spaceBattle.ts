@@ -28,7 +28,7 @@ export function playSpaceBattle(state: GameState, rec: BattleRecord, playerId: I
   for (const u of rec.units) {
     const race = state.empires[u.empireId]?.raceId;
     const d = race ? designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) : undefined;
-    if (race && d) hulls.add(`${race}_${d.hull}`);
+    if (race && d) { hulls.add(`${race}_${d.hull}`); if (d.hull === "titan" || d.hull === "colossus") hulls.add(`${race}_huge`); }
   }
   void preloadShips(races, 4000, hulls).then(() => playNow(state, rec, playerId, onClose));
 }

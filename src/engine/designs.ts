@@ -4,7 +4,7 @@
 // the same field) is adapted from Remnants of the Precursors (GPL-3.0).
 
 import {
-  BUILTIN_DESIGNS, COLONY_POD, FUEL_TANKS, HULLS, MAX_DESIGNS, SHIP_SPECIALS,
+  BUILTIN_DESIGNS, CAPITAL_HULL_TECH, COLONY_POD, FUEL_TANKS, HULLS, MAX_DESIGNS, SHIP_SPECIALS,
   type HullSize, type ShipDesign, type ShipRole, type WeaponMount,
 } from "./data/ships";
 import type { Tech } from "./data/techs";
@@ -78,7 +78,7 @@ export function weaponPart(e: Empire, techId: string): PartSize {
 
 /** Spinal lances need a Large or Huge hull; every other weapon fits any hull. */
 export function weaponFitsHull(techId: string, hull: HullSize): boolean {
-  return weaponOf(tech(techId))?.family !== "lance" || hull === "large" || hull === "huge";
+  return weaponOf(tech(techId))?.family !== "lance" || hull === "large" || hull === "huge" || hull === "titan" || hull === "colossus";
 }
 
 export function specialPart(e: Empire, techId: string, hull: HullSize): PartSize {
@@ -271,6 +271,8 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
   const name = spec.name.trim();
   if (!name || name.length > 24) return "Give the design a name (up to 24 letters)";
   if (!HULLS[spec.hull]) return "Unknown hull";
+  const capTech = CAPITAL_HULL_TECH[spec.hull];
+  if (capTech && !e.research.known.includes(capTech)) return `Learn ${capTech === "titan-slipways" ? "Titan Slipways" : "Colossus Forge"} to build a ${HULLS[spec.hull].name} hull`;
   if (spec.role !== undefined && spec.role !== "warship" && spec.role !== "colony") return "Unknown ship role";
   if (spec.role === "colony") {
     if (spec.hull !== COLONY_POD.hull) return "Colony ships use the Large hull";

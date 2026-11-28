@@ -3,8 +3,11 @@
 
 import type { Id } from "../types";
 
-export type HullSize = "small" | "medium" | "large" | "huge";
-export const HULL_SIZES: readonly HullSize[] = ["small", "medium", "large", "huge"];
+export type HullSize = "small" | "medium" | "large" | "huge" | "titan" | "colossus";
+export const HULL_SIZES: readonly HullSize[] = ["small", "medium", "large", "huge", "titan", "colossus"];
+/** Capital hulls (main Claude, 2026-11-28, Danny's capital tier): each needs its tech, and an empire can have only one of each afloat. */
+export const CAPITAL_HULL_TECH: Partial<Record<HullSize, string>> = { titan: "titan-slipways", colossus: "colossus-forge" };
+export const isCapitalHull = (h: HullSize): boolean => h === "titan" || h === "colossus";
 
 export interface Hull {
   name: string;
@@ -25,6 +28,8 @@ export const HULLS: Record<HullSize, Hull> = {
   medium: { name: "Medium", space: 200, cost: 36, hits: 18, defense: 1, factor: 5 },
   large: { name: "Large", space: 1000, cost: 200, hits: 100, defense: 0, factor: 25 },
   huge: { name: "Huge", space: 5000, cost: 1200, hits: 600, defense: 0, factor: 125 },
+  titan: { name: "Titan", space: 25000, cost: 7200, hits: 3600, defense: 0, factor: 625 },
+  colossus: { name: "Colossus", space: 125000, cost: 43000, hits: 21600, defense: 0, factor: 3125 },
 };
 
 export type ShipRole = "scout" | "colony" | "warship" | "transport";

@@ -102,6 +102,14 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 02:15: Capital tier, step 1: Titan and Colossus hulls
+- `HULLS` has `titan` (space 25000, 7200 BC, 3600 hits) and `colossus` (125000, 43000 BC, 21600 hits). New techs: Titan Slipways (construction T9) and Colossus Forge (construction T10). `CAPITAL_HULL_TECH` and `isCapitalHull` live in `data/ships.ts`.
+- `checkDesign` requires the tech. In `turn.ts` a yard builds at most one capital ship per turn and holds a finished one while the empire already has one of that hull afloat; overflow BC goes to the treasury.
+- Designer: the capital hull buttons appear once the tech is known, with new suggested names. 3D: LENGTH titan 22 and colossus 34. The Kethrak titan uses the Mother Queen model (`kethrak_titan.glb`); other races use their huge model, scaled up.
+- The AI does not build capital ships yet (step 3). Next steps, in order: classes (Battlecruiser, Juggernaut, Supercarrier), the Mother Queen swarm, AI use, Ancient Leviathans, Coalition Armada.
+- Tests: `tests/capitalShips.test.ts` (2); `tech.test.ts` counts 120 base techs. Balance on the same 30 seeds: technology 17, council 6, culture 4, conquest 1, none 2; median T318.
+
+
 ### 2026-11-28 01:30: PLAN, capital ship tier (not built yet; main Claude will build it next, Claude 2 please don't claim it)
 Danny's lineup: **Battlecruiser, Juggernaut, Supercarrier, Titan, Colossus**, plus **Ancient Leviathans**: precursor ships you find and wake up, not built.
 1. **Two new hull sizes** in `HULLS`, after Huge. The `HullSize` union is used in about 36 places, mostly `Record<HullSize, …>` tables: shipArt SCALE/TIER, ships3d LENGTH/GUNS, carriers' fighters, game.ts NAMES, lairs.

@@ -28,8 +28,8 @@ function hullTextures(): { normal: THREE.Texture; lights: THREE.Texture } {
  * Extra hull-size models (2026-11-27, Danny: "expand on them based on their race features"):
  * public/models/ships/<race>_<size>.glb. All 18 races have them (organic 2026-11-27, metal 2026-11-28); medium uses the cruiser.
  */
-export const SIZE_MODELS: Record<string, readonly ("small" | "large" | "huge")[]> = {
-  kethrak: ["small", "large", "huge"],
+export const SIZE_MODELS: Record<string, readonly ("small" | "large" | "huge" | "titan")[]> = {
+  kethrak: ["small", "large", "huge", "titan"], // titan: the Kethrak Mother Queen
   ruuvak: ["small", "large", "huge"],
   ixil: ["small", "large", "huge"],
   verdane: ["small", "large", "huge"],
@@ -94,7 +94,8 @@ export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000, hulls?
 
 /** A copy of the race's model, nose along +X, `length` units long. Null if not loaded. */
 export function shipModel(raceId: string, length: number, hull?: string): THREE.Group | null {
-  const src = (hull && cache.get(`${raceId}_${hull}`)) || cache.get(raceId);
+  // Capital hulls without their own model use the race's huge model, scaled up.
+  const src = (hull && cache.get(`${raceId}_${hull}`)) || ((hull === "titan" || hull === "colossus") && cache.get(`${raceId}_huge`)) || cache.get(raceId);
   if (!src) return null;
   const inner = src.clone(true);
   inner.rotation.y = -Math.PI / 2; // glTF -Z nose → +X

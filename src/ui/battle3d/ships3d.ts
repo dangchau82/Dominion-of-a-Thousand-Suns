@@ -16,8 +16,8 @@ export interface Ship3D {
   glow: THREE.Color;
 }
 
-export const LENGTH: Record<HullSize, number> = { small: 3, medium: 5, large: 8, huge: 12 };
-const GUNS: Record<HullSize, number> = { small: 1, medium: 2, large: 4, huge: 6 };
+export const LENGTH: Record<HullSize, number> = { small: 3, medium: 5, large: 8, huge: 12, titan: 22, colossus: 34 };
+const GUNS: Record<HullSize, number> = { small: 1, medium: 2, large: 4, huge: 6, titan: 10, colossus: 16 };
 
 function rng(seed: number): () => number {
   let a = seed >>> 0;
@@ -285,7 +285,7 @@ function fromModel(root: THREE.Group, hull: HullSize, glow: THREE.Color): Ship3D
     muzzles.push(new THREE.Vector3(box.max.x * along * 2 - box.max.x * (along > 0.3 ? 0 : 0.3), size.y * 0.15, side * size.z * (n === 1 ? 0 : 0.3)));
   }
   const engines: THREE.Vector3[] = [];
-  const ne = hull === "small" ? 1 : hull === "huge" ? 3 : 2;
+  const ne = hull === "small" ? 1 : hull === "titan" || hull === "colossus" ? 5 : hull === "huge" ? 3 : 2;
   for (let i = 0; i < ne; i++) engines.push(new THREE.Vector3(box.min.x, 0, ne === 1 ? 0 : (i / (ne - 1) - 0.5) * size.z * 0.35));
   return { root, muzzles, engines, radius: Math.max(L * 0.55, Math.max(size.y, size.z) * 0.5), glow };
 }

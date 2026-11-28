@@ -1,7 +1,7 @@
 // End-of-turn processing. Same order for every empire, player or AI.
 
 import { ensureProject, learn, tech, techCost, techStats } from "./tech";
-import { maxMissileBases, missileBaseCost } from "./data/ships";
+import { isCapitalHull, maxMissileBases, missileBaseCost } from "./data/ships";
 import { colonyShipCount, shipDesign } from "./designs";
 import { recordChronicle } from "./chronicle";
 import { resolveCombat } from "./combat";
@@ -135,10 +135,13 @@ function processColony(state: GameState, c: Colony): number {
     c.shipProgress += b.ship;
     let built = 0;
     const unit = shipCost(e, t);
-    while (c.shipProgress >= unit) {
+    // Capital hulls: one of each afloat per empire; the yard holds the finished hull until the old one is gone.
+    const capAfloat = isCapitalHull(t.hull) && state.fleets.some((f) => f.empireId === e.id && Object.entries(f.ships).some(([id, n]) => n > 0 && shipDesign(state, id).hull === t.hull));
+    while (c.shipProgress >= unit && !(isCapitalHull(t.hull) && (capAfloat || built >= 1))) {
       c.shipProgress -= unit;
       built++;
     }
+    if (isCapitalHull(t.hull) && c.shipProgress > unit) { leftover += c.shipProgress - unit; c.shipProgress = unit; }
     if (built > 0) {
       state.fleets.push({
         id: state.nextFleetId++, empireId: e.id, ships: { [t.id]: built },
