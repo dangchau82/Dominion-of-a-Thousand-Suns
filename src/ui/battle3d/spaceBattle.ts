@@ -23,7 +23,14 @@ interface UnitView { models: Model[]; side: 0 | 1; isPlanet: boolean; isFighters
 /** Loads the Blender ship models for the races in this battle (a moment at most), then plays it. */
 export function playSpaceBattle(state: GameState, rec: BattleRecord, playerId: Id, onClose: () => void = () => {}): void {
   const races = rec.units.map((u) => state.empires[u.empireId]?.raceId).filter((r): r is string => !!r);
-  void preloadShips(races).then(() => playNow(state, rec, playerId, onClose));
+  // only the hull sizes that actually fight here, so a battle downloads a few models, not every size
+  const hulls = new Set<string>();
+  for (const u of rec.units) {
+    const race = state.empires[u.empireId]?.raceId;
+    const d = race ? designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) : undefined;
+    if (race && d) hulls.add(`${race}_${d.hull}`);
+  }
+  void preloadShips(races, 4000, hulls).then(() => playNow(state, rec, playerId, onClose));
 }
 
 function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () => void): void {

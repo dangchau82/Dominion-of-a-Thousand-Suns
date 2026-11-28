@@ -102,6 +102,11 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 01:25: Lineups for the 10 metal races; battles load only the hull sizes in them
+- Humans, Vossari, Ashkari, Orrun, Nyx, Velari, Gorrath, Quorai, Raxxan and Tarkhan now have small, large and huge models too, hand-designed per race with the same builder and hull detailing as their cruisers (Blender text `lineups`, `detailed_variant`). All 18 races are in `SIZE_MODELS`.
+- `preloadShips(races, timeout, hulls)` now loads only the hull sizes that fight in a battle (the gallery still loads all).
+
+
 ### 2026-11-28 00:00: Weapon families in the 3D battle replays
 - `spaceBattle.ts` looks up each shooter's beam and missile family from its design: rail = thin white tracer in a blink, lance = thick long spinal beam, ion = blue-white beam with sparks, plasma cannon = slow fat orange bolt, stinger = cluster of tiny darts, plasma missile = violet warhead. The battle log format is unchanged.
 

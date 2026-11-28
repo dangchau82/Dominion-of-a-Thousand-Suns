@@ -26,7 +26,7 @@ function hullTextures(): { normal: THREE.Texture; lights: THREE.Texture } {
 }
 /**
  * Extra hull-size models (2026-11-27, Danny: "expand on them based on their race features"):
- * public/models/ships/<race>_<size>.glb. Sizes not listed here use the race's cruiser model.
+ * public/models/ships/<race>_<size>.glb. All 18 races have them (organic 2026-11-27, metal 2026-11-28); medium uses the cruiser.
  */
 export const SIZE_MODELS: Record<string, readonly ("small" | "large" | "huge")[]> = {
   kethrak: ["small", "large", "huge"],
@@ -37,17 +37,28 @@ export const SIZE_MODELS: Record<string, readonly ("small" | "large" | "huge")[]
   seraphine: ["small", "large", "huge"],
   lumen: ["small", "large", "huge"],
   thraal: ["small", "large", "huge"],
+  humans: ["small", "large", "huge"],
+  vossari: ["small", "large", "huge"],
+  ashkari: ["small", "large", "huge"],
+  orrun: ["small", "large", "huge"],
+  nyx: ["small", "large", "huge"],
+  velari: ["small", "large", "huge"],
+  gorrath: ["small", "large", "huge"],
+  quorai: ["small", "large", "huge"],
+  raxxan: ["small", "large", "huge"],
+  tarkhan: ["small", "large", "huge"],
 };
 const pending = new Map<string, Promise<void>>();
 const failed = new Set<string>();
 
 /** Loads the models for these races (once each). Resolves after `timeoutMs` at the latest. */
-export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000): Promise<void> {
+/** Loads each race's cruiser, plus only the hull sizes listed in `hulls` (all sizes when it is left out). */
+export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000, hulls?: ReadonlySet<string>): Promise<void> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder); // the detailed hulls are meshopt-compressed
   const jobs: Promise<void>[] = [];
   const keys: string[] = [];
-  for (const race of new Set(raceIds)) { keys.push(race); for (const sz of SIZE_MODELS[race] ?? []) keys.push(`${race}_${sz}`); }
+  for (const race of new Set(raceIds)) { keys.push(race); for (const sz of SIZE_MODELS[race] ?? []) if (!hulls || hulls.has(`${race}_${sz}`)) keys.push(`${race}_${sz}`); }
   for (const id of keys) {
     if (cache.has(id) || failed.has(id)) continue;
     let p = pending.get(id);
