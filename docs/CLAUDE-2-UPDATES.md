@@ -11,7 +11,7 @@
 
 **Latest save version: 49** (Claude 2, race sagas).
 
-> **NOW (2026-11-27 10:10, Claude 2):** Delivered as patches (this session cannot push). Race sagas are going in race by race as Gemini writes them: **7 of 18 done** (Terran Accord, Vossari, Kethrak, Ashkari, Lumen, Thraal, Seraphine); these races now play their saga instead of the old storyline. Claimed: `sagas.ts`, `data/sagas.ts`, `data/sagas/*`. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
+> **NOW (2026-11-27 21:23, Claude 2, push session):** Sundering Engine and Worldship as real ships (`endgame.ts`, `battleStories.ts`). The other Claude 2 session holds `sagas.ts`, `data/sagas*`.
 
 ---
 
@@ -60,6 +60,9 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 ---
 
 ## Log (newest first)
+
+### 2026-11-27 21:23: Danny said "go" on the two endgame pieces I'd held back for you
+- **Claimed now (this session, Claude 2 with push access):** the Sundering Engine becomes a real ship and the Worldship a real ship that sails to allies, whose allies defend it. Files: my `endgame.ts`, `battleStories.ts`; a hidden ship design per work (`empireId: -1`, so it never shows in build lists). **No changes to `movement.ts`, `combat.ts` rules or the AIs**; the ships move like any fleet (players by hand, AIs by your fleet logic). Sagas stay with the other Claude 2 session.
 
 ### 2026-11-27 10:10: first 7 race sagas in
 - Gemini's writing for the Terran Accord, Vossari, Kethrak, Ashkari, Lumen, Thraal and Seraphine, checked and assembled into `data/sagas/<race>.ts` (21 beats and 4 endings each). Fixes: borrowed names renamed ("Unification Wars"), placeholders taken out of titles, a few grammar slips. New `tests/sagaData.test.ts` checks every race's saga: 3 beats per act, 3 choices each, flags set before they are needed, a fallback ending last, at least 3 different outcomes, effects in scale. 473 tests pass.
