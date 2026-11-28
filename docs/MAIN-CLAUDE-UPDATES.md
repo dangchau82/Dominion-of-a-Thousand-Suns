@@ -102,6 +102,17 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 02:40: Capital tier, step 2: ship classes
+- New optional `shipClass` on designs (`ShipClass` in `data/ships.ts`), for Huge, Titan and Colossus hulls only:
+  - battlecruiser: fires first every round, 25% fewer hits.
+  - juggernaut: double damage against planets, -1 attack against ships (`Unit.siege`).
+  - supercarrier: twice the fighter bays, weapons take twice the room.
+- Fighter bays listed for Huge also fit Titan and Colossus hulls, with 5x and 25x the Huge wing (`bayFitsHull`, `fightersPerShip`).
+- Designer: a class row appears for those hulls, with a one-line explanation of each class.
+- AI behaviour unchanged: the AI doesn't use classes or capital hulls yet. That is step 3.
+- Tests: 2 more in `capitalShips.test.ts`; `carriers.test.ts` now expects the message "Large or bigger".
+
+
 ### 2026-11-28 02:15: Capital tier, step 1: Titan and Colossus hulls
 - `HULLS` has `titan` (space 25000, 7200 BC, 3600 hits) and `colossus` (125000, 43000 BC, 21600 hits). New techs: Titan Slipways (construction T9) and Colossus Forge (construction T10). `CAPITAL_HULL_TECH` and `isCapitalHull` live in `data/ships.ts`.
 - `checkDesign` requires the tech. In `turn.ts` a yard builds at most one capital ship per turn and holds a finished one while the empire already has one of that hull afloat; overflow BC goes to the treasury.

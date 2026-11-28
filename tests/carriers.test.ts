@@ -27,7 +27,7 @@ describe("carriers", () => {
     const g = game(3);
     const e = g.empires[0]!;
     expect(checkDesign(g, e, carrier(2))).toBeNull();
-    expect(checkDesign(g, e, carrier(2, { hull: "medium" }))).toMatch(/Large or Huge/);
+    expect(checkDesign(g, e, carrier(2, { hull: "medium" }))).toMatch(/Large or bigger/);
     expect(checkDesign(g, e, carrier(7))).toMatch(/Up to 6/);
     expect(checkDesign(g, e, carrier(1, { role: "colony", weapons: [] }))).not.toBeNull();
     expect(checkDesign(g, e, { ...carrier(1), bays: { bayId: "fighter-bay-1", count: 1, variant: "bomber" } })).toMatch(/fighter type/);

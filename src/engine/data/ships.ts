@@ -8,6 +8,12 @@ export const HULL_SIZES: readonly HullSize[] = ["small", "medium", "large", "hug
 /** Capital hulls (main Claude, 2026-11-28, Danny's capital tier): each needs its tech, and an empire can have only one of each afloat. */
 export const CAPITAL_HULL_TECH: Partial<Record<HullSize, string>> = { titan: "titan-slipways", colossus: "colossus-forge" };
 export const isCapitalHull = (h: HullSize): boolean => h === "titan" || h === "colossus";
+/** Capital ship classes, chosen in the designer for Huge, Titan and Colossus hulls (Danny's capital tier):
+ *  battlecruiser: fires first in every round, 25% fewer hits. juggernaut: double damage against planets, -1 attack against ships.
+ *  supercarrier: twice the fighter bays, but weapons take twice the room. */
+export type ShipClass = "battlecruiser" | "juggernaut" | "supercarrier";
+export const SHIP_CLASSES: readonly ShipClass[] = ["battlecruiser", "juggernaut", "supercarrier"];
+export const classFitsHull = (h: HullSize): boolean => h === "huge" || isCapitalHull(h);
 
 export interface Hull {
   name: string;
@@ -68,6 +74,8 @@ export interface ShipDesign {
   extraRange: number;
   /** Fighter bays (carriers only; Large and Huge hulls). */
   bays?: FighterMount;
+  /** Capital ship class (Huge, Titan and Colossus hulls only). */
+  shipClass?: ShipClass;
 }
 
 const builtin = (d: Pick<ShipDesign, "id" | "name" | "role" | "hull" | "cost" | "extraRange">): ShipDesign => ({

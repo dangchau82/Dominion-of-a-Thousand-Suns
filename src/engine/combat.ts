@@ -89,6 +89,8 @@ export interface Unit {
   cloaked?: boolean;
   /** This side's empire sees cloaked ships (hyperspace sensors). */
   seesCloak?: boolean;
+  /** Juggernaut class: double damage against planets, -1 attack against ships. */
+  siege?: boolean;
 }
 
 function guns(d: ShipDesign): Gun[] {
@@ -110,7 +112,7 @@ export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign
   const r = empireRace(e);
   const h = HULLS[d.hull];
   const armor = levelOf(d.armor, "armor");
-  const maxHp = d.role === "warship" ? h.hits * (1 + 0.5 * Math.max(0, armor - 1)) : d.role === "transport" ? 1 : h.hits;
+  const maxHp = (d.role === "warship" ? h.hits * (1 + 0.5 * Math.max(0, armor - 1)) : d.role === "transport" ? 1 : h.hits) * (d.shipClass === "battlecruiser" ? 0.75 : 1);
   const sp = (id: string) => d.specials.includes(id);
   return {
     side, empireId: e.id, key: d.id, name: d.name, count, start: count, hp: maxHp, maxHp,
@@ -120,9 +122,10 @@ export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign
     shield: levelOf(d.shield, "shield"),
     guns: guns(d), small: d.hull === "small",
     invulnerable: !!(e.isPlayer && state.cheats?.godMode),
-    bonusDamage: damageBonus(e), first: damageBonus(e) > 0, dodge: sp("displacement-field") ? 0.25 : 0,
+    bonusDamage: damageBonus(e), first: damageBonus(e) > 0 || d.shipClass === "battlecruiser", dodge: sp("displacement-field") ? 0.25 : 0,
     stasis: sp("stasis-field"), dampener: sp("warp-dampener"), frozen: false,
     cloaked: sp("cloaking-field"), seesCloak: e.research.known.includes("hyperspace-sensors"),
+    ...(d.shipClass === "juggernaut" ? { siege: true } : {}),
   };
 }
 
@@ -163,7 +166,9 @@ export function armed(u: Unit): boolean {
   return u.count > 0 && u.guns.some((g) => g.kind !== "bomb");
 }
 
-function hitChance(g: Gun, shooter: Unit, target: Unit): number {
+function hitChance(g: Gun, shooter0: Unit, target: Unit): number {
+  // Juggernauts are built for sieges: a little clumsier against ships.
+  const shooter = shooter0.siege && target.key !== "planet" ? { ...shooter0, attack: shooter0.attack - 1 } : shooter0;
   if (g.kind === "beam") return beamHitChance(shooter.attack, 0, target.beamDef, 1);
   // Stingers swarm: small ships and fighters can't dodge a cloud of darts.
   if (g.family === "stinger" && (target.small || target.fighter)) return Math.min(1, Math.max(0.05, (10 + shooter.attack - target.missileDef) / 10));
@@ -241,7 +246,7 @@ export function fight(state: GameState, units: Unit[], onShot?: ShotListener): n
           }
           if (!R.chance(rng, hitChance(g, u, target))) { onShot?.(round, u, target, g.kind, "miss", 0); continue; }
           if (target.dodge > 0 && R.chance(rng, target.dodge)) { onShot?.(round, u, target, g.kind, "dodged", 0); continue; }
-          const raw = R.int(rng, g.min, g.max) + u.bonusDamage;
+          const raw = (R.int(rng, g.min, g.max) + u.bonusDamage) * (u.siege && target.key === "planet" ? 2 : 1);
           // Torpedoes, rail slugs and plasma warheads punch through half of the shield; a lance ignores it.
           const halfShield = g.kind === "torpedo" || g.family === "rail" || g.family === "plasma";
           const dmg = raw - (g.family === "lance" ? 0 : halfShield ? Math.floor(target.shield / 2) : target.shield);

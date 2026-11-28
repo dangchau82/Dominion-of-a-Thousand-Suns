@@ -23,7 +23,8 @@ import {
   type DesignSpec, type HullSize,
   type Command, type EmpireView, type GameState,
 } from "../engine";
-import { fighterBayChoices, fighterVariantChoices, MAX_BAYS } from "../engine/designs";
+import { bayFitsHull, fighterBayChoices, fighterVariantChoices, fightersPerShip, MAX_BAYS } from "../engine/designs";
+import { SHIP_CLASSES, classFitsHull, type ShipClass } from "../engine/data/ships";
 import { environmentFor, canColonize as canColonizeFormula } from "../engine/formulas";
 import { applyCheat, type Cheat } from "../engine/cheats";
 import { fleetExtraRange } from "../engine/movement";
@@ -1867,14 +1868,32 @@ export class GameScreen {
           box.append(addW);
         }
 
-        // Fighter bays (carriers): Large and Huge warships only.
-        const bays = fighterBayChoices(e).filter((b) => b.hulls.includes(spec.hull));
+        // Capital ship class (Huge, Titan and Colossus hulls).
+        if (!colony && classFitsHull(spec.hull)) {
+          const CLASS_INFO: Record<ShipClass, string> = {
+            battlecruiser: "Battlecruiser: fires first every round, 25% fewer hits",
+            juggernaut: "Juggernaut: double damage against planets, a little clumsier against ships",
+            supercarrier: "Supercarrier: twice the fighter bays, but guns take twice the room",
+          };
+          const cseg = el("div", { class: "seg", style: "margin:8px 0;flex-wrap:wrap" });
+          for (const c of [undefined, ...SHIP_CLASSES] as (ShipClass | undefined)[]) {
+            const b = el("button", { class: spec.shipClass === c ? "on" : "", title: c ? CLASS_INFO[c] : "No class" }, c ? c[0]!.toUpperCase() + c.slice(1) : "No class");
+            b.onclick = () => { if (c) spec.shipClass = c; else delete spec.shipClass; draw(); };
+            cseg.append(b);
+          }
+          box.append(cseg);
+          if (spec.shipClass) box.append(el("p", { class: "dim", style: "margin:0 0 6px" }, CLASS_INFO[spec.shipClass]));
+        } else delete spec.shipClass;
+
+        // Fighter bays (carriers): Large and bigger warships only.
+        const bays = fighterBayChoices(e).filter((b) => bayFitsHull(b.hulls, spec.hull));
+        const maxBays = MAX_BAYS * (spec.shipClass === "supercarrier" ? 2 : 1);
         if (!colony && bays.length) {
-          box.append(el("div", { class: "dim", style: "margin-top:8px" }, `Fighter bays (up to ${MAX_BAYS}): fighters screen the carrier, shoot down missiles and are rebuilt free if the carrier survives`));
+          box.append(el("div", { class: "dim", style: "margin-top:8px" }, `Fighter bays (up to ${maxBays}): fighters screen the carrier, shoot down missiles and are rebuilt free if the carrier survives`));
           const row = el("div", { class: "design-row" });
           const sel = el("select", { class: "tech-select" });
           for (const b of bays) {
-            const o = el("option", { value: b.id }, `${b.name} (${b.fighters[spec.hull]} fighters each)`);
+            const o = el("option", { value: b.id }, `${b.name} (${fightersPerShip({ bayId: b.id, count: 1 }, spec.hull)} fighters each)`);
             if ((spec.bays?.bayId ?? bays[bays.length - 1]!.id) === b.id) o.selected = true;
             sel.append(o);
           }
@@ -1883,7 +1902,7 @@ export class GameScreen {
           const minus = el("button", { class: "small" }, "−");
           const plus = el("button", { class: "small" }, "+");
           minus.onclick = () => { if (spec.bays) spec.bays.count = Math.max(0, spec.bays.count - 1); draw(); };
-          plus.onclick = () => { spec.bays = { bayId: spec.bays?.bayId ?? sel.value, count: Math.min(MAX_BAYS, count + 1), ...(spec.bays?.variant ? { variant: spec.bays.variant } : {}) }; draw(); };
+          plus.onclick = () => { spec.bays = { bayId: spec.bays?.bayId ?? sel.value, count: Math.min(maxBays, count + 1), ...(spec.bays?.variant ? { variant: spec.bays.variant } : {}) }; draw(); };
           row.append(sel, minus, el("b", { style: "min-width:2ch;text-align:center" }, String(count)), plus);
           box.append(row);
           const variants = fighterVariantChoices(e);

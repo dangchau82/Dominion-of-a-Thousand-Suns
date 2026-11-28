@@ -32,3 +32,30 @@ describe("capital hulls", () => {
     expect(titans()).toBe(1);
   });
 });
+
+describe("capital classes", () => {
+  const base = { role: "warship" as const, computer: null, shield: null, ecm: null, armor: null, weapons: [{ techId: "laser", count: 4 }], specials: [] };
+  it("classes need a Huge or capital hull, and change the numbers", async () => {
+    const { designStats } = await import("../src/engine/designs");
+    const g = newGame({ seed: 78, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "humans", playerName: "Danny" });
+    const e = g.empires[0]!;
+    expect(checkDesign(g, e, { ...base, name: "BC1", hull: "large", shipClass: "battlecruiser" })).toMatch(/Huge, Titan or Colossus/);
+    expect(checkDesign(g, e, { ...base, name: "BC2", hull: "huge", shipClass: "battlecruiser" })).toBeNull();
+    const plain = designStats(e, { ...base, name: "P", hull: "huge" });
+    const bc = designStats(e, { ...base, name: "B", hull: "huge", shipClass: "battlecruiser" });
+    const sc = designStats(e, { ...base, name: "S", hull: "huge", shipClass: "supercarrier" });
+    expect(bc.hits).toBeCloseTo(plain.hits * 0.75, 0);
+    expect(sc.spaceUsed).toBeGreaterThan(plain.spaceUsed);
+  });
+
+  it("juggernauts hit planets twice as hard", async () => {
+    const { fight } = await import("../src/engine/combat");
+    const g = newGame({ seed: 79, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "humans", playerName: "Danny" });
+    const mk = (siege: boolean) => ({ side: 0 as const, empireId: 0, key: "j", name: "J", count: 1, start: 1, hp: 1e6, maxHp: 1e6, attack: 20, beamDef: 0, missileDef: 0, shield: 0,
+      guns: [{ kind: "beam" as const, min: 10, max: 10, count: 1 }], small: false, invulnerable: false, bonusDamage: 0, first: false, dodge: 0, stasis: false, dampener: false, frozen: false, ...(siege ? { siege: true } : {}) });
+    const planet = () => ({ side: 1 as const, empireId: 1, key: "planet", name: "P", count: 1, start: 1, hp: 1e6, maxHp: 1e6, attack: 0, beamDef: 0, missileDef: 0, shield: 0,
+      guns: [], small: false, invulnerable: false, bonusDamage: 0, first: false, dodge: 0, stasis: false, dampener: false, frozen: false });
+    const dmg = (siege: boolean) => { let t = 0; const a = mk(siege); fight(g, [a, planet()], (_r, s, _t, _k, res, d) => { if (s === a && res !== "miss") t += d; }); return t; };
+    expect(dmg(true)).toBeGreaterThan(dmg(false) * 1.5);
+  });
+});

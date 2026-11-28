@@ -4,7 +4,7 @@
 // the same field) is adapted from Remnants of the Precursors (GPL-3.0).
 
 import {
-  BUILTIN_DESIGNS, CAPITAL_HULL_TECH, COLONY_POD, FUEL_TANKS, HULLS, MAX_DESIGNS, SHIP_SPECIALS,
+  BUILTIN_DESIGNS, CAPITAL_HULL_TECH, SHIP_CLASSES, classFitsHull, isCapitalHull, type ShipClass, COLONY_POD, FUEL_TANKS, HULLS, MAX_DESIGNS, SHIP_SPECIALS,
   type HullSize, type ShipDesign, type ShipRole, type WeaponMount,
 } from "./data/ships";
 import type { Tech } from "./data/techs";
@@ -157,7 +157,16 @@ export function bayPart(e: Empire, bayId: string, hull: HullSize): PartSize {
 /** Fighters one carrier launches. */
 export function fightersPerShip(m: FighterMount | undefined, hull: HullSize): number {
   if (!m || m.count <= 0) return 0;
-  return (BAY_BY_ID.get(m.bayId)?.fighters[hull] ?? 0) * m.count;
+  const f = BAY_BY_ID.get(m.bayId)?.fighters;
+  if (!f) return 0;
+  // Capital hulls carry wings in proportion: a bay is a share of the hull, so five times the Huge wing per size step.
+  const per = f[hull] ?? (hull === "titan" ? (f.huge ?? 0) * 5 : hull === "colossus" ? (f.huge ?? 0) * 25 : 0);
+  return per * m.count;
+}
+
+/** Bays listed for Huge hulls also fit the capital hulls. */
+export function bayFitsHull(hulls: readonly HullSize[], hull: HullSize): boolean {
+  return hulls.includes(hull) || (isCapitalHull(hull) && hulls.includes("huge"));
 }
 
 /** What the player fills in; cost and space are worked out from it. */
@@ -174,6 +183,8 @@ export interface DesignSpec {
   role?: ShipRole;
   /** Fighter bays (Large and Huge warships). */
   bays?: FighterMount;
+  /** Capital ship class (Huge, Titan and Colossus hulls). */
+  shipClass?: ShipClass;
 }
 
 export interface DesignStats {
@@ -218,7 +229,7 @@ export function designStats(e: Empire, spec: DesignSpec): DesignStats {
   for (const w of spec.weapons) {
     if (w.count <= 0) continue;
     const p = weaponPart(e, w.techId);
-    used += p.space * w.count; cost += p.cost * w.count;
+    used += p.space * w.count * (spec.shipClass === "supercarrier" ? 2 : 1); cost += p.cost * w.count;
     const t = tech(w.techId);
     const fx = weaponOf(t);
     if (fx) weapons.push({ name: t.name, kind: fx.kind, count: w.count, min: fx.min, max: fx.max });
@@ -240,7 +251,7 @@ export function designStats(e: Empire, spec: DesignSpec): DesignStats {
     space: h.space,
     spaceUsed: used,
     cost: Math.round(cost * 10) / 10,
-    hits: Math.round(h.hits * (1 + 0.5 * Math.max(0, armor - 1)) * 10) / 10,
+    hits: Math.round(h.hits * (1 + 0.5 * Math.max(0, armor - 1)) * (spec.shipClass === "battlecruiser" ? 0.75 : 1) * 10) / 10,
     attack: lvl(spec.computer, "computer"),
     beamDefense: h.defense,
     missileDefense: h.defense + lvl(spec.ecm, "ecm"),
@@ -271,6 +282,11 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
   const name = spec.name.trim();
   if (!name || name.length > 24) return "Give the design a name (up to 24 letters)";
   if (!HULLS[spec.hull]) return "Unknown hull";
+  if (spec.shipClass !== undefined) {
+    if (!SHIP_CLASSES.includes(spec.shipClass)) return "Unknown ship class";
+    if (!classFitsHull(spec.hull)) return "Ship classes need a Huge, Titan or Colossus hull";
+    if (spec.role === "colony") return "Colony ships have no class";
+  }
   const capTech = CAPITAL_HULL_TECH[spec.hull];
   if (capTech && !e.research.known.includes(capTech)) return `Learn ${capTech === "titan-slipways" ? "Titan Slipways" : "Colossus Forge"} to build a ${HULLS[spec.hull].name} hull`;
   if (spec.role !== undefined && spec.role !== "warship" && spec.role !== "colony") return "Unknown ship role";
@@ -301,9 +317,10 @@ export function checkDesign(state: GameState, e: Empire, spec: DesignSpec): stri
   if (spec.bays && spec.bays.count !== 0) {
     const b = BAY_BY_ID.get(spec.bays.bayId);
     if (!b) return "Unknown fighter bay";
-    if (!Number.isInteger(spec.bays.count) || spec.bays.count < 0 || spec.bays.count > MAX_BAYS) return `Up to ${MAX_BAYS} fighter bays`;
+    const maxBays = MAX_BAYS * (spec.shipClass === "supercarrier" ? 2 : 1);
+    if (!Number.isInteger(spec.bays.count) || spec.bays.count < 0 || spec.bays.count > maxBays) return `Up to ${maxBays} fighter bays`;
     if (spec.role === "colony") return "Colony ships carry no fighters";
-    if (!b.hulls.includes(spec.hull)) return "Fighter bays need a Large or Huge hull";
+    if (!bayFitsHull(b.hulls, spec.hull)) return "Fighter bays need a Large or bigger hull";
     if (!fighterBayChoices(e).some((x) => x.id === b.id)) return "You can't build that fighter bay yet";
     if (spec.bays.variant !== undefined && !fighterVariantChoices(e).some((v) => v.id === spec.bays!.variant)) return "You can't build that fighter type yet";
   }
@@ -327,6 +344,7 @@ export function addDesign(state: GameState, e: Empire, spec: DesignSpec): ShipDe
     space: Math.round(st.spaceUsed * 10) / 10,
     extraRange: st.extraRange,
     ...(spec.bays && spec.bays.count > 0 ? { bays: { ...spec.bays } } : {}),
+    ...(spec.shipClass ? { shipClass: spec.shipClass } : {}),
   };
   state.designs[d.id] = d;
   return d;
