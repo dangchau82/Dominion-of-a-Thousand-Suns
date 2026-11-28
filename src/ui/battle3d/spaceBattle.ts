@@ -29,7 +29,7 @@ export function playSpaceBattle(state: GameState, rec: BattleRecord, playerId: I
   for (const u of rec.units) {
     const race = state.empires[u.empireId]?.raceId;
     const d = race ? (designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) ?? state.designs[u.key.replace("#fighters", "")]) : undefined;
-    if (race && d) { hulls.add(`${race}_${d.hull}`); if (d.hull === "titan" || d.hull === "colossus") hulls.add(`${race}_huge`); }
+    if (race && d) { hulls.add(`${race}_${d.hull}`); if (d.hull === "titan" || d.hull === "colossus") hulls.add(`${race}_huge`); if (d.hull === "colossus") hulls.add(`${race}_titan`); }
   }
   // An Ancient Leviathan (leviathans.ts) has its own model.
   if (rec.units.some((u) => state.designs[u.key]?.name === "Ancient Leviathan")) races.push("ancient_leviathan");

@@ -94,8 +94,8 @@ export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000, hulls?
 
 /** A copy of the race's model, nose along +X, `length` units long. Null if not loaded. */
 export function shipModel(raceId: string, length: number, hull?: string): THREE.Group | null {
-  // Capital hulls without their own model use the race's huge model, scaled up.
-  const src = (hull && cache.get(`${raceId}_${hull}`)) || ((hull === "titan" || hull === "colossus") && cache.get(`${raceId}_huge`)) || cache.get(raceId);
+  // A Colossus uses the race's Titan model, scaled up; capital hulls without a model use the huge one.
+  const src = (hull && cache.get(`${raceId}_${hull}`)) || (hull === "colossus" && cache.get(`${raceId}_titan`)) || ((hull === "titan" || hull === "colossus") && cache.get(`${raceId}_huge`)) || cache.get(raceId);
   if (!src) return null;
   const inner = src.clone(true);
   inner.rotation.y = -Math.PI / 2; // glTF -Z nose → +X
