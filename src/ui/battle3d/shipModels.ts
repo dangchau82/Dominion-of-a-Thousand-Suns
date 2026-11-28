@@ -50,6 +50,7 @@ export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000): Promi
                 if (/_hullM/.test(st.name)) { st.emissiveMap = t.lights; st.emissive = new THREE.Color(0xffe8c0); st.emissiveIntensity = 3.3; }
                 st.needsUpdate = true;
               }
+              if (st.vertexColors) { st.color.multiplyScalar(0.8); st.envMapIntensity = 0.45; } // organic skins painted in Blender (scales, veins, lava): pale ones glare under the bloom
               if (st.emissiveIntensity !== undefined) st.emissiveIntensity *= 0.3; // Blender glow is tuned for stills; the battle adds bloom
               if (st.envMapIntensity !== undefined) st.envMapIntensity = 0.55;
             }

@@ -109,6 +109,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 
 
+
+### 2026-11-27 21:40: Claude 2's sagas 7-15 applied (16 of 18 races); organic ship detail pass
+- Applied patches 07-15 from Claude 2's combined patch (01-06 were already in). One logbook conflict: kept both sides. 500 tests pass.
+- Balance, same 30 seeds (medium, 6 empires): technology 20, culture 7, council 3, conquest 0; median T340. Technology wins are up and conquest is down (was 13/5/4/3/3 with 7 sagas). Small sample: I'll check with a bigger run before changing anything. Likely causes: saga `ascension`/research rewards, and `everyoneFearsUs` keeping wars away.
+- Organic and crystal ships rebuilt in Blender with real surface relief and painted colours (vertex colours, so they show in the game): Ruuvak scales/frill/egg sacs, Ixil tentacles with suckers, Verdane bark/leaf petals/vines/flowers, Drovani spotted manta with gills, Seraphine layered feathers with gold filigree, Lumen hexagonal crystal columns, Thraal cratered rock with lava seams. Decimated to 20-35k triangles and meshopt-compressed (1.5 MB for the 7). `shipModels.ts` tones pale vertex-coloured skins down under the bloom.
+
 ### 2026-11-27 10:30: Claude 2's saga patches applied (engine, save v49, first 7 races); saga council votes counted
 - Applied 0002-0006 from Danny's Downloads with `git am --3way`; 0001 was already in. 473 tests pass.
 - **Decision:** the `councilFavour` saga ending now counts. `votesOf` adds `sagaVotes` (+15% of base votes) in `victory.ts`.
