@@ -1,6 +1,7 @@
 // The in-game screen: star map, top bar, star/colony/fleet panel, research,
 // End Turn with the "next up" bar, turn reports and the game menu.
 
+import { TITAN_TRAITS } from "../engine/data/titanTraits";
 import { WAKE_COST } from "../engine/leviathans";
 import { aiAnswerProposals, autoScoutOrders, runAITurns } from "../ai";
 import { advisorCardHTML } from "./advisorVoice";
@@ -1877,6 +1878,9 @@ export class GameScreen {
           box.append(addW);
         }
 
+        // Titan power of this race (data/titanTraits.ts).
+        const trait = (spec.hull === "titan" || spec.hull === "colossus") && !colony ? TITAN_TRAITS[e.raceId] : undefined;
+        if (trait) box.append(el("p", { class: "dim", style: "margin:6px 0" }, `<b>${esc(trait.name)}:</b> ${esc(trait.text)}${spec.hull === "colossus" && trait.guns ? " (five times the guns on a Colossus)" : ""}`));
         // Capital ship class (Huge, Titan and Colossus hulls).
         if (!colony && classFitsHull(spec.hull)) {
           const CLASS_INFO: Record<ShipClass, string> = {

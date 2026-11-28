@@ -5,6 +5,7 @@
 // Hit chances follow the classic beam formula, adapted from Remnants of the
 // Precursors (GPL-3.0).
 
+import { TITAN_TRAITS } from "./data/titanTraits";
 import { HULLS, type ShipDesign } from "./data/ships";
 import { tech } from "./tech";
 import { empireBonus, transferWonders } from "./civ";
@@ -91,6 +92,8 @@ export interface Unit {
   seesCloak?: boolean;
   /** Juggernaut class: double damage against planets, -1 attack against ships. */
   siege?: boolean;
+  /** Titan aura (data/titanTraits.ts): bonuses for every ship on this side. */
+  aura?: { attack?: number; beamDef?: number; missileDef?: number; shield?: number };
 }
 
 function guns(d: ShipDesign): Gun[] {
@@ -108,14 +111,39 @@ function levelOf(id: string | null, stat: string): number {
   return 0;
 }
 
-/** Race traits for capital ships. Kethrak Mother Queen: a Kethrak Titan pours out a brood swarm, 30 stingers every round. */
-function titanTrait(e: Empire, d: ShipDesign, g: Gun[]): Gun[] {
-  if (e.raceId === "kethrak" && (d.hull === "titan" || d.hull === "colossus") && d.role === "warship")
-    return [...g, { kind: "missile", family: "stinger", min: 3, max: 4, count: d.hull === "colossus" ? 150 : 30 }];
-  return g;
+/** Titan traits (data/titanTraits.ts): each race's Titan has its own power; a Colossus has 5x the extra guns. */
+function applyTitanTrait(e: Empire, d: ShipDesign, u: Unit): Unit {
+  if ((d.hull !== "titan" && d.hull !== "colossus") || d.role !== "warship" || d.empireId === -1) return u;
+  const t = TITAN_TRAITS[e.raceId];
+  if (!t) return u;
+  const k = d.hull === "colossus" ? 5 : 1;
+  if (t.guns) u.guns = [...u.guns, ...t.guns.map((g) => ({ kind: g.kind, min: g.min, max: g.max, count: g.count * k, ...(g.family ? { family: g.family } : {}) }))];
+  if (t.hitsX) { u.hp *= t.hitsX; u.maxHp *= t.hitsX; }
+  if (t.shield) u.shield += t.shield;
+  if (t.dodge) u.dodge = Math.max(u.dodge, t.dodge);
+  if (t.first) u.first = true;
+  if (t.cloaked) u.cloaked = true;
+  if (t.aura) u.aura = { ...t.aura };
+  return u;
+}
+
+/** Titan auras: every ship on the Titan's side gets the best aura of each kind there (not stacked). */
+export function applyAuras(units: Unit[]): void {
+  for (const side of [0, 1] as const) {
+    const best = { attack: 0, beamDef: 0, missileDef: 0, shield: 0 };
+    for (const u of units) if (u.side === side && u.aura) for (const k of Object.keys(best) as (keyof typeof best)[]) best[k] = Math.max(best[k], u.aura[k] ?? 0);
+    for (const u of units) {
+      if (u.side !== side || u.key === "planet") continue;
+      u.attack += best.attack; u.beamDef += best.beamDef; u.missileDef += best.missileDef; u.shield += best.shield;
+    }
+  }
 }
 
 export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count: number): Unit {
+  return applyTitanTrait(e, d, baseShipUnit(state, side, e, d, count));
+}
+
+function baseShipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count: number): Unit {
   const r = empireRace(e);
   const h = HULLS[d.hull];
   const armor = levelOf(d.armor, "armor");
@@ -127,7 +155,7 @@ export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign
     beamDef: h.defense + r.shipDefense + (sp("inertial-dampers") ? 2 : 0) + (sp("cloaking-field") ? 1 : 0),
     missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm") + (sp("cloaking-field") ? 1 : 0) + (sp("repulsor-beam") ? 3 : 0),
     shield: levelOf(d.shield, "shield"),
-    guns: titanTrait(e, d, guns(d)), small: d.hull === "small",
+    guns: guns(d), small: d.hull === "small",
     invulnerable: !!(e.isPlayer && state.cheats?.godMode),
     bonusDamage: damageBonus(e), first: damageBonus(e) > 0 || d.shipClass === "battlecruiser", dodge: sp("displacement-field") ? 0.25 : 0,
     stasis: sp("stasis-field"), dampener: sp("warp-dampener"), frozen: false,
@@ -327,6 +355,7 @@ function battle(state: GameState, s: Star, a: Empire, b: Empire): void {
   veteranEdge(state, here, units); // famous fleets and admirals (battleStories.ts, Claude 2)
   heroEdge(state, here, units); // hero admirals (heroes.ts, Claude 2)
   coalitionEdge(state, units); // the galaxy against a giant (coalition.ts)
+  applyAuras(units); // Titan auras (data/titanTraits.ts)
 
   const rec = new BattleRecorder(units);
   const rounds = fight(state, units, rec.shot);

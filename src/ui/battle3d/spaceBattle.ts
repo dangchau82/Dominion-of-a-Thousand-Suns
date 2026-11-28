@@ -3,6 +3,7 @@
 // destroyed ship is the one the engine rolled. Ships are the race models from ships3d.ts.
 // Nothing here changes the game; it only reads the state.
 
+import { TITAN_TRAITS } from "../../engine/data/titanTraits";
 import * as THREE from "three";
 import type { BattleRecord } from "../../engine/battleLog";
 import { designsOf } from "../../engine/designs";
@@ -167,8 +168,9 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
         if (fx.kind === "missile" && !out.missile) out.missile = fx.family;
       }
     }
-    // Kethrak Mother Queen's brood swarm (combat.ts titanTrait) flies as stinger darts.
-    if (!out.missile && state.empires[u.empireId]?.raceId === "kethrak" && (d.hull === "titan" || d.hull === "colossus")) out.missile = "stinger";
+    // Titan trait guns (data/titanTraits.ts) look like their family too.
+    const trait = (d.hull === "titan" || d.hull === "colossus") && d.empireId !== -1 ? TITAN_TRAITS[state.empires[u.empireId]?.raceId ?? ""] : undefined;
+    for (const g of trait?.guns ?? []) if (g.family) { if (g.kind === "beam") out.beam ??= g.family; else out.missile ??= g.family; }
     return out;
   });
   let shotNo = 0;

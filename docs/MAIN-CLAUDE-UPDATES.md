@@ -102,6 +102,16 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 04:30: Titan powers for all 18 races
+- `data/titanTraits.ts`: every race's Titan has its own power. Types: extra guns (a Colossus gets 5x the count), more hits, shield, dodge, first strike, cloaking, or an aura that lifts every ship on the Titan's side. Auras take the best of each kind and don't stack.
+  - Auras: Humans +1 attack, Vossari +2 shield, Orrun +2 missile defence, Velari +2 beam defence, Verdane +1/+1.
+  - Extra guns: Kethrak 30 stingers, Drovani 20 stingers, Ruuvak 24 stingers, Ashkari 6 lances + first strike, Tarkhan 8 lances + first strike, Quorai 4 lances + 3 shield, Lumen 12 ion, Ixil 14 ion, Raxxan 20 rails, Gorrath 10 plasma cannons and 1.3x hits.
+  - Others: Thraal 1.5x hits, Seraphine 25% dodge + first strike, Nyx cloaked + first strike.
+- `combat.ts`: `applyTitanTrait()` runs inside `shipUnit()`, and `applyAuras()` runs in `battle()`. Ancient Leviathans get no trait.
+- Designer: the race's titan power is shown when a Titan or Colossus hull is picked. Replays draw trait guns in their family style.
+- Balance on the same 30 seeds: technology 15, culture 5, council 4, conquest 1, no winner 5; median T326.
+
+
 ### 2026-11-28 04:00: Ancient Leviathans
 - `leviathans.ts`: from turn 160, about one sleeping Ancient Leviathan per four empires is placed at the empty stars (no planet) farthest from every capital, worked out from the map with no randomness. News is posted and they appear in the view (`leviathans`).
 - An empire that knows Titan Slipways can bring any fleet there and pay 1500 BC (`wakeLeviathan` command) to wake one. It joins the fleet as a hidden one-off Colossus-hull design: 24 phase lances, 8 hellfire torpedoes, class IX shield. It counts as that empire's Colossus.

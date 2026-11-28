@@ -72,3 +72,16 @@ describe("Kethrak Mother Queen", () => {
     expect(u.guns.some((x) => x.family === "stinger" && x.count === 30)).toBe(true);
   });
 });
+
+describe("titan traits", () => {
+  it("every race has one, and auras lift the whole side once", async () => {
+    const { TITAN_TRAITS } = await import("../src/engine/data/titanTraits");
+    const { RACES } = await import("../src/engine/data/races");
+    for (const r of RACES) expect(TITAN_TRAITS[r.id], r.id).toBeTruthy();
+    const { applyAuras } = await import("../src/engine/combat");
+    const u = (side: 0 | 1, aura?: object) => ({ side, key: "x", attack: 0, beamDef: 0, missileDef: 0, shield: 0, ...(aura ? { aura } : {}) }) as never;
+    const units = [u(0, { attack: 1 }), u(0, { attack: 1 }), u(0), u(1)];
+    applyAuras(units);
+    expect((units as { attack: number }[]).map((x) => x.attack)).toEqual([1, 1, 1, 0]);
+  });
+});
