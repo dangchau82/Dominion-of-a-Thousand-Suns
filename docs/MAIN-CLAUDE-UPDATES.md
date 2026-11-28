@@ -102,6 +102,10 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 00:00: Weapon families in the 3D battle replays
+- `spaceBattle.ts` looks up each shooter's beam and missile family from its design: rail = thin white tracer in a blink, lance = thick long spinal beam, ion = blue-white beam with sparks, plasma cannon = slow fat orange bolt, stinger = cluster of tiny darts, plasma missile = violet warhead. The battle log format is unchanged.
+
+
 ### 2026-11-28 00:00: Weapon families and real cloaking (Danny's request)
 - Weapons now have families with their own battle rules (`WeaponFamily` in `data/techs.ts`, applied in `combat.ts fight()`):
   - rail (Mass Driver, new Rail Gun T6 6-14): shields stop only half.

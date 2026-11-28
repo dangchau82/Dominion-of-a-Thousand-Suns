@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import type { BattleRecord } from "../../engine/battleLog";
 import { designsOf } from "../../engine/designs";
+import { tech } from "../../engine/tech";
 import type { GameState, Id } from "../../engine/types";
 import { buildFighter, buildShip, type Ship3D } from "./ships3d";
 import { preloadShips } from "./shipModels";
@@ -132,7 +133,7 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
   const beamGeo = new THREE.CylinderGeometry(1, 1, 1, 8, 1, true);
   interface Fly { kind: TimedShot["kind"]; obj: THREE.Object3D; from: THREE.Vector3; to: THREE.Vector3; t: number; dur: number; shot: TimedShot; color: THREE.Color; done: boolean }
   const flying: Fly[] = [];
-  interface Beam { g: THREE.Group; outer: THREE.Mesh; core: THREE.Mesh; from: () => THREE.Vector3; to: THREE.Vector3; t: number; dur: number }
+  interface Beam { g: THREE.Group; outer: THREE.Mesh; core: THREE.Mesh; from: () => THREE.Vector3; to: THREE.Vector3; t: number; dur: number; width?: number }
   const beams: Beam[] = [];
 
   const aliveModels = (u: number) => views[u]!.models.filter((m) => m.alive);
@@ -144,6 +145,21 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
   const pointOn = (m: Model) => m.obj.getWorldPosition(new V3()).add(new V3().randomDirection().multiplyScalar((m.ship?.radius ?? 5) * 0.5));
   const unitCenter = (u: number) => { const ms = views[u]!.models; const c = new V3(); for (const m of ms) c.add(m.obj.position); return ms.length ? c.divideScalar(ms.length) : c; };
 
+  // Weapon families (2026-11-28): each shooter's beam and missile family, from its design, so rail slugs,
+  // ion streams, plasma bolts, spinal lances, stinger swarms and plasma missiles each look different.
+  const families = rec.units.map((u) => {
+    const out: { beam?: string; missile?: string } = {};
+    const d = designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", ""));
+    if (!d || u.key.endsWith("#fighters")) return out;
+    for (const w of d.weapons) {
+      if (w.count <= 0) continue;
+      for (const fx of tech(w.techId).effects) if (fx.stat === "weapon" && fx.family) {
+        if (fx.kind === "beam" && !out.beam) out.beam = fx.family;
+        if (fx.kind === "missile" && !out.missile) out.missile = fx.family;
+      }
+    }
+    return out;
+  });
   let shotNo = 0;
   const kills = rec.units.map(() => 0);
   const fire = (s: TimedShot) => {
@@ -159,6 +175,17 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
     let to = tgt ? pointOn(tgt) : unitCenter(s.target);
     const color = new THREE.Color(state.empires[rec.units[s.shooter]!.empireId] ? (src?.ship?.glow ?? 0xffffff) : 0xffffff);
     if (s.result === "miss" || s.result === "dodged") to = to.clone().add(new V3().randomDirection().multiplyScalar(8 + rand() * 6)).add(to.clone().sub(from).normalize().multiplyScalar(25));
+    const fam = s.kind === "beam" ? families[s.shooter]?.beam : s.kind === "missile" ? families[s.shooter]?.missile : undefined;
+    if (s.kind === "beam" && fam === "cannon") { // plasma cannon: a slow, fat glowing bolt instead of a beam
+      const obj = new THREE.Group();
+      const hot = new THREE.Color(0xff8a30).lerp(color, 0.3);
+      obj.add(new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 8), new THREE.MeshStandardMaterial({ color: 0, emissive: hot, emissiveIntensity: 6 })));
+      spark(new V3(), hot, 3, 1e9, undefined, 0, obj);
+      obj.position.copy(from); scene.add(obj); sfx.cannon();
+      const fly: Fly = { kind: "torpedo", obj, from, to, t: 0, dur: 0.6 + rand() * 0.15, shot: s, color: hot, done: false };
+      fly.obj.userData.target = tgt ?? null; flying.push(fly);
+      return;
+    }
     if (s.kind === "beam") {
       const g = new THREE.Group();
       const outer = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(0.55), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -166,16 +193,28 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
       g.add(outer, core); scene.add(g);
       const srcModel = src;
       const k = shotNo;
-      beams.push({ g, outer, core, from: () => (srcModel ? muzzleOf(srcModel, k) : from), to, t: 0, dur: 0.32 });
-      spark(from, color, 1.2, 0.12, undefined, 1);
-      sfx.laser(0.8 + rand() * 0.5);
+      // rail: a thin white-hot tracer, gone in a blink; lance: a thick, long-lasting spinal beam; ion: blue-white crackle.
+      const look = fam === "rail" ? { w: 0.35, dur: 0.1 } : fam === "lance" ? { w: 3.2, dur: 0.75 } : { w: 1, dur: 0.32 };
+      if (fam === "rail") { (core.material as THREE.MeshBasicMaterial).color.set(0xffffff); (outer.material as THREE.MeshBasicMaterial).color.set(0xb0c8ff).multiplyScalar(0.6); }
+      if (fam === "ion") { (outer.material as THREE.MeshBasicMaterial).color.set(0x60b0ff).multiplyScalar(0.7); (core.material as THREE.MeshBasicMaterial).color.set(0xd8f0ff); }
+      beams.push({ g, outer, core, from: () => (srcModel ? muzzleOf(srcModel, k) : from), to, t: 0, dur: look.dur, width: look.w });
+      spark(from, color, fam === "lance" ? 5 : 1.2, fam === "lance" ? 0.5 : 0.12, undefined, 1);
+      if (fam === "ion") for (let i = 0; i < 4; i++) spark(to.clone().add(new V3().randomDirection().multiplyScalar(1.5)), 0x9ad8ff, 0.9, 0.25, undefined, 1);
+      if (fam === "rail" || fam === "lance") sfx.cannon(); else sfx.laser(0.8 + rand() * 0.5);
       land({ kind: s.kind, obj: g, from, to, t: 0, dur: 0.12, shot: s, color, done: false }, tgt ?? null);
       return;
     }
     const obj = new THREE.Group();
     const isTorp = s.kind === "torpedo";
-    obj.add(new THREE.Mesh(new THREE.SphereGeometry(isTorp ? 0.55 : 0.18, 10, 8), new THREE.MeshStandardMaterial({ color: 0, emissive: color, emissiveIntensity: 5 })));
-    spark(new V3(), color, isTorp ? 4 : 1.6, 1e9, undefined, 0, obj);
+    // stinger: a cluster of tiny darts; plasma missile: a violet plasma warhead.
+    const mcol = fam === "plasma" ? new THREE.Color(0xc060ff) : color;
+    const darts = fam === "stinger" ? 4 : 1;
+    for (let i = 0; i < darts; i++) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(isTorp ? 0.55 : fam === "stinger" ? 0.08 : fam === "plasma" ? 0.3 : 0.18, 10, 8), new THREE.MeshStandardMaterial({ color: 0, emissive: mcol, emissiveIntensity: 5 }));
+      if (darts > 1) m.position.set((rand() - 0.5) * 1.2, (rand() - 0.5) * 1.2, (rand() - 0.5) * 1.2);
+      obj.add(m);
+    }
+    spark(new V3(), mcol, isTorp ? 4 : fam === "plasma" ? 2.6 : fam === "stinger" ? 1.0 : 1.6, 1e9, undefined, 0, obj);
     obj.position.copy(from); scene.add(obj);
     (isTorp ? sfx.cannon : sfx.missile)();
     const fly: Fly = { kind: s.kind, obj, from, to, t: 0, dur: (isTorp ? 1.5 : 1.1) + rand() * 0.3, shot: s, color, done: false };
@@ -369,7 +408,8 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
       b.g.position.copy(from).addScaledVector(dir, 0.5);
       b.g.quaternion.setFromUnitVectors(new V3(0, 1, 0), dir.normalize());
       const w = Math.sin(Math.PI * b.t / b.dur);
-      b.outer.scale.set(0.16 * w, len, 0.16 * w); b.core.scale.set(0.045 * w, len, 0.045 * w);
+      const bw = b.width ?? 1;
+      b.outer.scale.set(0.16 * w * bw, len, 0.16 * w * bw); b.core.scale.set(0.045 * w * bw, len, 0.045 * w * bw);
     }
     for (let i = shields.length - 1; i >= 0; i--) {
       const s = shields[i]!; s.t += dt;
