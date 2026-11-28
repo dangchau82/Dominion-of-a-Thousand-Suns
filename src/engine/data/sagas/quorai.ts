@@ -709,7 +709,7 @@ export const BEATS: SagaBeat[] = [
         result: "Two radiant choirs singing in harmony awe neighboring empires and lift Quorai culture and goodwill.",
         shift: { mercy: 2, openness: 2 },
         effects: [
-          { kind: "culture", amount: 250 },
+          { kind: "culture", amount: 240 },
           { kind: "relations", amount: 25 },
           { kind: "morale", amount: 7 },
         ],
