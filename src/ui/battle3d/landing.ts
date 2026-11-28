@@ -14,6 +14,7 @@ import type { Climate, GameState, Id } from "../../engine/types";
 import { canvasTexture, CLIMATE_COLORS, glowTexture, isSmallScreen, makeStage, seeded } from "./stage";
 import { sfx, startBattleMusic, stopBattleMusic } from "./audio3d";
 import { loadKit, type Kit } from "./landingKit";
+import { loadSpaceKit, type Actor, type PropKind, type SpaceKit } from "./spaceKit";
 
 const V3 = THREE.Vector3;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -30,7 +31,7 @@ export interface LandingInfo {
   turn: number;
 }
 
-interface Trooper { g: THREE.Group; side: 0 | 1; alive: boolean; target: THREE.Vector3; cool: number; dieAt: number; fall: number; phase: number }
+interface Trooper { g: THREE.Group; side: 0 | 1; alive: boolean; target: THREE.Vector3; cool: number; dieAt: number; fall: number; phase: number; actor?: Actor; big?: boolean }
 
 /** Smooth seeded 2D noise, 0..1, and a few octaves of it. */
 function makeNoise(seed: number): (x: number, z: number) => number {
@@ -62,10 +63,10 @@ export function playLanding(state: GameState, info: LandingInfo, playerId: Id, o
   loadingNote.style.cssText = "position:absolute;inset:0;display:grid;place-items:center;color:#cfd8e3;font:15px system-ui,sans-serif";
   loadingNote.textContent = "Preparing the landing…";
   stage.hud.append(loadingNote);
-  void loadKit().then((kit) => { loadingNote.remove(); if (!stage.closed) build(state, info, playerId, stage, kit, (t) => { envTex = t; }); });
+  void Promise.all([loadKit(8000), loadSpaceKit()]).then(([kit, sk]) => { loadingNote.remove(); if (!stage.closed) build(state, info, playerId, stage, kit, sk, (t) => { envTex = t; }); });
 }
 
-function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnType<typeof makeStage>, kit: Kit, keepEnv: (t: THREE.Texture) => void): void {
+function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnType<typeof makeStage>, kit: Kit, sk: SpaceKit, keepEnv: (t: THREE.Texture) => void): void {
   const { scene, camera, controls, hud, renderer } = stage;
   const star = state.stars[info.starId]!;
   const climate: Climate = star.planet?.climate ?? "barren";
@@ -226,6 +227,29 @@ function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnT
   if (climate === "jungle") place("palm", small ? 35 : 70, -99, [0.9, 1.5]);
   if (sea) place("palm", small ? 18 : 34, 1.2, [0.8, 1.3]);
   if (["terran", "steppe", "tundra", "jungle"].includes(climate)) place("conifer", small ? 30 : 60, -99, [0.8, 1.8]);
+  // alien plants and big boulders from the space kit, chosen by climate
+  const flora: Partial<Record<Climate, PropKind[]>> = {
+    inferno: ["tree_lava1", "tree_lava2"], radiated: ["tree_light", "tree_spiral"], toxic: ["tree_spiral", "tree_swirl", "tree_blob"],
+    jungle: ["tree_blob", "tree_swirl", "plant", "bush"], terran: ["tree_blob", "bush", "plant"], steppe: ["bush", "plant"],
+    tundra: ["tree_light", "tree_floating"], arid: ["tree_spiral", "bush"], desert: ["tree_spiral"], dead: ["tree_floating"],
+    minimal: ["tree_floating", "tree_light"], ocean: ["tree_blob", "plant"],
+  };
+  const placeProp = (kinds: PropKind[], n: number, minY: number, scale: [number, number], laneOk: boolean) => {
+    for (let i = 0, tries = 0; i < n && tries < n * 8; tries++) {
+      const x = (rand() - 0.5) * 520, z = (rand() - 0.5) * 420 - 30;
+      if (onLane(x, z) && (!laneOk || rand() < 0.85)) continue;
+      const y = heightAt(x, z);
+      if (y < minY) continue;
+      const o = sk.prop(kinds[Math.floor(rand() * kinds.length)]!);
+      if (!o) return;
+      const s = scale[0] + rand() * (scale[1] - scale[0]);
+      o.scale.setScalar(s); o.position.set(x, y - 0.15 * s, z); o.rotation.y = rand() * Math.PI * 2;
+      scene.add(o); i++;
+    }
+  };
+  const fl = flora[climate];
+  if (fl) placeProp(fl, small ? 22 : 45, sea ? 1 : -99, [0.9, 2], false);
+  if (rocky) placeProp(["rock_big1", "rock_big2"], small ? 6 : 12, sea ? 0.6 : -99, [0.6, 1.6], true);
 
   // ---- defenders: bunkers, a city, gunboats on ocean worlds ----
   const defTint = { team: new THREE.Color(defColor).multiplyScalar(0.8), glow: defColor, glowStrength: 3 };
@@ -245,10 +269,18 @@ function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnT
     const x = (rand() - 0.5) * 220, z = sea ? -28 - rand() * 26 : -95 - rand() * 70;
     const y = heightAt(x, z);
     if (sea && y < 2) continue;
-    const tower = rand() < 0.45;
-    const o = kit.make(tower ? "tower" : "hab_dome", { team: defColor, glow: defColor, glowStrength: 2.5 });
-    o.scale.setScalar(tower ? 0.55 + rand() * 0.6 : 0.6 + rand() * 0.5); o.position.set(x, y - 0.3, z); o.rotation.y = rand() * 6.28;
+    const tower = rand() < 0.35;
+    const kitBuilding: PropKind = (["dome", "base", "house_round", "house_long", "dome"] as PropKind[])[Math.floor(rand() * 5)]!;
+    const alt = !tower && rand() < 0.6 ? sk.prop(kitBuilding, defColor, 0.35) : null;
+    const o = alt ?? kit.make(tower ? "tower" : "hab_dome", { team: defColor, glow: defColor, glowStrength: 2.5 });
+    if (alt) o.scale.setScalar(1.1 + rand() * 0.6);
+    else o.scale.setScalar(tower ? 0.55 + rand() * 0.6 : 0.6 + rand() * 0.5);
+    o.position.set(x, y - 0.3, z); o.rotation.y = rand() * 6.28;
     scene.add(o);
+    if (alt && rand() < 0.5) { // solar fields, radar and parked rovers around the buildings
+      const extra = sk.prop((["solar", "radar", "rover", "rover_round"] as PropKind[])[Math.floor(rand() * 4)]!, defColor, 0.3);
+      if (extra) { const ex = x + (rand() - 0.5) * 18, ez = z + 8 + rand() * 6; extra.position.set(ex, heightAt(ex, ez) - 0.1, ez); extra.rotation.y = rand() * 6.28; extra.scale.setScalar(1.2); scene.add(extra); }
+    }
     if (info.captured && rand() < 0.5) fires.push(new V3(x, y + (tower ? 10 : 3), z));
   }
   const boats: { o: THREE.Object3D; base: THREE.Vector3; phase: number }[] = [];
@@ -297,12 +329,22 @@ function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnT
   };
 
   // ---- troops ----
+  // Animated soldiers (space kit) when they loaded; every ninth attacker is a walking mech.
+  let made = 0;
   const makeTrooper = (side: 0 | 1, color: string, at: THREE.Vector3): Trooper => {
-    const g = kit.make("trooper", { team: new THREE.Color(color).multiplyScalar(0.85), glow: color, glowStrength: 2.5 });
-    g.scale.setScalar(1.15);
+    const big = side === 0 && ++made % 9 === 0;
+    const actor = sk.actor(big ? "mech" : side === 0 ? "soldierA" : "soldierB", color, 0.55);
+    let g: THREE.Group;
+    if (actor) { g = actor.root; actor.play(side === 0 ? "Idle_Gun" : "Idle_Gun"); if (big) actor.play("Idle"); actor.update(rand() * 2); }
+    else { g = kit.make("trooper", { team: new THREE.Color(color).multiplyScalar(0.85), glow: color, glowStrength: 2.5 }); g.scale.setScalar(1.15); }
     g.position.copy(at); g.position.y = heightAt(at.x, at.z);
     scene.add(g);
-    return { g, side, alive: true, target: at.clone(), cool: rand() * 1.5, dieAt: Infinity, fall: 0, phase: rand() * 6 };
+    return { g, side, alive: true, target: at.clone(), cool: rand() * 1.5, dieAt: Infinity, fall: 0, phase: rand() * 6, actor: actor ?? undefined, big };
+  };
+  const anim = (t: Trooper, moving: boolean, shooting: boolean) => {
+    if (!t.actor) return;
+    if (t.big) t.actor.play(shooting ? "Shoot_Small" : moving ? "Walk" : "Idle");
+    else t.actor.play(moving ? (shooting ? "Run_Gun_Shoot" : "Run_Gun") : "Idle_Gun");
   };
   const troopers: Trooper[] = [];
   const defCount = small ? 12 : 22;
@@ -439,17 +481,18 @@ function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnT
     }
     // troopers move, shoot and fall
     for (const t of troopers) {
-      if (!t.alive) { if (t.fall < 1) { t.fall = Math.min(1, t.fall + dt * 2.5); t.g.rotation.x = -t.fall * Math.PI / 2; t.g.position.y = heightAt(t.g.position.x, t.g.position.z) + 0.25 * t.fall; } continue; }
-      if (clock >= t.dieAt) { t.alive = false; spark(t.g.position.clone().add(new V3(0, 1, 0)), 0xffa050, 2, 0.4); smoke(t.g.position.clone().add(new V3(0, 0.5, 0)), 1.5, 1.6); continue; }
+      t.actor?.update(dt);
+      if (!t.alive) { if (t.actor) continue; if (t.fall < 1) { t.fall = Math.min(1, t.fall + dt * 2.5); t.g.rotation.x = -t.fall * Math.PI / 2; t.g.position.y = heightAt(t.g.position.x, t.g.position.z) + 0.25 * t.fall; } continue; }
+      if (clock >= t.dieAt) { t.alive = false; t.actor?.play("Death", true); spark(t.g.position.clone().add(new V3(0, 1, 0)), 0xffa050, 2, 0.4); smoke(t.g.position.clone().add(new V3(0, 0.5, 0)), 1.5, 1.6); continue; }
       if (t.side === 0 && deployed && dt > 0) {
         const d = t.target.clone().sub(t.g.position); d.y = 0;
         if (d.length() > 1) {
-          d.normalize().multiplyScalar(dt * 4.2); t.g.position.add(d);
-          t.g.position.y = heightAt(t.g.position.x, t.g.position.z) + Math.abs(Math.sin(clock * 9 + t.phase)) * 0.12;
+          d.normalize().multiplyScalar(dt * (t.big ? 2.6 : 4.2)); t.g.position.add(d);
           t.g.rotation.y = Math.atan2(t.target.x - t.g.position.x, t.target.z - t.g.position.z);
-          t.g.rotation.z = Math.sin(clock * 9 + t.phase) * 0.06;
+          if (t.actor) { t.g.position.y = heightAt(t.g.position.x, t.g.position.z); anim(t, true, clock > FIGHT_START && t.cool < 0.25); }
+          else { t.g.position.y = heightAt(t.g.position.x, t.g.position.z) + Math.abs(Math.sin(clock * 9 + t.phase)) * 0.12; t.g.rotation.z = Math.sin(clock * 9 + t.phase) * 0.06; }
           if (rand() < dt * 2 && !sea) spark(t.g.position.clone().add(new V3(0, 0.2, 0)), 0x9a8a72, 1, 0.8, new V3(0, 0.6, 0), 1, 0, false, 0.35);
-        } else { t.g.rotation.z = 0; }
+        } else { t.g.rotation.z = 0; anim(t, false, false); }
       }
       if (deployed && clock > FIGHT_START && dt > 0) {
         t.cool -= dt;
@@ -459,7 +502,9 @@ function build(state: GameState, info: LandingInfo, playerId: Id, stage: ReturnT
           const f = foes.length ? foes[Math.floor(rand() * foes.length)]! : null;
           if (f) {
             if (t.side === 1) t.g.rotation.y = Math.atan2(f.g.position.x - t.g.position.x, f.g.position.z - t.g.position.z);
-            const from = t.g.position.clone().add(new V3(Math.sin(t.g.rotation.y) * 0.9, 1.05, Math.cos(t.g.rotation.y) * 0.9));
+            const gunH = t.big ? 2.4 : t.actor ? 1.25 : 1.05;
+            const from = t.g.position.clone().add(new V3(Math.sin(t.g.rotation.y) * 0.9, gunH, Math.cos(t.g.rotation.y) * 0.9));
+            if (t.big && t.actor) t.actor.play("Shoot_Small");
             const at = f.g.position.clone().add(new V3((rand() - 0.5) * 2, 1, (rand() - 0.5) * 2));
             shoot(from, at, t.side === 0 ? atk.color : defColor, () => spark(at, 0xffffff, 0.8, 0.15));
             if (rand() < 0.25) sfx.laser(1.6 + rand() * 0.4);
