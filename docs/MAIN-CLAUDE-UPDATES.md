@@ -102,6 +102,13 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 05:30: Titan models for all 18 races
+- Every race now has `<race>_titan.glb`, 12 MB in total (meshopt), listed in `SIZE_MODELS`.
+  - Metal races: hand-designed in Blender text `lineups` (VAR "<race>_titan" with `detailed_variant`).
+  - Organic races: the huge builder plus titan extras (`organic_titan`): egg rows and spines, extra tentacles and photophores, leaf crown and thorns, a stacked manta wing, triple halos, giant crystal spires, rock citadel towers.
+- Battles load the titan model only when a titan fights. Colossus hulls fall back to the race's huge model.
+
+
 ### 2026-11-28 04:30: Titan powers for all 18 races
 - `data/titanTraits.ts`: every race's Titan has its own power. Types: extra guns (a Colossus gets 5x the count), more hits, shield, dodge, first strike, cloaking, or an aura that lifts every ship on the Titan's side. Auras take the best of each kind and don't stack.
   - Auras: Humans +1 attack, Vossari +2 shield, Orrun +2 missile defence, Velari +2 beam defence, Verdane +1/+1.
