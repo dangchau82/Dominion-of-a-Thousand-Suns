@@ -200,3 +200,99 @@ button.small { min-height: 38px; padding: 8px 12px; font-size: 14px; }
 
 .history-chart svg { width: 100%; height: 200px; background: #0b1124; border: 1px solid var(--line); border-radius: 10px; }
 .history-list { max-height: 260px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+
+/* ===================== Modern skin (main Claude, 2026-11-28; Danny: "more polish and modern") =====================
+   Frosted-glass panels over the starfield, softer borders with a light top edge, smooth hover and press states,
+   pill-shaped stats, a floating top bar and a sci-fi heading style. Layout and sizes stay the same. */
+:root {
+  --glass: rgba(14, 20, 38, 0.72);
+  --glass-strong: rgba(12, 17, 32, 0.88);
+  --edge: rgba(150, 180, 255, 0.16);
+  --edge-hi: rgba(190, 215, 255, 0.32);
+  --glow: 0 0 0 1px rgba(111, 182, 255, 0.35), 0 0 18px rgba(111, 182, 255, 0.25);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --radius: 14px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}
+::selection { background: rgba(111, 182, 255, 0.35); }
+* { scrollbar-width: thin; scrollbar-color: rgba(150,180,255,0.28) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(150,180,255,0.25); border-radius: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+h1, h2, h3 { letter-spacing: 0.04em; }
+h2, h3 { color: #eef3ff; }
+.modal h2, .panel h2 { font-weight: 700; text-transform: uppercase; font-size: 19px; letter-spacing: 0.1em; }
+.modal h3, .panel h3 { font-weight: 700; text-transform: uppercase; font-size: 14px; letter-spacing: 0.12em; color: #cfe0ff; }
+
+button {
+  background: linear-gradient(180deg, rgba(40, 54, 92, 0.75), rgba(22, 30, 54, 0.85));
+  border: 1px solid var(--edge); border-top-color: var(--edge-hi);
+  border-radius: 12px; transition: border-color .18s var(--ease), box-shadow .18s var(--ease), transform .08s var(--ease), background .18s var(--ease);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+button:hover:not(:disabled) { border-color: rgba(111, 182, 255, 0.6); box-shadow: var(--glow); }
+button:active:not(:disabled) { transform: translateY(1px) scale(0.985); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: linear-gradient(180deg, #3a7be0, #1f4fa8); border-color: #6aa6ff; box-shadow: 0 4px 14px rgba(40, 110, 230, 0.35), inset 0 1px 0 rgba(255,255,255,0.18); }
+button.gold { background: linear-gradient(180deg, #e0a93c, #9a6a16); border-color: #ffd47a; color: #1a1205; text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+  box-shadow: 0 6px 20px rgba(230, 170, 60, 0.35), inset 0 1px 0 rgba(255,255,255,0.35); }
+button.gold:hover:not(:disabled) { box-shadow: 0 0 0 1px #ffd47a, 0 6px 26px rgba(255, 190, 70, 0.55); }
+
+/* Floating top bar with stat pills */
+.topbar {
+  top: calc(6px + env(safe-area-inset-top)); left: 8px; right: 8px; padding: 6px 8px 6px 12px;
+  background: var(--glass); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--edge); border-top-color: var(--edge-hi); border-radius: 16px; box-shadow: var(--shadow);
+}
+.topbar .stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(150,180,255,0.12); border-radius: 999px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
+.navbtn { background: rgba(255,255,255,0.03); border-color: transparent; box-shadow: none; border-radius: 10px; }
+.navbtn:hover:not(:disabled) { background: rgba(111,182,255,0.12); border-color: rgba(111,182,255,0.35); box-shadow: none; }
+.navbtn .badge { box-shadow: 0 0 0 2px rgba(10,14,28,0.9), 0 0 10px rgba(217,68,63,0.6); }
+
+/* Glass panels and dialogs */
+.panel, .modal, .nextup, .race-detail, .setup-bar, .map-tip, .advisor {
+  background: var(--glass-strong); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--edge); border-top-color: var(--edge-hi); box-shadow: var(--shadow);
+}
+.panel { border-radius: 18px 18px 0 0; }
+@media (min-width: 900px) { .panel { top: 70px; border-radius: 18px; max-height: calc(100vh - 160px); } }
+.modal { border-radius: 18px; padding: 18px 20px; animation: ui-pop .28s var(--ease); }
+.modal .event-pic { width: calc(100% + 40px); margin: -18px -20px 12px; border-radius: 18px 18px 0 0; }
+.modal-back { background: radial-gradient(ellipse at center, rgba(5,8,18,0.45), rgba(0,0,0,0.75)); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: ui-fade .2s ease-out; }
+@keyframes ui-pop { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .modal, .modal-back { animation: none; } }
+
+.section { border-top: 1px solid rgba(150,180,255,0.12); }
+.chip { background: rgba(255,255,255,0.05); border-color: rgba(150,180,255,0.18); }
+.fleet { background: rgba(255,255,255,0.035); border-color: rgba(150,180,255,0.14); border-radius: 14px; }
+.tech-card { border-color: rgba(150,180,255,0.16); border-radius: 12px; background: rgba(255,255,255,0.025); }
+.bar { background: rgba(255,255,255,0.07); height: 7px; border-radius: 999px; }
+.bar > i { background: linear-gradient(90deg, #3a7be0, #6fd0ff); border-radius: 999px; box-shadow: 0 0 8px rgba(111,182,255,0.5); }
+.panel-tabs button { background: rgba(255,255,255,0.03); border-radius: 12px; }
+.panel-tabs button.on { background: rgba(243,197,96,0.1); box-shadow: inset 0 -2px 0 var(--gold), 0 0 14px rgba(243,197,96,0.15); }
+.seg button.on { background: rgba(243,197,96,0.1); }
+.race-card { background: rgba(255,255,255,0.04); border-radius: 16px; transition: transform .18s var(--ease), border-color .18s, box-shadow .18s; }
+.race-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.45); }
+.tech-select, .design-row select, .modal textarea { background: rgba(8,12,24,0.8); border: 1px solid var(--edge); border-radius: 10px; color: var(--text); }
+.slider-row input[type=range] { accent-color: #6fb6ff; }
+.standings th { color: var(--dim); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.08em; }
+.standings td, .standings th { border-bottom-color: rgba(150,180,255,0.1); }
+
+/* Advisor: glass card with a gold edge */
+.advisor { border-left: 3px solid #e0b450; border-radius: 14px; }
+.hint { background: linear-gradient(180deg, rgba(42,95,176,0.92), rgba(29,70,135,0.92)); backdrop-filter: blur(10px); border-radius: 14px; }
+
+/* End-turn: a strong glowing call to action */
+.endbar .gold { border-radius: 16px; letter-spacing: 0.04em; }
+.nextup { border-radius: 12px; }
+
+/* Title menu buttons */
+.menu button { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: rgba(16,24,46,0.6); border-radius: 14px; }
+.menu button.gold { background: linear-gradient(180deg, #e0a93c, #9a6a16); }
+@media (max-width: 899px) {
+  .topbar { left: 4px; right: 4px; top: calc(4px + env(safe-area-inset-top)); padding: 5px 6px; gap: 5px; border-radius: 14px; }
+  .topbar .stat { padding: 1px 6px; font-size: 13px; border-color: transparent; background: rgba(255,255,255,0.03); }
+  .panel-open .endbar { top: calc(108px + env(safe-area-inset-top)); }
+}

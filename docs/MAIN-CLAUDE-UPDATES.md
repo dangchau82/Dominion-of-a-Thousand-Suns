@@ -102,6 +102,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 00:00: Modern interface skin; Kethrak Mother Queen concept
+- `styles.css` "Modern skin": frosted-glass panels and dialogs with a light top edge, a floating rounded top bar with stat pills, smoother buttons (hover glow, press), glowing gold End Turn, uppercase sci-fi headings, pop-in dialogs with a blurred backdrop, styled scrollbars, tabs, chips and progress bars. Phones keep the stats on one row so End Turn never covers the nav icons. Layout unchanged.
+- `#play-demo-<race>-<seed>[-map]` starts a game straight away (for interface screenshots).
+- Kethrak Mother Queen titan modelled in Blender (concept, not in the game yet: there is no capital tier in the engine). Render: `E:\Dominion of a Thousand Suns\Screenshots 2026-11-27\kethrak-mother-queen.jpg`. Capital tier plan: Battlecruiser, Juggernaut, Supercarrier, Titan, Colossus; Ancient Leviathans are precursor finds. Next: weapon families and real cloaking (task list).
+
+
 ### 2026-11-27 23:20: Full hull lineups for the 8 organic races
 - Kethrak, Ruuvak, Ixil, Verdane, Drovani, Seraphine, Lumen and Thraal now have their own small, large and huge models (`public/models/ships/<race>_<size>.glb`, 5.7 MB total, meshopt), built in Blender from each cruiser's design language: more segments, legs and spines for Kethrak, egg-sac rows for Ruuvak, more tentacles and photophores for Ixil, thorns and root tendrils for Verdane, humps and escort pods for the Drovani manta, extra wing pairs and halos for Seraphine, a three-spine crystal cathedral for Lumen, a rock citadel for Thraal. `SIZE_MODELS` in `shipModels.ts` lists them; medium uses the cruiser and other races keep one model for every size.
 
