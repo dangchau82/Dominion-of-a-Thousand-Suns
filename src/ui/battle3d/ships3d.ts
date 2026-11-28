@@ -99,7 +99,7 @@ function tube(points: [number, number, number][], r: number): THREE.TubeGeometry
 export function buildShip(raceId: string, hull: HullSize): Ship3D {
   const style = RACE_STYLE[raceId] ?? RACE_STYLE.humans!;
   const p = style.p;
-  const model = shipModel(raceId, LENGTH[hull]);
+  const model = shipModel(raceId, LENGTH[hull], hull);
   if (model) return fromModel(model, hull, new THREE.Color(p.glow));
   const M = mats(p);
   const L = LENGTH[hull];

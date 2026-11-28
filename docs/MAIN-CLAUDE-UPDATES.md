@@ -102,6 +102,10 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-27 23:20: Full hull lineups for the 8 organic races
+- Kethrak, Ruuvak, Ixil, Verdane, Drovani, Seraphine, Lumen and Thraal now have their own small, large and huge models (`public/models/ships/<race>_<size>.glb`, 5.7 MB total, meshopt), built in Blender from each cruiser's design language: more segments, legs and spines for Kethrak, egg-sac rows for Ruuvak, more tentacles and photophores for Ixil, thorns and root tendrils for Verdane, humps and escort pods for the Drovani manta, extra wing pairs and halos for Seraphine, a three-spine crystal cathedral for Lumen, a rock citadel for Thraal. `SIZE_MODELS` in `shipModels.ts` lists them; medium uses the cruiser and other races keep one model for every size.
+
+
 ### 2026-11-27 22:40: Quaternius space kit in the landings; Danny's organic-ship fixes; Ashkari and Lumen videos
 - Danny downloaded Quaternius "Ultimate Space Kit" (CC0). `src/ui/battle3d/spaceKit.ts` loads 23 of its models from `public/models/spacekit` (1.7 MB, meshopt + webp). Landings now use its animated soldiers (run, run-and-shoot, death; we put a closed combat helmet with a team-coloured visor on their cartoon heads), a walking mech every ninth attacker, its domes/bases/houses with solar fields, radar and rovers in the defenders' city, and alien plants and boulders chosen by climate. Falls back to the Blender kit if it fails to load.
 - Organic ships, Danny's notes: Verdane flowers removed, 46 vines wrapped round it and 18 trailing tendrils; Lumen rebuilt as a crystal spine with ~150 crystals growing out of it; Thraal rebuilt as a chiselled rock warship (wedge hull, wings, prongs, three lava engines); Drovani manta has skin ridges, pores and ringed spots; Seraphine feathers have grain, barring and mottling. Renders in `E:\Dominion of a Thousand Suns\Screenshots 2026-11-27\organic-ships-v3.jpg`.

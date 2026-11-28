@@ -24,6 +24,20 @@ function hullTextures(): { normal: THREE.Texture; lights: THREE.Texture } {
   }
   return hullTex;
 }
+/**
+ * Extra hull-size models (2026-11-27, Danny: "expand on them based on their race features"):
+ * public/models/ships/<race>_<size>.glb. Sizes not listed here use the race's cruiser model.
+ */
+export const SIZE_MODELS: Record<string, readonly ("small" | "large" | "huge")[]> = {
+  kethrak: ["small", "large", "huge"],
+  ruuvak: ["small", "large", "huge"],
+  ixil: ["small", "large", "huge"],
+  verdane: ["small", "large", "huge"],
+  drovani: ["small", "large", "huge"],
+  seraphine: ["small", "large", "huge"],
+  lumen: ["small", "large", "huge"],
+  thraal: ["small", "large", "huge"],
+};
 const pending = new Map<string, Promise<void>>();
 const failed = new Set<string>();
 
@@ -32,12 +46,14 @@ export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000): Promi
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder); // the detailed hulls are meshopt-compressed
   const jobs: Promise<void>[] = [];
-  for (const id of new Set(raceIds)) {
+  const keys: string[] = [];
+  for (const race of new Set(raceIds)) { keys.push(race); for (const sz of SIZE_MODELS[race] ?? []) keys.push(`${race}_${sz}`); }
+  for (const id of keys) {
     if (cache.has(id) || failed.has(id)) continue;
     let p = pending.get(id);
     if (!p) {
       p = new Promise<void>((resolve) => {
-        loader.load(`models/ships/${id}_cruiser.glb`, (g) => {
+        loader.load(`models/ships/${id.includes("_") ? id : `${id}_cruiser`}.glb`, (g) => {
           g.scene.traverse((o) => {
             const m = o as THREE.Mesh;
             if (!m.isMesh) return;
@@ -66,8 +82,8 @@ export function preloadShips(raceIds: Iterable<string>, timeoutMs = 4000): Promi
 }
 
 /** A copy of the race's model, nose along +X, `length` units long. Null if not loaded. */
-export function shipModel(raceId: string, length: number): THREE.Group | null {
-  const src = cache.get(raceId);
+export function shipModel(raceId: string, length: number, hull?: string): THREE.Group | null {
+  const src = (hull && cache.get(`${raceId}_${hull}`)) || cache.get(raceId);
   if (!src) return null;
   const inner = src.clone(true);
   inner.rotation.y = -Math.PI / 2; // glTF -Z nose → +X
