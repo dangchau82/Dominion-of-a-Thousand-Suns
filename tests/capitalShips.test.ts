@@ -59,3 +59,16 @@ describe("capital classes", () => {
     expect(dmg(true)).toBeGreaterThan(dmg(false) * 1.5);
   });
 });
+
+describe("Kethrak Mother Queen", () => {
+  it("a Kethrak Titan carries a brood swarm", async () => {
+    const { shipUnit } = await import("../src/engine/combat");
+    const g = newGame({ seed: 80, size: "small", shape: "ellipse", rivals: 2, playerRaceId: "kethrak", playerName: "Danny" });
+    const e = g.empires[0]!;
+    e.research.known.push("titan-slipways");
+    applyCommand(g, 0, { type: "createDesign", spec: { ...spec, name: "Queen" } });
+    const d = designsOf(g, 0).find((x) => x.name === "Queen")!;
+    const u = shipUnit(g, 0, e, d, 1);
+    expect(u.guns.some((x) => x.family === "stinger" && x.count === 30)).toBe(true);
+  });
+});

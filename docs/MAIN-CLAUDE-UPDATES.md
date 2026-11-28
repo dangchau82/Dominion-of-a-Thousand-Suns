@@ -102,6 +102,10 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 03:00: Kethrak Mother Queen trait
+- `titanTrait()` in combat.ts gives a Kethrak Titan an extra brood swarm of 30 stingers (3-4 damage) that fire every round; a Colossus gets 150. The replay draws them as stinger darts. Other races' titan traits are still to come.
+
+
 ### 2026-11-28 02:50: Capital tier, step 3: the AI builds Titans
 - `titanDesign()` in basicAI: once an AI knows Titan Slipways it designs one Titan. It gets the best systems and guns filling the room, scrapping an unused design if all slots are full. Very aggressive AIs pick the Battlecruiser class; aggressive, low-honour AIs pick Juggernaut.
 - The AI builds its Titan at the capital (population 40+) when it is at war or rich and has none afloat. Normal warship choice ignores capital hulls.

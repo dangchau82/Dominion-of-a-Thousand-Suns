@@ -165,6 +165,8 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
         if (fx.kind === "missile" && !out.missile) out.missile = fx.family;
       }
     }
+    // Kethrak Mother Queen's brood swarm (combat.ts titanTrait) flies as stinger darts.
+    if (!out.missile && state.empires[u.empireId]?.raceId === "kethrak" && (d.hull === "titan" || d.hull === "colossus")) out.missile = "stinger";
     return out;
   });
   let shotNo = 0;

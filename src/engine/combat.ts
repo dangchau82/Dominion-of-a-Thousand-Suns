@@ -108,6 +108,13 @@ function levelOf(id: string | null, stat: string): number {
   return 0;
 }
 
+/** Race traits for capital ships. Kethrak Mother Queen: a Kethrak Titan pours out a brood swarm, 30 stingers every round. */
+function titanTrait(e: Empire, d: ShipDesign, g: Gun[]): Gun[] {
+  if (e.raceId === "kethrak" && (d.hull === "titan" || d.hull === "colossus") && d.role === "warship")
+    return [...g, { kind: "missile", family: "stinger", min: 3, max: 4, count: d.hull === "colossus" ? 150 : 30 }];
+  return g;
+}
+
 export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign, count: number): Unit {
   const r = empireRace(e);
   const h = HULLS[d.hull];
@@ -120,7 +127,7 @@ export function shipUnit(state: GameState, side: 0 | 1, e: Empire, d: ShipDesign
     beamDef: h.defense + r.shipDefense + (sp("inertial-dampers") ? 2 : 0) + (sp("cloaking-field") ? 1 : 0),
     missileDef: h.defense + r.shipDefense + levelOf(d.ecm, "ecm") + (sp("cloaking-field") ? 1 : 0) + (sp("repulsor-beam") ? 3 : 0),
     shield: levelOf(d.shield, "shield"),
-    guns: guns(d), small: d.hull === "small",
+    guns: titanTrait(e, d, guns(d)), small: d.hull === "small",
     invulnerable: !!(e.isPlayer && state.cheats?.godMode),
     bonusDamage: damageBonus(e), first: damageBonus(e) > 0 || d.shipClass === "battlecruiser", dodge: sp("displacement-field") ? 0.25 : 0,
     stasis: sp("stasis-field"), dampener: sp("warp-dampener"), frozen: false,
