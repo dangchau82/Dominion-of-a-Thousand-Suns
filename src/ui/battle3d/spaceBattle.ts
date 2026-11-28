@@ -30,6 +30,8 @@ export function playSpaceBattle(state: GameState, rec: BattleRecord, playerId: I
     const d = race ? (designsOf(state, u.empireId).find((x) => x.id === u.key.replace("#fighters", "")) ?? state.designs[u.key.replace("#fighters", "")]) : undefined;
     if (race && d) { hulls.add(`${race}_${d.hull}`); if (d.hull === "titan" || d.hull === "colossus") hulls.add(`${race}_huge`); }
   }
+  // An Ancient Leviathan (leviathans.ts) has its own model.
+  if (rec.units.some((u) => state.designs[u.key]?.name === "Ancient Leviathan")) races.push("ancient_leviathan");
   void preloadShips(races, 4000, hulls).then(() => playNow(state, rec, playerId, onClose));
 }
 
@@ -99,7 +101,7 @@ function playNow(state: GameState, rec: BattleRecord, playerId: Id, onClose: () 
       const row = perSideRow[u.side]!;
       perSideRow[u.side]! += 1;
       for (let k = 0; k < shown; k++) {
-        const ship = isFighters ? buildFighter(emp.raceId) : buildShip(emp.raceId, hull);
+        const ship = isFighters ? buildFighter(emp.raceId) : buildShip(design?.name === "Ancient Leviathan" ? "ancient_leviathan" : emp.raceId, hull);
         const spacing = Math.max(4, ship.radius * 2.4);
         const col = k - (shown - 1) / 2;
         const base = new V3(-dir * (FRONT + row * 14 + (isFighters ? -8 : 0)) , (row % 2 ? 4 : -3) + (rand() - 0.5) * 3, col * spacing + (row % 2 ? spacing / 2 : 0));

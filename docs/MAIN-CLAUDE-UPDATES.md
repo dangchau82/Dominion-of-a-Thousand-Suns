@@ -106,6 +106,7 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 - `leviathans.ts`: from turn 160, about one sleeping Ancient Leviathan per four empires is placed at the empty stars (no planet) farthest from every capital, worked out from the map with no randomness. News is posted and they appear in the view (`leviathans`).
 - An empire that knows Titan Slipways can bring any fleet there and pay 1500 BC (`wakeLeviathan` command) to wake one. It joins the fleet as a hidden one-off Colossus-hull design: 24 phase lances, 8 hellfire torpedoes, class IX shield. It counts as that empire's Colossus.
 - The AI does the same through the same command (`leviathanHunt`): it sends its smallest war fleet once it can afford it. UI: a "Wake the Ancient Leviathan" button on a fleet at its star. Replays now also find hidden one-off designs (`state.designs`), so great-work ships and leviathans show at the right size.
+- 3D: its own Blender model (`public/models/ships/ancient_leviathan.glb`): an armoured precursor serpent with a crown of horns and glowing runes. Replays use it for any ship named "Ancient Leviathan".
 - Tests: `tests/leviathans.test.ts` (2). AI check: in one of two games an AI woke both leviathans. Balance on the same 30 seeds: technology 16, culture 5, council 5, conquest 1, no winner 3; median T326.
 
 
