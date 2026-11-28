@@ -13,6 +13,7 @@
 
 > **NOW (2026-11-27 21:23, Claude 2, push session):** Sundering Engine and Worldship as real ships (`endgame.ts`, `battleStories.ts`). The other Claude 2 session holds `sagas.ts`, `data/sagas*`.
 > **NOW (2026-11-27 21:25, Claude 2):** Delivered as one patch file (this session cannot push). Race sagas: **16 of 18 in** (all but Ruuvak and Tarkhan); the crossovers come last. Claimed: `sagas.ts`, `data/sagas.ts`, `data/sagas/*`. Still waiting for your notes: the Tide and council wins, and the scenario victory hook.
+> **NOW (2026-11-27, Claude 2, push session):** nothing claimed; Sundering Engine and Worldship ships are done (see below). The other Claude 2 session holds `sagas.ts`, `data/sagas*`.
 
 ---
 
@@ -66,6 +67,13 @@ State at 00:10: 177 tests pass, save version 12 (unchanged).
 - **Claimed now (this session, Claude 2 with push access):** the Sundering Engine becomes a real ship and the Worldship a real ship that sails to allies, whose allies defend it. Files: my `endgame.ts`, `battleStories.ts`; a hidden ship design per work (`empireId: -1`, so it never shows in build lists). **No changes to `movement.ts`, `combat.ts` rules or the AIs**; the ships move like any fleet (players by hand, AIs by your fleet logic). Sagas stay with the other Claude 2 session.
 ### 2026-11-27 21:25: 16 of 18 race sagas in
 - Added Orrun, Nyx, Velari, Drovani, Gorrath, Ixil, Verdane, Quorai and Raxxan (Gemini's writing, checked). Claude 2 filled two cut-off gaps (two Nyx endings, one Drovani act-4 beat), renamed borrowed terms ("Prime Directive", "The Cold Equation"), took placeholders out of titles, and fixed a few slips (double effects, one effect over scale, dangling flags). Gemini also wrote a saga for a race that doesn't exist ("Mekkhar"); it was left out. `docs/saga-progress-for-gemini.md` is the running list Gemini works from. 500 tests pass.
+- **Done (2026-11-27):** Sundering Engine and Worldship are real ships.
+  - When the work finishes, a one-of-a-kind ship launches at the builder's world: a hidden design (`empireId: -1`, never in build lists) cloned from the owner's best warship, huge hull. Engine: weapons x3, armour +4, shields +2. Worldship: armour +6, shields +4. Its id is a readable name, e.g. "Sundering Engine of the Kethrak".
+  - The Engine cracks a world only when **its own ship** sits over an enemy colony at war (no more riding with any fleet).
+  - The Worldship, parked at another empire's colony that it's not at war with, gives both sides +3 relation and +25 BC every 5 turns. Its +30% council votes stay.
+  - Anyone who fights at the Worldship's star: the owner's allies drop -30 with the attacker and declare war (hook in `battleStories.ts` `noteBattle`).
+  - If the ship dies, the work is marked `lost`: effects and votes stop, a saga line says so. Older saves launch the ship on load (next turn).
+  - **For you (AI awareness):** the AI sees these hidden designs as unarmed (`warPower` 0), so AI owners will not send the Engine to war or sail the Worldship to allies on purpose. If you want AIs to use them, your fleet logic could treat `shipDesignId` ships as strong. Tests: `tests/endgame.test.ts` (16). 475 tests pass.
 
 ### 2026-11-27 10:10: first 7 race sagas in
 - Gemini's writing for the Terran Accord, Vossari, Kethrak, Ashkari, Lumen, Thraal and Seraphine, checked and assembled into `data/sagas/<race>.ts` (21 beats and 4 endings each). Fixes: borrowed names renamed ("Unification Wars"), placeholders taken out of titles, a few grammar slips. New `tests/sagaData.test.ts` checks every race's saga: 3 beats per act, 3 choices each, flags set before they are needed, a fallback ending last, at least 3 different outcomes, effects in scale. 473 tests pass.
@@ -462,6 +470,7 @@ Danny asked that these be Claude 2's, so the two of you never build the same thi
 | 9 | Frontier job board | `data/contracts.ts` | `contracts.ts` (engine) | **done** |
 | 10 | Legendary ship and crew, synthetic leaders | `data/legends.ts` | `legends.ts` (engine) | **androids done**; legendary ship left for you (needs combat) |
 | 11 | Death worlds | `data/hazardWorlds.ts` (death-world part) | `deathWorlds.ts` | **done** |
+| 36 | Sundering Engine and Worldship as real ships | Danny | `endgame.ts`, `battleStories.ts` | **done**; AI use is yours |
 | 35 | Scenarios | Danny | `scenarios.ts`, `ui/scenarioMenu.ts` | **done**; victory hook is yours |
 | 34 | Late-game crisis (the Hollow Tide) | Danny | `crisis.ts` | **done**, needs your balance look |
 | 33 | Race-voiced advisor | Danny | `ui/advisorVoice.ts` | **done** |

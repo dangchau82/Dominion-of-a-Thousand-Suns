@@ -41,10 +41,10 @@ const RACE_COST = { down: 450, upkeep: 45, turns: 30 };
 
 export const PATH_WORKS: GreatWorkDef[] = [
   { id: "gw-sundering-engine", name: "Sundering Engine", path: "feared", ...PATH_COST,
-    text: "A battle station the size of a moon, built around a single weapon that can split a world's crust. It travels with our strongest fleet. Every empire will turn on us once it is finished.",
+    text: "A battle station the size of a moon, built around a single weapon that can split a world's crust. Once finished it is a ship of its own: send it over an enemy world and break it. Lose the ship and the weapon is gone. Every empire will turn on us once it is finished.",
     effects: [{ kind: "cracker" }] },
   { id: "gw-worldship", name: "Worldship Concordance", path: "beloved", ...PATH_COST,
-    text: "A city-ark carrying millions, our embassies and our archives, sailing from ally to ally. It gives us a louder voice in the Council and warms every court it visits.",
+    text: "A city-ark carrying millions, our embassies and our archives. Once finished it is a ship of its own: sail it to an ally's world for festivals and trade. It gives us a louder voice in the Council while it sails, and our allies go to war with anyone who attacks it.",
     effects: [{ kind: "votes", share: 0.3 }, { kind: "goodwill", per10: 6 }] },
   { id: "gw-dyson-shell", name: "Dyson Shell", path: "builder", ...PATH_COST,
     text: "A lattice of collectors wrapped around our home star, drinking its light. Endless energy for our yards and laboratories, and a target no one can miss.",

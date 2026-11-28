@@ -19,7 +19,7 @@
 
 import { adjustRelation, relation } from "./diplomacy";
 import { transferWonders } from "./civ";
-import { moveCapital } from "./combat";
+import { declareWar, moveCapital } from "./combat";
 import { ALL_WORKS, PATH_NAMES, PATH_WORKS, RACE_WORKS, WORK_BY_ID, type EndgamePath, type GreatWorkDef } from "./data/greatWorks";
 import { CRACK_EVENT_ID, PATH_OFFER_PREFIX, WORK_SABOTAGE_ID } from "./endgameEvents";
 import { designsOf } from "./designs";
@@ -35,6 +35,10 @@ export interface GreatWork {
   finished: boolean;
   finishedTurn?: number;
   sabotageAt: number;
+  /** The Sundering Engine and the Worldship are real ships: their hidden design, once launched. */
+  shipDesignId?: string;
+  /** The ship was destroyed: the work's effects are gone. */
+  lost?: boolean;
 }
 
 export interface EndgameState {
@@ -138,7 +142,7 @@ export function gateReady(state: GameState, e: Empire): boolean {
 export function endgameVotes(state: GameState, e: Empire, base: number): number {
   let share = 0;
   for (const w of state.endgame?.[e.id]?.works ?? []) {
-    if (!w.finished) continue;
+    if (!w.finished || w.lost) continue;
     for (const fx of WORK_BY_ID.get(w.workId)!.effects) if (fx.kind === "votes") share += fx.share;
   }
   return Math.round(base * share);
@@ -150,15 +154,78 @@ function news(state: GameState, empireId: Id | null, text: string, starId: Id | 
 
 const busy = (state: GameState, id: Id) => state.pendingEvents.some((p) => p.empireId === id);
 
-/** Minimum ships in a fleet for the Sundering Engine to travel with it. */
-export const CRACKER_ESCORT = 1;
+// ---- Ship works: the Sundering Engine and the Worldship -----------------------------------
 
-/** The Engine joins our strongest fleet that is sitting over an enemy world. */
-function crackerFleet(state: GameState, e: Empire) {
-  return state.fleets
-    .filter((f) => f.empireId === e.id && f.starId !== null && shipCount(f) >= CRACKER_ESCORT)
-    .filter((f) => { const c = state.colonies[f.starId!]; return !!c && c.empireId !== e.id && e.atWar[c.empireId] !== undefined; })
-    .sort((a, b) => shipCount(b) - shipCount(a) || a.id - b.id)[0];
+/** Works that are launched as a real ship when finished. */
+export const SHIP_WORKS: Record<string, { name: string; hullFrom: "best"; weaponsX: number; armorBonus: number; shieldBonus: number }> = {
+  "gw-sundering-engine": { name: "Sundering Engine", hullFrom: "best", weaponsX: 3, armorBonus: 4, shieldBonus: 2 },
+  "gw-worldship": { name: "Worldship", hullFrom: "best", weaponsX: 1, armorBonus: 6, shieldBonus: 4 },
+};
+
+/** The fleet carrying this work's ship, if it still exists. */
+export function shipFleet(state: GameState, w: GreatWork) {
+  if (!w.shipDesignId) return undefined;
+  return state.fleets.find((f) => (f.ships[w.shipDesignId!] ?? 0) > 0);
+}
+
+/** Build the hidden one-off design (never in build lists) and launch it at the work's world. */
+function launchShip(state: GameState, e: Empire, w: GreatWork): void {
+  const spec = SHIP_WORKS[w.workId];
+  if (!spec) return;
+  const best = designsOf(state, e.id).filter((d) => d.role === "warship").sort((a, b) => b.cost - a.cost || a.id.localeCompare(b.id))[0];
+  if (!best) return;
+  // The id doubles as the label on screens that only know the empire's own designs (the map).
+  let id = `${spec.name} of the ${e.name}`;
+  if (state.designs[id]) id = `${id} (${state.turn})`;
+  state.designs[id] = {
+    ...structuredClone(best), id, empireId: -1, name: spec.name, hull: "huge",
+    weapons: best.weapons.map((x) => ({ ...x, count: x.count * spec.weaponsX })),
+    armor: best.armor, shield: best.shield, cost: best.cost * 10,
+  };
+  w.shipDesignId = id;
+  const s = state.stars[w.starId] ?? state.stars[e.capitalStarId]!;
+  state.fleets.push({ id: state.nextFleetId++, empireId: e.id, ships: { [id]: 1 }, x: s.x, y: s.y, starId: s.id, destStarId: null });
+}
+
+/** The Engine fires from wherever its own ship sits over an enemy world at war. */
+function crackerFleet(state: GameState, e: Empire, w: GreatWork) {
+  const f = shipFleet(state, w);
+  if (!f || f.empireId !== e.id || f.starId === null) return undefined;
+  const c = state.colonies[f.starId];
+  return c && c.empireId !== e.id && e.atWar[c.empireId] !== undefined ? f : undefined;
+}
+
+/** A Worldship visiting an ally: both sides warm and trade. Every WORLDSHIP_VISIT turns. */
+export const WORLDSHIP_VISIT = 5;
+export const VISIT_GOODWILL = 3;
+export const VISIT_TRADE = 25;
+
+function worldshipTurn(state: GameState, e: Empire, w: GreatWork, since: number): void {
+  const f = shipFleet(state, w);
+  if (!f || f.starId === null || since % WORLDSHIP_VISIT !== 0) return;
+  const host = state.colonies[f.starId];
+  if (!host || host.empireId === e.id) return;
+  const ally = state.empires[host.empireId]!;
+  if (e.treaties[ally.id]?.alliance === undefined && e.atWar[ally.id] !== undefined) return;
+  adjustRelation(ally, e, VISIT_GOODWILL);
+  adjustRelation(e, ally, VISIT_GOODWILL);
+  e.treasury += VISIT_TRADE; ally.treasury += VISIT_TRADE;
+  if (since % (WORLDSHIP_VISIT * 4) === 0) news(state, ally.id, `The ${e.name}'s Worldship is anchored at ${state.stars[f.starId]!.name}: festivals, trade fairs and embassy dinners.`, f.starId);
+}
+
+/** Called from a battle (battleStories.ts): anyone who attacks a Worldship faces its allies. */
+export function rallyToWorldship(state: GameState, owner: Empire, attacker: Empire, starId: Id): void {
+  const w = state.endgame?.[owner.id]?.works.find((x) => x.workId === "gw-worldship" && x.shipDesignId && !x.lost);
+  const f = w ? shipFleet(state, w) : undefined;
+  if (!f || f.starId !== starId) return;
+  for (const ally of living(state)) {
+    if (ally.id === owner.id || ally.id === attacker.id || owner.treaties[ally.id]?.alliance === undefined) continue;
+    adjustRelation(ally, attacker, -30);
+    if (ally.atWar[attacker.id] === undefined) {
+      declareWar(state, ally, attacker);
+      news(state, null, `The ${ally.name} declare war on the ${attacker.name} for attacking the ${owner.name}'s Worldship.`, starId, "saga");
+    }
+  }
 }
 
 // ---- Each turn --------------------------------------------------------------------------
@@ -205,6 +272,7 @@ function finishWork(state: GameState, e: Empire, w: GreatWork, def: GreatWorkDef
   w.finished = true;
   w.finishedTurn = state.turn;
   news(state, null, `The ${e.name} have completed the ${def.name} at ${state.stars[w.starId]!.name}.`, w.starId, "saga");
+  launchShip(state, e, w);
   if (def.effects.some((fx) => fx.kind === "cracker")) {
     for (const o of living(state)) if (o.id !== e.id) adjustRelation(o, e, -TERROR);
     news(state, null, `Every court in the galaxy recoils: the ${e.name} now hold a weapon that can kill worlds.`, w.starId, "saga");
@@ -213,6 +281,16 @@ function finishWork(state: GameState, e: Empire, w: GreatWork, def: GreatWorkDef
 
 function applyWork(state: GameState, e: Empire, w: GreatWork, def: GreatWorkDef): void {
   const since = state.turn - (w.finishedTurn ?? state.turn);
+  if (w.lost) return;
+  // Works finished before ships existed (older saves) launch their ship now.
+  if (SHIP_WORKS[w.workId] && !w.shipDesignId) launchShip(state, e, w);
+  // A ship work whose ship is gone: its effects end, and the galaxy remembers.
+  if (SHIP_WORKS[w.workId] && w.shipDesignId && !shipFleet(state, w)) {
+    w.lost = true;
+    news(state, null, `The ${e.name}'s ${def.name} has been destroyed.`, null, "saga");
+    return;
+  }
+  if (w.workId === "gw-worldship") worldshipTurn(state, e, w, since);
   for (const fx of def.effects) {
     switch (fx.kind) {
       case "money": e.treasury += fx.perTurn; break;
@@ -231,7 +309,7 @@ function applyWork(state: GameState, e: Empire, w: GreatWork, def: GreatWorkDef)
       case "hatch":
         if (since > 0 && since % fx.every === 0) hatch(state, e, fx.count, def.name);
         break;
-      case "cracker": crackerTurn(state, e); break;
+      case "cracker": crackerTurn(state, e, w); break;
       case "votes": break; // counted in votesOf
     }
   }
@@ -247,10 +325,10 @@ function hatch(state: GameState, e: Empire, count: number, from: string): void {
   news(state, e.id, `${count} new ${best.name}s have come out of the ${from} at ${s.name}.`, s.id);
 }
 
-function crackerTurn(state: GameState, e: Empire): void {
+function crackerTurn(state: GameState, e: Empire, w: GreatWork): void {
   const st = state.endgame![e.id]!;
   if ((st.crackAt ?? 0) > state.turn || busy(state, e.id)) return;
-  const f = crackerFleet(state, e);
+  const f = crackerFleet(state, e, w);
   const c = f ? state.colonies[f.starId!] : undefined;
   if (!c) return;
   st.crackAt = state.turn + CRACK_GAP;

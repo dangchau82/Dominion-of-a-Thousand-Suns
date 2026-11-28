@@ -12,6 +12,7 @@
 // Hooks in combat.ts `battle`: `veteranEdge` before the fight, `noteBattle` after it (before
 // losses are taken off the fleets). `processVeterans` runs once a turn.
 
+import { rallyToWorldship } from "./endgame";
 import { saveBattle, type BattleRecorder, type BattleRecord } from "./battleLog";
 import type { Unit } from "./combat";
 import { shipDesign } from "./designs";
@@ -147,6 +148,9 @@ function news(state: GameState, empireId: Id | null, text: string, starId: Id, k
 /** After a battle, before losses come off the fleets. */
 export function noteBattle(state: GameState, s: Star, a: Empire, b: Empire, rounds: number, units: Unit[], here: Fleet[], rec: BattleRecorder): BattleRecord {
   const record = saveBattle(state, s.id, a.id, b.id, rounds, units, rec);
+  // A Worldship in this battle: its owner's allies come to its defence (endgame.ts).
+  rallyToWorldship(state, a, b, s.id);
+  rallyToWorldship(state, b, a, s.id);
   const sides = [a, b] as const;
   const lost = [lossValue(state, units, 0), lossValue(state, units, 1)];
   const killed = [shipsLost(units, 0), shipsLost(units, 1)];

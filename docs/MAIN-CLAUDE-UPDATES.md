@@ -250,3 +250,5 @@ See `docs/CLAUDE-2-UPDATES.md`. New `fair.ts`, `games.ts`, `data/heroCareers.ts`
 ## 2026-11-27 09:25 (Claude 2): race saga engine
 See `docs/CLAUDE-2-UPDATES.md`. New `sagas.ts`, save v49. Inactive until Gemini's writing arrives. Two endings touch your areas (council votes, AI war choices): notes under "For the main Claude".
 
+### 2026-11-27: Claude 2: Sundering Engine and Worldship are real ships
+See `docs/CLAUDE-2-UPDATES.md`. Please add to the playtest queue: build each work, check the ship launches, sail the Engine over an enemy world at war (crack event), park the Worldship at an ally (relations and trade every 5 turns), attack it (allies join the war), kill it (work lost). AIs treat these ships as unarmed for now; yours if you want AIs to use them.

@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { newGame, type GameSettings } from "../src/engine";
 import { describeEvent, resolveEvent } from "../src/engine/events";
 import { relation } from "../src/engine/diplomacy";
-import { endgameVotes, fearedConquests, builderWorlds, gateReady, gateWorlds, pathsEarned, processEndgame, raceWork } from "../src/engine/endgame";
+import { endgameVotes, fearedConquests, builderWorlds, gateReady, gateWorlds, pathsEarned, processEndgame, raceWork, rallyToWorldship, shipFleet } from "../src/engine/endgame";
+import { designsOf } from "../src/engine/designs";
 import { CRACK_EVENT_ID, PATH_OFFER_PREFIX, WORK_SABOTAGE_ID } from "../src/engine/endgameEvents";
 import { PATH_WORKS, RACE_WORKS, WORK_BY_ID } from "../src/engine/data/greatWorks";
 import { RACES } from "../src/engine/data/races";
@@ -160,17 +161,23 @@ describe("work effects", () => {
     expect(g.fleets.at(-1)!.starId).toBe(e.capitalStarId);
   });
 
-  it("the Sundering Engine cracks an enemy world its main fleet sits over", () => {
+  it("the Sundering Engine is a ship of its own; over an enemy world it can crack it", () => {
     const { g, e } = finished("gw-sundering-engine");
     const foe = g.empires[1]!;
     e.atWar[1] = g.turn; foe.atWar[0] = g.turn;
     const target = foe.capitalStarId;
     const other = g.stars.find((x) => x.planet && !g.colonies[x.id])!;
     g.colonies[other.id] = { ...structuredClone(g.colonies[target]!), starId: other.id, isCapital: false };
-    const s = g.stars[target]!;
-    g.fleets.push({ id: g.nextFleetId++, empireId: 0, ships: { [Object.keys(g.fleets.find((f) => f.empireId === 0)!.ships)[0]!]: 50 }, x: s.x, y: s.y, starId: target, destStarId: null });
     g.pendingEvents = [];
-    processEndgame(g);
+    processEndgame(g); // launches the ship at our capital
+    const w = g.endgame![0]!.works[0]!;
+    const ship = shipFleet(g, w)!;
+    expect(ship.starId).toBe(e.capitalStarId);
+    expect(designsOf(g, 0).some((d) => d.id === w.shipDesignId)).toBe(false); // never buildable
+    expect(g.pendingEvents.some((x) => x.eventId === CRACK_EVENT_ID)).toBe(false);
+    const s = g.stars[target]!;
+    Object.assign(ship, { x: s.x, y: s.y, starId: s.id });
+    g.turn++; processEndgame(g);
     const p = g.pendingEvents.find((x) => x.eventId === CRACK_EVENT_ID)!;
     expect(p.colonyStarId).toBe(target);
     const rel = relation(g.empires[2]!, e);
@@ -178,6 +185,28 @@ describe("work effects", () => {
     expect(g.colonies[target]).toBeUndefined();
     expect(foe.capitalStarId).not.toBe(target);
     expect(relation(g.empires[2]!, e)).toBeLessThan(rel);
+  });
+
+  it("losing the ship ends the work; the Worldship's votes stop", () => {
+    const { g, e } = finished("gw-worldship");
+    processEndgame(g);
+    expect(endgameVotes(g, e, 100)).toBe(30);
+    const w = g.endgame![0]!.works[0]!;
+    g.fleets = g.fleets.filter((f) => f !== shipFleet(g, w));
+    g.turn++; processEndgame(g);
+    expect(w.lost).toBe(true);
+    expect(endgameVotes(g, e, 100)).toBe(0);
+    expect(g.events.some((x) => x.kind === "saga" && /Worldship Concordance has been destroyed/.test(x.text))).toBe(true);
+  });
+
+  it("allies go to war with anyone who attacks the Worldship", () => {
+    const { g, e } = finished("gw-worldship");
+    processEndgame(g);
+    const ally = g.empires[1]!, attacker = g.empires[2]!;
+    e.treaties[1] = { alliance: 1 }; ally.treaties[0] = { alliance: 1 };
+    const w = g.endgame![0]!.works[0]!;
+    rallyToWorldship(g, e, attacker, shipFleet(g, w)!.starId!);
+    expect(ally.atWar[attacker.id]).toBeDefined();
   });
 });
 
