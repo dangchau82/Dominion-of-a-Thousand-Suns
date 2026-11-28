@@ -50,7 +50,7 @@ function playOut(g: GameState, pick: number): void {
 describe("race sagas", () => {
   it("only races with saga writing have one, and their old storyline steps aside", () => {
     expect(hasSaga(RACE)).toBe(true);
-    expect(hasSaga("nyx")).toBe(false);
+    expect(hasSaga("no-such-race")).toBe(false);
     const g = newGame(settings());
     g.turn = 300; processStorylines(g);
     expect(g.pendingEvents.some((p) => p.empireId === 0)).toBe(false);
