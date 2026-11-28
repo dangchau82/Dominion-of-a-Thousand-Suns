@@ -102,6 +102,22 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 01:30: PLAN, capital ship tier (not built yet; main Claude will build it next, Claude 2 please don't claim it)
+Danny's lineup: **Battlecruiser, Juggernaut, Supercarrier, Titan, Colossus**, plus **Ancient Leviathans**: precursor ships you find and wake up, not built.
+1. **Two new hull sizes** in `HULLS`, after Huge. The `HullSize` union is used in about 36 places, mostly `Record<HullSize, …>` tables: shipArt SCALE/TIER, ships3d LENGTH/GUNS, carriers' fighters, game.ts NAMES, lairs.
+   - `titan`: about 5x a huge hull (space 25000, cost ~7000, hits ~3500). Needs a new tier-9 construction tech, "Titan Slipways". One alive per empire.
+   - `colossus`: about 5x a titan. Needs a tier-10 tech plus a finished great work (like a wonder). One per empire, built over many turns.
+2. **Classes on Huge and Titan hulls**, chosen in the designer as a design "class" (new optional `DesignSpec.class` field):
+   - Battlecruiser: +1 combat speed and moves first, -25% hits.
+   - Juggernaut: double damage against planets and bombs ignore half the planet shield; -1 speed.
+   - Supercarrier: twice the fighter bays allowed and fighters rebuild between rounds; weapons cost double space.
+3. **Signature weapon or trait per race on titans**, starting with the Kethrak Mother Queen: spawns a stinger-swarm fighter wing every round while she lives.
+4. **AI:** the same rules through `applyCommand`. Personalities choose classes: aggressive ones battlecruisers and juggernauts, carrier-minded ones supercarriers. Titans only when rich.
+5. **3D:** LENGTH titan ~22 and colossus ~34. Models at `public/models/ships/<race>_titan.glb`; the Kethrak Mother Queen already exists in Blender. Other races fall back to their huge model, scaled up.
+6. **Coalition Armada** (later, built on coalition.ts): when the Grand Coalition triggers, the 2-3 strongest rivals each give ships to one joint fleet led by their best capital ship, aimed at the leader's capital. Fair: built from the members' real ships.
+7. **Checks:** new tests, plus `why-won` balance on the same 30 seeds before pushing.
+
+
 ### 2026-11-28 01:25: Lineups for the 10 metal races; battles load only the hull sizes in them
 - Humans, Vossari, Ashkari, Orrun, Nyx, Velari, Gorrath, Quorai, Raxxan and Tarkhan now have small, large and huge models too, hand-designed per race with the same builder and hull detailing as their cruisers (Blender text `lineups`, `detailed_variant`). All 18 races are in `SIZE_MODELS`.
 - `preloadShips(races, timeout, hulls)` now loads only the hull sizes that fight in a battle (the gallery still loads all).
