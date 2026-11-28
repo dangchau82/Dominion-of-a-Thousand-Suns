@@ -102,6 +102,12 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+### 2026-11-28 02:50: Capital tier, step 3: the AI builds Titans
+- `titanDesign()` in basicAI: once an AI knows Titan Slipways it designs one Titan. It gets the best systems and guns filling the room, scrapping an unused design if all slots are full. Very aggressive AIs pick the Battlecruiser class; aggressive, low-honour AIs pick Juggernaut.
+- The AI builds its Titan at the capital (population 40+) when it is at war or rich and has none afloat. Normal warship choice ignores capital hulls.
+- 3-game check: one AI had a Titan afloat by T194. Balance on the same 30 seeds: technology 15, council 7, culture 4, no winner 4; median T321. Within noise of the last runs.
+
+
 ### 2026-11-28 02:40: Capital tier, step 2: ship classes
 - New optional `shipClass` on designs (`ShipClass` in `data/ships.ts`), for Huge, Titan and Colossus hulls only:
   - battlecruiser: fires first every round, 25% fewer hits.

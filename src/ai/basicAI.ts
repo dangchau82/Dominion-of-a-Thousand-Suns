@@ -11,7 +11,7 @@ import type { Command } from "../engine/commands";
 import { bayPart, canUseFuelTanks, designStats, fighterBayChoices, partChoices, weaponFitsHull, type DesignSpec } from "../engine/designs";
 import type { ProposalInput } from "../engine/diplomacy";
 import { fieldTier, researchChoices } from "../engine/tech";
-import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, maxMissileBases, type HullSize, type ShipDesign } from "../engine/data/ships";
+import { COLONY_POD, FUEL_TANKS, MAX_DESIGNS, isCapitalHull, maxMissileBases, type HullSize, type ShipDesign, type ShipClass } from "../engine/data/ships";
 import { TECHS, type Tech } from "../engine/data/techs";
 
 const TECH_TIERS = new Map(TECHS.map((t) => [t.id, t.tier]));
@@ -646,6 +646,7 @@ function designs(ctx: Ctx): void {
   const { view } = ctx;
   if (view.turn % 12 !== 3) return;
   const me = view.me;
+  titanDesign(ctx);
   const ownCount = view.designs.filter((d) => d.empireId !== null).length;
   // A long-range colony ship, once fuel tanks are known. Never scraps a warship to make room.
   if (canUseFuelTanks(me) && ownCount < MAX_DESIGNS && !view.designs.some((d) => d.role === "colony" && d.empireId !== null)) {
@@ -715,7 +716,7 @@ function designs(ctx: Ctx): void {
 
   // Skip if it isn't clearly better than our best existing warship.
   const own = view.designs.filter((d) => d.empireId !== null);
-  const current = own.filter(isWarship).sort((a, b) => b.cost - a.cost)[0];
+  const current = own.filter((d) => isWarship(d) && !isCapitalHull(d.hull)).sort((a, b) => b.cost - a.cost)[0];
   const value = (d: DesignSpec) => {
     const s = designStats(me, d);
     const dmg = s.weapons.reduce((a, w) => a + w.count * (w.min + w.max) / 2, 0)
@@ -742,6 +743,45 @@ function designs(ctx: Ctx): void {
 
 // ---------- production ----------
 
+/** A Titan design once Titan Slipways is known: best systems, guns filling the room, and a class that fits the personality. */
+function titanDesign(ctx: Ctx): void {
+  const { view } = ctx;
+  const me = view.me;
+  if (!me.research.known.includes("titan-slipways")) return;
+  const own = view.designs.filter((d) => d.empireId !== null);
+  if (own.some((d) => d.hull === "titan")) return;
+  let scrap: string | null = null;
+  if (own.length >= MAX_DESIGNS) { // make room: our cheapest design with no ships and nothing building it
+    const used = new Set(view.fleets.flatMap((f) => Object.keys(f.ships).filter((k) => (f.ships[k] ?? 0) > 0)));
+    const building = new Set(view.colonies.map((c) => c.buildTemplate));
+    scrap = own.filter((d) => !used.has(d.id) && !building.has(d.id)).sort((x, y) => x.cost - y.cost)[0]?.id ?? null;
+    if (!scrap) return;
+  }
+  const parts = partChoices(me);
+  const beam = bestWeapon(parts.weapons, ["beam"]);
+  const missile = bestWeapon(parts.weapons, ["missile", "torpedo"]);
+  if (!beam && !missile) return;
+  const shipClass: ShipClass | undefined = ctx.aggression > 0.7 ? "battlecruiser" : ctx.aggression > 0.5 && ctx.honor < 0.5 ? "juggernaut" : undefined;
+  const spec: DesignSpec = {
+    name: "", hull: "titan",
+    computer: bestOf(parts.computer, "computer")?.id ?? null, shield: bestOf(parts.shield, "shield")?.id ?? null,
+    ecm: bestOf(parts.ecm, "ecm")?.id ?? null, armor: bestOf(parts.armor, "armor")?.id ?? null,
+    weapons: [], specials: [], ...(shipClass ? { shipClass } : {}),
+  };
+  const banks = [beam && { id: beam.id, share: missile ? 0.65 : 1 }, missile && { id: missile.id, share: 1 }].filter((b): b is { id: string; share: number } => !!b);
+  for (const b of banks) {
+    const st = designStats(me, spec);
+    const unit = designStats(me, { ...spec, weapons: [{ techId: b.id, count: 1 }] }).spaceUsed - designStats(me, { ...spec, weapons: [] }).spaceUsed;
+    const n = Math.floor(((st.space - st.spaceUsed) * b.share) / Math.max(1e-6, unit));
+    if (n > 0) spec.weapons.push({ techId: b.id, count: n });
+  }
+  if (!spec.weapons.length || designStats(me, spec).spaceUsed > designStats(me, spec).space) return;
+  const names = new Set(view.designs.map((d) => d.name.toLowerCase()));
+  spec.name = ["Throne of Stars", "Last Word", "Worldbreaker", "Crown of War", "Sovereign Dawn"].find((n) => !names.has(n.toLowerCase())) ?? `Titan ${me.id}`;
+  if (scrap) ctx.cmds.push({ type: "scrapDesign", designId: scrap });
+  ctx.cmds.push({ type: "createDesign", spec });
+}
+
 function sliders(ship: number, defense: number, industry: number, ecology: number, research: number): SliderSet {
   return { ship, defense, industry, ecology, research };
 }
@@ -751,7 +791,10 @@ function production(ctx: Ctx, settleTargets: number): void {
   const scouts = view.fleets.reduce((n, f) => n + (f.ships.scout ?? 0), 0);
   const colonyShips = view.fleets.reduce((n, f) => n + colonyIds(ctx, f.ships).reduce((k, id) => k + (f.ships[id] ?? 0), 0), 0);
   const unexplored = view.stars.filter((s) => !view.knowledge[s.id]?.explored).length;
-  const warship = view.designs.filter(isWarship).sort((a, b) => b.cost - a.cost)[0];
+  const warship = view.designs.filter((d) => isWarship(d) && !isCapitalHull(d.hull)).sort((a, b) => b.cost - a.cost)[0];
+  // A Titan: built at the capital when the empire is rich or at war and has none afloat (one allowed).
+  const titan = view.designs.filter((d) => d.empireId !== null && d.hull === "titan" && isWarship(d)).sort((a, b) => b.cost - a.cost)[0];
+  const titanAfloat = !!titan && view.fleets.some((f) => Object.entries(f.ships).some(([id, n]) => n > 0 && ctx.designs.get(id)?.hull === "titan"));
   const atWar = ctx.wars.length > 0;
   const fleetPower = view.fleets.reduce((a, f) => a + warPower(ctx, f), 0);
   const totalProd = view.colonies.reduce((a, c) => a + c.budget.ship + c.budget.defense + c.budget.industry + c.budget.ecology + c.budget.research, 0);
@@ -778,7 +821,11 @@ function production(ctx: Ctx, settleTargets: number): void {
     let s: SliderSet;
     const basesFull = c.missileBases >= maxMissileBases(c.population);
     const def = basesFull ? 0 : atWar && (enemyNear(c) || threatened.has(c.starId)) ? 25 : atWar ? 5 : 0;
-    if (c.isCapital) {
+    if (c.isCapital && titan && !titanAfloat && (atWar || rich) && c.population >= 40) {
+      want = titan.id;
+      s = sliders(atWar ? 60 : 45, def, 0, growing ? 10 : 0, 0);
+      s.research = 100 - s.ship - s.defense - s.ecology;
+    } else if (c.isCapital) {
       want = scouts < 2 && unexplored > 0 ? "scout"
         : needShips && (atWar || colonyShips >= settleTargets) ? warship!.id
         : settleTargets > colonyShips ? pod
