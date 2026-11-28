@@ -60,9 +60,12 @@ function fill(text: string, state: GameState, p: PendingEvent): string {
 /** The event's text with names filled in, for showing to its empire. */
 export function describeEvent(state: GameState, p: PendingEvent) {
   const def = (EVENT_BY_ID.get(p.eventId) ?? sagaEventDef(p.eventId))!;
+  const subtitle = storyLabel(p.eventId) ?? sagaLabel(p.eventId);
+  const e = state.empires[p.empireId]!;
   return {
-    title: def.title, art: def.art, text: fill(def.text, state, p), subtitle: storyLabel(p.eventId) ?? sagaLabel(p.eventId),
-    choices: def.choices.map((c) => ({ label: fill(c.label, state, p), result: fill(c.result, state, p), effects: c.effects })),
+    title: def.title, art: def.art, text: fill(def.text, state, p), subtitle,
+    // Story choices show the scaled amounts the player will really get (see scaleStoryEffect).
+    choices: def.choices.map((c) => ({ label: fill(c.label, state, p), result: fill(c.result, state, p), effects: subtitle !== null ? c.effects.map((fx) => scaleStoryEffect(state, e, fx)) : c.effects })),
   };
 }
 
@@ -129,9 +132,33 @@ export function resolveEvent(state: GameState, p: PendingEvent, choice: number):
   noteGamesChoice(state, p, choice);
   noteSagaChoice(state, p, choice);
   const e = state.empires[p.empireId]!;
-  for (const fx of c.effects) applyEffect(state, e, p, fx);
+  const story = storyLabel(p.eventId) !== null || sagaLabel(p.eventId) !== null;
+  for (const fx of c.effects) applyEffect(state, e, p, story ? scaleStoryEffect(state, e, fx) : fx);
   state.events.push({ turn: state.turn, empireId: e.id, kind: "info", text: `${def.title}: ${fill(c.result, state, p)}` });
   return null;
+}
+
+/**
+ * Story and saga choices grow with the game (2026-11-28, main Claude; Danny: "the forks should give better bonuses").
+ * Written amounts suit turn 25; by turn 200 a +200 research choice was noise. Money, research, culture, factories and
+ * people scale by 1 + turn / 80 (turn 140: x2.75), and an empire in the smaller half of the galaxy (by colonies) gets
+ * its GAINS another x1.5: the story is a lifeline for peoples who are falling behind. Costs scale by turn only.
+ */
+const STORY_SCALED = new Set(["money", "research", "culture", "factories", "population"]);
+export function storyScale(state: GameState, e: Empire, gain: boolean): number {
+  const byTurn = 1 + state.turn / 80;
+  if (!gain) return byTurn;
+  const counts = state.empires.filter((x) => x.alive).map((x) => Object.values(state.colonies).filter((c) => c.empireId === x.id).length).sort((a, b) => a - b);
+  const mine = Object.values(state.colonies).filter((c) => c.empireId === e.id).length;
+  const median = counts[Math.floor(counts.length / 2)] ?? 0;
+  return byTurn * (mine < median ? 1.5 : 1);
+}
+function scaleStoryEffect(state: GameState, e: Empire, fx: EventEffect): EventEffect {
+  if (!STORY_SCALED.has(fx.kind) || !("amount" in fx)) return fx;
+  const amount = (fx as { amount: number }).amount;
+  // People stay modest: whole numbers, and never more than double the written amount.
+  const k = fx.kind === "population" ? Math.min(2, storyScale(state, e, amount > 0)) : storyScale(state, e, amount > 0);
+  return { ...fx, amount: Math.round(amount * k) } as EventEffect;
 }
 
 /** Apply one event effect to an empire (also used by money sinks). */

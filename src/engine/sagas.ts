@@ -44,6 +44,12 @@ export const ACT_JITTER = 12;
 export const SAGA_GAP = 10;
 /** The ending comes at least this long after act 4 began. */
 export const ENDING_AFTER = 20;
+/**
+ * Endings need a little less than the written thresholds (2026-11-28, main Claude): with the exact numbers about
+ * 90% of sagas fell through to the fallback ending. Eased by 2 the special endings play about 4 times in 10.
+ * The dark civil-war endings keep their exact thresholds, so they still take a truly ruthless path.
+ */
+export const ENDING_EASE = 2;
 export const SCORES: SagaScore[] = ["mercy", "openness", "tradition"];
 
 // Ending outcome numbers (in scale with the game; tuned by the main Claude if needed).
@@ -52,13 +58,13 @@ export const OUTCOME = {
   civilWarUnrest: 60,
   allyRelation: 60,
   fearChill: 12,
-  fearResearch: 500,
+  fearResearch: 1500, // 2026-11-28: 500 -> 1500, ending rewards were too small for turn 225+
   councilShare: 0.15,
   legendShips: 8,
   exodusColonies: 2,
   exodusPeople: 4,
   exodusCapitalLoss: 0.3,
-  ascensionResearch: 500,
+  ascensionResearch: 1500, // 2026-11-28: 500 -> 1500 (every field)
   graceLoss: 0.25,
   graceCulture: 6,
 } as const;
@@ -152,12 +158,14 @@ function nextBeat(state: GameState, e: Empire, run: SagaRun): string | null {
 
 /** The first ending whose thresholds hold (the last is the fallback). */
 export function endingFor(e: Empire | { raceId: string }, run: SagaRun): SagaEnding | undefined {
-  return SAGA_ENDINGS.filter((x) => x.raceId === e.raceId).find((x) =>
-    SCORES.every((s) => {
+  return SAGA_ENDINGS.filter((x) => x.raceId === e.raceId).find((x) => {
+    const ease = x.outcome === "civilWar" ? 0 : ENDING_EASE;
+    return SCORES.every((s) => {
       const t = x.needs?.[s];
       if (!t) return true;
-      return (t.min === undefined || run.scores[s] >= t.min) && (t.max === undefined || run.scores[s] <= t.max);
-    }) && (x.needsFlags ?? []).every((f) => run.flags.includes(f)));
+      return (t.min === undefined || run.scores[s] >= t.min - ease) && (t.max === undefined || run.scores[s] <= t.max + ease);
+    }) && (x.needsFlags ?? []).every((f) => run.flags.includes(f));
+  });
 }
 
 /** The rival a beat is about: an enemy if at war, otherwise the contact we like least. */

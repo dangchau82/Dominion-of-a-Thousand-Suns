@@ -79,6 +79,9 @@ function win(state: GameState, empireId: Id, kind: VictoryKind): void {
   ev(state, null, `The ${e.name} have won the galaxy ${how[kind]}!`);
 }
 
+/** Turns after the Grand Coalition forms during which the council will not crown its giant (see resolveCouncil). */
+export const ARMADA_GRACE = 30;
+
 export function convene(state: GameState): void {
   const c = state.council;
   if (state.winner || c.defied || c.session || c.awaitingVerdict !== null || state.turn < c.nextTurn) return;
@@ -126,6 +129,14 @@ export function resolveCouncil(state: GameState): void {
   ev(state, null, `Council vote: the ${state.empires[a]!.name} ${tally.get(a)}, the ${state.empires[b]!.name} ${tally.get(b)} (needed ${need}). ${lines.join("; ")}.`);
   if (elected === null) {
     ev(state, null, "No one reached three fifths. The council will meet again.");
+    return;
+  }
+  // The walkout (Danny's 2026-11-28 playtest: the Armada was one turn from Helios when the council crowned the giant):
+  // while the Grand Coalition's Armada is in the field against an empire, the council will not crown it.
+  // If the giant is still standing ARMADA_GRACE turns after the coalition formed, the walkout ends.
+  const co = state.coalition;
+  if (co && co.leaderId === elected && (co.armadaStarId ?? null) !== null && state.turn - co.since < ARMADA_GRACE) {
+    ev(state, null, `The Grand Coalition walks out of the council: no crown for the ${state.empires[elected]!.name} while the Armada flies. The council will meet again.`);
     return;
   }
   const player = state.empires.find((e) => e.isPlayer);

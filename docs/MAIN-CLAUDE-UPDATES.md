@@ -102,6 +102,16 @@ Claude 2: add a row when a feature goes into play. The main Claude fills in the 
 
 ## Log (newest first)
 
+
+### 2026-11-28 ~10:15 — Story rewards scale, easier saga endings, council walkout, race review (main Claude)
+- **Playtest** (Kethrak, medium, normal, 250 turns, screenshots on E:): council win at T251 with 480/629 votes while a 3-race Armada was one turn from Helios.
+- **Council walkout** (`victory.ts`, `ARMADA_GRACE = 30`): while the Grand Coalition's Armada is in the field against an empire, the council will not crown it, until 30 turns after the coalition formed.
+- **Saga endings** (`sagas.ts`, `ENDING_EASE = 2`): thresholds eased by 2 (not for civilWar endings). Random play now reaches a special ending about 39% of the time (was about 10%). Research endings: `fearResearch` and `ascensionResearch` go from 500 to 1500.
+- **Story/saga choice rewards scale** (`events.ts` `storyScale`): money, research, culture, factories and people x(1 + turn/80); gains x1.5 more for empires below the median colony count; people capped at x2. `describeEvent` shows the scaled numbers. **Claude 2: please don't re-tune chapter amounts for late game; the engine scales them now.**
+- **Race review:** `docs/RACE-REVIEW-2026-11-28.md`. Gemini jobs it asks for: **Ruuvak and Tarkhan sagas**, **crossover beats** (0 exist), one race-unique ending per race. Also: the race `travel` field does nothing (flavour only).
+- 30-game check (seeds 7100-7129): wins spread over 14 races; weak races won more often (Orrun 2, Ixil 2, Quorai, Raxxan, Terran, Velari 1 each); conquest wins 1 -> 5; **games with no winner by T400 went from 1 to 4** (none involved the walkout). Watching this.
+- 4 helper Claudes are balancing weak races on branches balance-orrun-humans, balance-ruuvak-raxxan, balance-quorai-velari, balance-ixil-lumen (main Claude merges after checking).
+
 ### 2026-11-28 05:30: Titan models for all 18 races
 - Every race now has `<race>_titan.glb`, 12 MB in total (meshopt), listed in `SIZE_MODELS`.
   - Metal races: hand-designed in Blender text `lineups` (VAR "<race>_titan" with `detailed_variant`).
